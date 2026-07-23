@@ -1,0 +1,46 @@
+@using Sense.Application.DTOs.StatementDTOs
+@model StatementForCreateDto
+
+
+<form asp-area="admin" asp-controller="Statement" asp-action="Add" method="POST" class="form">
+    <div class="container-xxl">
+        <div class="card card-flush mb-10">
+            <div class="card-header">
+                <h3 class="card-title">املأ بيانات العبارة</h3>
+            </div>
+            <div class="card-body pt-0">
+                <div class="row mb-5">
+                    <div class="col-md-12">
+                        <label asp-for="Text" class="form-label required">نص العبارة</label>
+                        <input type="text" asp-for="Text" class="form-control" placeholder="مثال: توصيل سريع لجميع المناطق" />
+                        <span asp-validation-for="Text" class="text-danger fs-7"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <label asp-for="IconClass" class="form-label">الأيقونة (إختياري)</label>
+                        <input type="text" asp-for="IconClass" class="form-control" placeholder="مثال: fas fa-truck" />
+                        <span asp-validation-for="IconClass" class="text-danger fs-7"></span>
+                        <div class="text-muted fs-7 mt-1">أدخل صنف أيقونة Font Awesome مثل fas fa-shield-alt</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="SortOrder" class="form-label required">الترتيب</label>
+                        <input type="number" asp-for="SortOrder" class="form-control" />
+                        <span asp-validation-for="SortOrder" class="text-danger fs-7"></span>
+                    </div>
+                </div>
+
+                <!-- Submit & Reset Buttons -->
+                <div class="d-flex gap-3 mt-6">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ki-duotone ki-check fs-2"></i> إنشاء
+                    </button>
+                    <button type="reset" class="btn btn-light-warning">
+                        <i class="ki-duotone ki-refresh fs-2"></i> إعادة الضبط
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

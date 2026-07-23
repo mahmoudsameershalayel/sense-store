@@ -1,0 +1,43 @@
+@{
+    var formAction = ViewBag.FormAction as string ?? "Index";
+    var placeholder = ViewBag.Placeholder as string ?? "ابحث عن منتجك المفضل...";
+    var isMobile = ViewBag.IsMobile as bool? ?? false;
+}
+
+@if (isMobile)
+{
+    <form class="d-flex align-items-center w-100 mobile-search"
+          method="get"
+          asp-controller="Home"
+          asp-action="@formAction">
+
+        <input type="text"
+               id="searchInputMobile"
+               name="searchTerm"
+               class="form-control rounded-pill"
+               placeholder="@placeholder"
+               aria-label="بحث" />
+
+        <button type="submit"
+                class="btn btn-primary rounded-circle d-flex justify-content-center align-items-center"
+                aria-label="بحث">
+            <i class="bx bx-search"></i>
+        </button>
+    </form>
+}
+else
+{
+    <form method="get" asp-controller="Home" asp-action="@formAction" role="search">
+        <div class="sf-search">
+            <input type="search"
+                   id="searchInput"
+                   name="searchTerm"
+                   placeholder="@placeholder"
+                   aria-label="بحث في المنتجات" />
+            <button type="submit" aria-label="بحث">
+                <i class="bx bx-search"></i>
+                <span class="d-none d-sm-inline">بحث</span>
+            </button>
+        </div>
+    </form>
+}

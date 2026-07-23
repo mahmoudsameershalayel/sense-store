@@ -1,0 +1,22 @@
+﻿<div>
+    <p><strong>رقم الحجز:</strong> @Model.Id</p>
+    <p><strong>موديل السيارة:</strong> @Model.ModelYear</p>
+    <p><strong>تفاصيل الحجز:</strong> @Model.Details</p>
+    <p><strong>تاريخ التقديم:</strong> @Model.CreatedAtDate</p>
+    <p><strong>تاريخ الحجز:</strong> @Model.ScheduledDate</p>
+    <p><strong>وقت الحجز:</strong> @Model.ScheduledTime</p>
+    <p><strong>حالة الحجز:</strong> @Model.Status</p>
+    <p><strong>نوع الخدمة:</strong> @Model.ServiceType</p>
+
+    <hr>
+
+    <p><strong>العميل:</strong> @Model.Customer.FullName</p>
+    <p><strong>إيميل العميل:</strong> @Model.Customer.Email</p>
+    <p><strong>رقم هاتف العميل:</strong> @Model.Customer.PhoneNumber</p>
+
+    <hr>
+
+    <p><strong>الفرع:</strong> @Model.Branch.BranchName</p>
+    <p><strong>عنوان الفرع:</strong> @Model.Branch.BranchAddress</p>
+    <p><strong>رقم هاتف الفرع:</strong> @Model.Branch.PhoneNumber</p>
+</div>

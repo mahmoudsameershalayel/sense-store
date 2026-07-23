@@ -1,0 +1,98 @@
+.card {
+    border-radius: 12px;
+    transition: box-shadow 0.3s ease-in-out, border 0.3s ease-in-out;
+    border: 1px solid transparent;
+}
+
+    .card:hover {
+        box-shadow: 0 0 10px rgba(0,0,0,0.15);
+        border: 1px solid #061C42;
+    }
+
+    .card img {
+        height: 150px;
+        width: 100%;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+
+.price {
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.currency {
+    font-size: 0.7rem;
+    color: #555;
+    font-weight: 400;
+}
+
+.out-of-stock-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.category-badge-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+    background-color: #061C42;
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 14px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.square-cart-btn {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+    .square-cart-btn:hover {
+        background-color: #061C42;
+        color: white;
+    }
+
+/* Favorite (heart) button */
+.fav-btn {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    z-index: 2;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #253F8E;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    font-size: 1rem;
+    padding: 0;
+}
+
+    .fav-btn.active {
+        color: #e53e3e;
+    }

@@ -1,0 +1,36 @@
+﻿@using Sense.Domain.Enums
+@using Sense.Application.DTOs.AppointmentDTOs
+@using Sense.Infrastructure.Extensions
+@model IEnumerable<AppointmentDto>
+@foreach (var item in Model)
+{
+    <tr>
+        <td>@item.Id#</td>
+        <td>@item.ModelYear</td>
+        <td>@(item.Brand?.Name ?? "N/A")</td>
+        <td>@(item.Service?.TitleAr ?? "N/A")</td>
+        <td>@item.CreatedAtDate</td>
+        <td>@(item.ScheduledDate ?? "لم يتم التعيين")</td>
+        <td>@(item.ScheduledTime ?? "لم يتم التعيين")</td>
+        <td>@(item.Branch?.BranchName ?? "لم يتم التعيين")</td>
+        <td>
+            @{
+                var badgeClass = item.Status switch
+                {
+                    "Completed" => "bg-success",
+                    "Pending" => "bg-warning text-dark",
+                    "Scheduled" => "bg-primary",
+                    _ => "bg-danger"
+                };
+                var statusEnum = (AppointmentStatus)Enum.Parse(typeof(AppointmentStatus), item.Status);
+                var arabicStatus = statusEnum.GetDisplayName();
+            }
+            <span class="badge @badgeClass px-3 py-2">@arabicStatus</span>
+        </td>
+        <td>
+            <a href="/Appointment/Details/@item.Id" class="btn info-btn btn-sm">
+                <i class="fas fa-info-circle"></i>
+            </a>
+        </td>
+    </tr>
+}

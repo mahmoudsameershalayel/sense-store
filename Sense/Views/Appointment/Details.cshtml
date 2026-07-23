@@ -1,0 +1,164 @@
+﻿@using Sense.Application.DTOs.AppointmentDTOs
+@model AppointmentDto
+@section Styles
+{
+    <style type="text/css">
+        .contact-banner {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background: url('@Url.Content("~/assets/img/freemaintenance.jpg")') no-repeat center center/cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+            .contact-banner::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1;
+            }
+
+        .contact-banner-text {
+            position: relative;
+            z-index: 2;
+        }
+
+            .contact-banner-text h1 {
+                font-size: 3rem;
+                color: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .contact-banner-text p {
+                font-size: 1.25rem;
+            }
+    </style>
+}
+
+<div class="contact-banner">
+    <div class="contact-banner-text">
+        <h1>
+            تفاصيل الحجز
+        </h1>
+    </div>
+</div>
+
+<section id="store" class="section py-5" dir="rtl">
+    <div class="container py-5">
+        <div class="card shadow-sm mb-5">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title" style="color:white;">
+                    <i class="ki-duotone ki-calendar-edit fs-2 me-2"></i>
+                    تفاصيل الحجز
+                </h3>
+            </div>
+
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div><strong>رقم الحجز:</strong> @Model.Id</div>
+                        <div><strong>موديل السيارة:</strong> @(Model.ModelYear ?? "لم يتم التعيين")</div>
+                        <div><strong>تفاصيل الحجز:</strong> @(Model.Details ?? "لم يتم التعيين")</div>
+                        <div><strong>تاريخ التقديم:</strong> @(Model.CreatedAtDate ?? "لم يتم التعيين")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div><strong>تاريخ الحجز:</strong> @(Model.ScheduledDate ?? "لم يتم التعيين")</div>
+                        <div><strong>وقت الحجز:</strong> @(Model.ScheduledTime ?? "لم يتم التعيين")</div>
+                        <div><strong>حالة الحجز:</strong> @(Model.Status ?? "لم يتم التعيين")</div>
+                        <div><strong>نوع الخدمة:</strong> @(Model.Service?.TitleAr ?? "لم يتم التعيين")</div>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <h5 class="mb-3 text-primary">
+                    <i class="ki-duotone ki-user fs-2 me-2"></i>
+                    معلومات العميل
+                </h5>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div><strong>الاسم:</strong> @(Model.Customer?.FullName ?? "لم يتم التعيين")</div>
+                        <div><strong>البريد الإلكتروني:</strong> @(Model.Customer?.Email ?? "لم يتم التعيين")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div><strong>رقم الهاتف:</strong> @(Model.Customer?.PhoneNumber ?? "لم يتم التعيين")</div>
+                    </div>
+                </div>
+                <hr class="my-4" />
+                <h5 class="mb-3 text-primary">
+                    <i class="ki-duotone ki-building fs-2 me-2"></i>
+                    معلومات السيارة
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div><strong>ماركة السيارة:</strong> @(Model.Brand?.Name ?? "لم يتم التعيين")</div>
+                        <div><strong>موديل السيارة:</strong> @(Model.Model?.Name ?? "لم يتم التعيين")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div><strong>سنة الموديل:</strong> @(Model.ModelYear ?? "لم يتم التعيين")</div>
+                    </div>
+                </div>
+                <hr class="my-4" />
+
+                <h5 class="mb-3 text-primary">
+                    <i class="ki-duotone ki-user fs-2 me-2"></i>
+                    معلومات المشرف
+                </h5>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div>
+                            <strong>الاسم:</strong>
+                            @{
+                                var fullName = Model.Supervisor?.FullName.Trim();
+                            }
+                            @(string.IsNullOrWhiteSpace(fullName) ? "لم يتم التعيين" : fullName)
+                        </div>
+                        <div><strong>البريد الإلكتروني:</strong> @(Model.Supervisor?.Email ?? "لم يتم التعيين")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div><strong>رقم الهاتف:</strong> @(Model.Supervisor?.PhoneNumber ?? "لم يتم التعيين")</div>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <h5 class="mb-3 text-primary">
+                    <i class="ki-duotone ki-building fs-2 me-2"></i>
+                    معلومات الفرع
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div><strong>اسم الفرع:</strong> @(Model.Branch?.BranchName ?? "لم يتم التعيين")</div>
+                        <div><strong>عنوان الفرع:</strong> @(Model.Branch?.BranchAddress ?? "لم يتم التعيين")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div><strong>رقم الهاتف:</strong> @(Model.Branch?.PhoneNumber ?? "لم يتم التعيين")</div>
+                    </div>
+                </div>
+                @if (Model.Status == "Rejected" && !string.IsNullOrWhiteSpace(Model.RejectReason))
+                {
+                    <hr class="my-4" />
+                    <div class="alert alert-danger" role="alert">
+                        <strong>سبب الرفض:</strong> @Model.RejectReason
+                    </div>
+                }
+                @if (Model.Status == "Canceled")
+                {
+                    <hr class="my-4" />
+                    <div class="alert alert-danger" role="alert">
+                        <strong>الحجز ملغي :</strong> قام مسؤول النظام بإلغاء الحجز
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

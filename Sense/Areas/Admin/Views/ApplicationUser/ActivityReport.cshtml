@@ -1,0 +1,804 @@
+﻿@using Sense.Application.DTOs.AppointmentDTOs
+@using Sense.Application.DTOs.InvoiceDTOs
+@using Sense.Application.DTOs.OrderDTOs
+@model Sense.Application.DTOs.CustomerDTOs.CustomerReportDto
+@{
+    ViewData["Title"] = "تقرير نشاط العميل";
+
+    var keys = Model.ActivityLogStats?.Keys.ToList() ?? new List<string>();
+    var values = Model.ActivityLogStats?.Values.ToList() ?? new List<int>();
+}
+@section Styles {
+    <style>
+        /* Import Google Fonts for better Arabic text rendering */
+        @@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
+        
+        body {
+            font-family: 'Cairo', 'Tajawal', sans-serif !important;
+        }
+        
+        .card-header {
+            background-color: var(--bs-light);
+            color: var(--bs-dark);
+        }
+        .financial-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+        }
+        .maintenance-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 15px;
+        }
+        .free-maintenance-detail-card {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-box {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .stat-box h6 {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        .stat-box h3, .stat-box h5 {
+            font-weight: 800;
+            color: white;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        .stat-box small {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        .stat-box p {
+            font-weight: 600;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        .stat-box .fw-bold {
+            font-weight: 800 !important;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        .offer-badge {
+            background: rgba(255, 255, 255, 0.9);
+            color: #2c3e50;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .offer-badge span {
+            color: #2c3e50;
+            font-weight: 700;
+        }
+        .transaction-row:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* Enhanced text readability */
+        h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .text-primary {
+            color: #3498db !important;
+            font-weight: 600;
+        }
+        
+        .display-6 {
+            font-weight: 800;
+            font-size: 2.5rem;
+        }
+        
+        .card-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .card-header h5 {
+            font-weight: 700;
+            color: white !important;
+        }
+        
+        .table th {
+            font-weight: 700;
+            color: #2c3e50;
+            background-color: #ecf0f1;
+            border-color: #bdc3c7;
+        }
+        
+        .table td {
+            font-weight: 500;
+            color: #34495e;
+        }
+        
+        .badge {
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 6px 12px;
+        }
+        
+        .alert {
+            font-weight: 500;
+        }
+        
+        .alert strong {
+            font-weight: 700;
+        }
+        
+        /* Fix alert text colors in stat-box */
+        .stat-box .alert {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: #2c3e50 !important;
+        }
+        
+        .stat-box .alert h5 {
+            color: #2c3e50 !important;
+            text-shadow: none;
+        }
+        
+        .stat-box .alert p {
+            color: #2c3e50 !important;
+            text-shadow: none;
+        }
+        
+        .stat-box .alert small {
+            color: #6c757d !important;
+            text-shadow: none;
+        }
+        
+        .stat-box .alert .text-success {
+            color: #28a745 !important;
+        }
+        
+        .stat-box .alert .text-danger {
+            color: #dc3545 !important;
+        }
+        
+        .stat-box .alert .text-warning {
+            color: #ffc107 !important;
+        }
+        
+        .stat-box .alert .text-muted {
+            color: #6c757d !important;
+        }
+        
+        .text-success {
+            color: #27ae60 !important;
+            font-weight: 600;
+        }
+        
+        .text-danger {
+            color: #e74c3c !important;
+            font-weight: 600;
+        }
+        
+        .text-warning {
+            color: #f39c12 !important;
+            font-weight: 600;
+        }
+        
+        .text-muted {
+            color: #7f8c8d !important;
+            font-weight: 500;
+        }
+        
+        .fw-bold {
+            font-weight: 700 !important;
+        }
+        
+        /* Main container text styling */
+        .bg-light p {
+            font-weight: 600;
+        }
+        
+        .bg-light h5 {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        /* Row text styling in stat-box */
+        .stat-box .row small {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .stat-box .row .fw-bold {
+            color: white;
+            font-weight: 800 !important;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+    </style>
+}
+
+<div class="container-fluid mt-4" dir="rtl" style="font-family: 'Cairo', 'Tajawal', sans-serif;">
+    <h2 class="text-center mb-4 text-primary fw-bold">تقرير نشاط العميل الشامل</h2>
+
+    <!-- معلومات العميل الأساسية -->
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-body">
+            <h4 class="mb-3">
+                <i class="bi bi-person"></i> @Model.CustomerName
+            </h4>
+            <div class="row text-center">
+                <div class="col-md-4 mb-3">
+                    <div class="bg-light p-3 rounded-3 shadow-sm">
+                        <h5>إجمالي المواعيد</h5>
+                        <p class="display-6 text-success">@Model.TotalAppointments</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="bg-light p-3 rounded-3 shadow-sm">
+                        <h5>إجمالي الفواتير</h5>
+                        <p class="display-6 text-danger">@Model.TotalInvoices</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="bg-light p-3 rounded-3 shadow-sm">
+                        <h5>إجمالي الطلبات</h5>
+                        <p class="display-6 text-info">@Model.TotalOrders</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- المعلومات المالية -->
+    <div class="card financial-card mb-4 shadow-lg">
+        <div class="card-header">
+            <h5 class="card-title text-white mb-0">
+                <i class="bi bi-wallet2"></i> المعلومات المالية
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-box text-center">
+                        <h6>النقاط الحالية</h6>
+                        <h3>@Model.CurrentPoints <small>نقطة</small></h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-box text-center">
+                        <h6>رصيد المحفظة</h6>
+                        <h3>@Model.WalletBalance.ToString("N2") <small>ريال</small></h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-box text-center">
+                        <h6>معاملات النقاط</h6>
+                        <h3>@Model.TotalPointsTransactions</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-box text-center">
+                        <h6>معاملات المحفظة</h6>
+                        <h3>@Model.TotalWalletTransactions</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- معلومات الصيانة المجانية -->
+    <div class="card maintenance-card mb-4 shadow-lg">
+        <div class="card-header">
+            <h5 class="card-title text-white mb-0">
+                <i class="bi bi-tools"></i> معلومات الصيانة المجانية
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="stat-box">
+                        <h6>سجلات الصيانة المكتملة</h6>
+                        <h3>@Model.CompletedMaintenanceRecords</h3>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stat-box">
+                        <h6>عرض الصيانة المجانية النشط</h6>
+                        @if (Model.HasActiveFreeMaintenanceOffer)
+                        {
+                            <div class="alert alert-light mb-0">
+                                <h5 class="text-success"><i class="bi bi-check-circle"></i> نشط</h5>
+                                <p class="mb-1"><strong>العرض:</strong> @Model.ActiveOfferTitle</p>
+                                <p class="mb-1"><strong>ينتهي في:</strong> @Model.ActiveOfferExpiryDate</p>
+                                <p class="mb-0"><strong>الأيام المتبقية:</strong> @Model.ActiveOfferRemainingDays يوم</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-secondary mb-0">
+                                <h5 class="text-muted"><i class="bi bi-x-circle"></i> غير نشط</h5>
+                                <p class="mb-0">لا يوجد عرض صيانة مجانية نشط حالياً</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- تفاصيل عروض الصيانة المجانية الشاملة -->
+    @if (Model.FreeMaintenanceOffers != null && Model.FreeMaintenanceOffers.Any())
+    {
+        <div class="card free-maintenance-detail-card mb-4 shadow-lg">
+            <div class="card-header">
+                <h5 class="card-title text-white mb-0">
+                    <i class="bi bi-gift"></i> تفاصيل عروض الصيانة المجانية
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @foreach (var offer in Model.FreeMaintenanceOffers)
+                    {
+                        <div class="col-md-6 mb-4">
+                            <div class="stat-box">
+                                <div class="offer-badge">
+                                    @if (offer.IsActivated == true)
+                                    {
+                                        <span><i class="bi bi-check-circle"></i> مفعل</span>
+                                    }
+                                    else
+                                    {
+                                        <span><i class="bi bi-clock"></i> غير مفعل</span>
+                                    }
+                                </div>
+                                
+                                <h5 class="mb-3">@(offer.FreeMaintenanceOffer?.Title ?? "عرض صيانة مجانية")</h5>
+                                
+                                @if (!string.IsNullOrEmpty(offer.FreeMaintenanceOffer?.Description))
+                                {
+                                    <p class="mb-3">@offer.FreeMaintenanceOffer.Description</p>
+                                }
+
+                                <div class="row text-center mb-3">
+                                    <div class="col-6">
+                                        <small>المواعيد المطلوبة</small>
+                                        <div class="fw-bold">@(offer.FreeMaintenanceOffer?.RequiredAppointments ?? 0)</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small>فترة الصيانة المجانية</small>
+                                        <div class="fw-bold">@(offer.FreeMaintenanceOffer?.FreePeriodInDays ?? 0) يوم</div>
+                                    </div>
+                                </div>
+
+                                @if (offer.IsActivated == true)
+                                {
+                                    <div class="mb-2">
+                                        <small><strong>تاريخ التفعيل:</strong> @offer.ActivatedAtDate @offer.ActivatedAtTime</small>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small><strong>تاريخ الانتهاء:</strong> @offer.ExpiresAtDate @offer.ExpiresAtTime</small>
+                                    </div>
+                                    
+                                        var now = DateTime.UtcNow;
+                                        var isActive = offer.IsActivated == true && 
+                                                       !string.IsNullOrEmpty(offer.ActivatedAtDate) && 
+                                                       !string.IsNullOrEmpty(offer.ExpiresAtDate) &&
+                                                       DateTime.TryParse($"{offer.ActivatedAtDate} {offer.ActivatedAtTime}", out var activatedAt) &&
+                                                       DateTime.TryParse($"{offer.ExpiresAtDate} {offer.ExpiresAtTime}", out var expiresAt) &&
+                                                       now >= activatedAt && 
+                                                       now <= expiresAt;
+                                        
+                                        var remainingDays = 0;
+                                        if (DateTime.TryParse($"{offer.ExpiresAtDate} {offer.ExpiresAtTime}", out var expiry))
+                                        {
+                                            remainingDays = Math.Max(0, (int)(expiry - now).TotalDays);
+                                        }
+                                    
+                                    <div class="alert alert-light mb-0">
+                                        @if (isActive)
+                                        {
+                                            <div class="text-success">
+                                                <i class="bi bi-check-circle"></i> <strong>نشط حالياً</strong>
+                                                <br><small>متبقي @remainingDays يوم</small>
+                                            </div>
+                                        }
+                                        else if (DateTime.TryParse($"{offer.ExpiresAtDate} {offer.ExpiresAtTime}", out var expiredAt) && now > expiredAt)
+                                        {
+                                            <div class="text-danger">
+                                                <i class="bi bi-x-circle"></i> <strong>منتهي الصلاحية</strong>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-warning">
+                                                <i class="bi bi-clock"></i> <strong>في انتظار التفعيل</strong>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-secondary mb-0">
+                                        <div class="text-muted">
+                                            <i class="bi bi-clock"></i> <strong>لم يتم التفعيل بعد</strong>
+                                            <br><small>يحتاج إلى إكمال @(offer.FreeMaintenanceOffer?.RequiredAppointments ?? 0) مواعيد للتفعيل</small>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- معاملات النقاط -->
+    @if (Model.PointsTransactions != null && Model.PointsTransactions.Any())
+    {
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0 text-dark fw-bold">
+                    <i class="bi bi-star"></i> تاريخ معاملات النقاط
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped text-center">
+                        <thead>
+                            <tr>
+                                <th>النقاط المستردة</th>
+                                <th>المبلغ المخصوم</th>
+                                <th>معدل التحويل</th>
+                                <th>رقم الطلب/الصيانة</th>
+                                <th>التاريخ</th>
+                                <th>التفاصيل</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var transaction in Model.PointsTransactions.Take(10))
+                            {
+                                <tr class="transaction-row">
+                                    <td><span class="badge bg-primary">@transaction.PointsRedeemed نقطة</span></td>
+                                    <td><span class="text-success fw-bold">@transaction.AmountDeducted.ToString("N2") ريال</span></td>
+                                    <td>@transaction.PointsToSARRate.ToString("N2")</td>
+                                    <td>
+                                        @if (transaction.OrderId.HasValue)
+                                        {
+                                            <span class="badge bg-info">طلب #@transaction.OrderId</span>
+                                        }
+                                        @if (transaction.MaintenanceRecordId.HasValue)
+                                        {
+                                            <span class="badge bg-success">صيانة #@transaction.MaintenanceRecordId</span>
+                                        }
+                                    </td>
+                                    <td>@transaction.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td>
+                                    <td><small>@transaction.Details</small></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- معاملات المحفظة -->
+    @if (Model.WalletTransactions != null && Model.WalletTransactions.Any())
+    {
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title text-white mb-0">
+                    <i class="bi bi-credit-card"></i> تاريخ معاملات المحفظة
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped text-center">
+                        <thead>
+                            <tr>
+                                <th>نوع المعاملة</th>
+                                <th>المبلغ</th>
+                                <th>التاريخ</th>
+                                <th>التفاصيل</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var transaction in Model.WalletTransactions.Take(10))
+                            {
+                                <tr class="transaction-row">
+                                    <td>
+                                        @if (transaction.TransactionType == "Cashback")
+                                        {
+                                            <span class="badge bg-warning">كاش باك</span>
+                                        }
+                                        else if (transaction.TransactionType == "Payment")
+                                        {
+                                            <span class="badge bg-danger">دفع</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@transaction.TransactionType</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold @(transaction.TransactionType == "Cashback" ? "text-success" : "text-danger")">
+                                            @(transaction.TransactionType == "Cashback" ? "+" : "-")@transaction.Amount.ToString("N2") ريال
+                                        </span>
+                                    </td>
+                                    <td>@transaction.CreatedAtDate @transaction.CreatedAtTime</td>
+                                    <td><small>@transaction.Details</small></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- عروض الصيانة المجانية -->
+    @if (Model.FreeMaintenanceOffers != null && Model.FreeMaintenanceOffers.Any())
+    {
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title text-white mb-0">
+                    <i class="bi bi-gift"></i> سجل عروض الصيانة المجانية
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped text-center">
+                        <thead>
+                            <tr>
+                                <th>العرض</th>
+                                <th>مؤهل</th>
+                                <th>مفعل</th>
+                                <th>تاريخ التفعيل</th>
+                                <th>تاريخ الانتهاء</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var offer in Model.FreeMaintenanceOffers)
+                            {
+                                <tr class="transaction-row">
+                                    <td class="fw-bold">@offer.FreeMaintenanceOffer?.Title</td>
+                                    <td>
+                                        @if (offer.IsEligible??false)
+                                        {
+                                            <span class="badge bg-success">مؤهل</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">غير مؤهل</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (offer.IsActivated??false)
+                                        {
+                                            <span class="badge bg-primary">مفعل</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">غير مفعل</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (offer.IsActivated??false)
+                                        {
+                                            <span class="fw-bold">@offer.ActivatedAtDate @offer.ActivatedAtTime</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (offer.IsActivated??false)
+                                        {
+                                            <span class="fw-bold">@offer.ExpiresAtDate @offer.ExpiresAtTime</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @{
+                                            var now = DateTime.UtcNow;
+                                            var isActive = offer.IsActivated == true && 
+                                                           !string.IsNullOrEmpty(offer.ActivatedAtDate) && 
+                                                           !string.IsNullOrEmpty(offer.ExpiresAtDate) &&
+                                                           DateTime.TryParse($"{offer.ActivatedAtDate} {offer.ActivatedAtTime}", out var activatedAt) &&
+                                                           DateTime.TryParse($"{offer.ExpiresAtDate} {offer.ExpiresAtTime}", out var expiresAt) &&
+                                                           now >= activatedAt && 
+                                                           now <= expiresAt;
+                                        }
+                                        @if (isActive)
+                                        {
+                                            <span class="badge bg-success">نشط</span>
+                                        }
+                                        else if (offer.IsActivated == true && !string.IsNullOrEmpty(offer.ExpiresAtDate) && 
+                                                DateTime.TryParse($"{offer.ExpiresAtDate} {offer.ExpiresAtTime}", out var expiredAt) && 
+                                                now > expiredAt)
+                                        {
+                                            <span class="badge bg-danger">منتهي</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">غير نشط</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- جدول المواعيد -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title text-white mb-0 fw-bold">قائمة المواعيد</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped text-center">
+                <thead>
+                    <tr>
+                        <th>رقم الحجز</th>
+                        <th>التاريخ</th>
+                        <th>الحالة</th>
+                        <th>ملاحظات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Appointments != null && Model.Appointments.Any())
+                    {
+                        @foreach (var item in Model.Appointments ?? new List<AppointmentDto>())
+                        {
+                            <tr>
+                                <td class="fw-bold">@item.Id</td>
+                                <td>@item.CreatedAtDate</td>
+                                <td><span class="badge bg-info">@item.Status</span></td>
+                                <td>@item.Details</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="4" class="text-muted">لا يوجد مواعيد مسجلة</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- جدول الفواتير -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="card-title fw-bold mb-0 text-dark">قائمة الفواتير</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped text-center">
+                <thead>
+                    <tr>
+                        <th>رقم الفاتورة</th>
+                        <th>التاريخ</th>
+                        <th>المبلغ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Invoices != null && Model.Invoices.Any())
+                    {
+                        @foreach (var invoice in Model.Invoices ?? new List<InvoiceDto>())
+                        {
+                            <tr>
+                                <td class="fw-bold">@invoice.InvoiceNo</td>
+                                <td>@invoice.CreatedAtDate</td>
+                                <td class="fw-bold text-success">@invoice.InvoiceAmount.ToString("N2") ريال</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="3" class="text-muted">لا يوجد فواتير مسجلة</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- جدول الطلبات -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-info">
+            <h5 class="card-title text-white mb-0 fw-bold">قائمة الطلبات</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped text-center">
+                <thead>
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>التاريخ</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Orders != null && Model.Orders.Any())
+                    {
+                        @foreach (var order in Model.Orders ?? new List<OrderDto>())
+                        {
+                            <tr>
+                                <td class="fw-bold">@order.Id</td>
+                                <td>@order.OrderDate</td>
+                                <td><span class="badge bg-primary">@order.OrderStatus</span></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="3" class="text-muted">لا يوجد طلبات مسجلة</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- زر رجوع -->
+    <div class="text-center">
+        <a asp-action="Index" class="btn btn-secondary px-4 fw-bold">
+            <i class="bi bi-arrow-right"></i> رجوع
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('activityChart');
+        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(keys));
+        const dataValues = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(values));
+
+        if (labels.length > 0) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'عدد الأنشطة',
+                        data: dataValues,
+                        backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#20c997']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+}

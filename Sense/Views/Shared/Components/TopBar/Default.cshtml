@@ -1,0 +1,67 @@
+@using Sense.Application.DTOs.CouponDTOs
+@using Sense.Application.DTOs.OfferCashbackDTOs
+@using Sense.Application.DTOs.StatementDTOs
+
+@{
+    var setting = ViewBag.Setting;
+    var coupons = ViewBag.Coupons as List<CouponDto>;
+    var cashBackOffers = ViewBag.CashBackOffers as List<CashbackOfferDto>;
+    var statements = ViewBag.Statements as IEnumerable<StatementDto>;
+
+    var cashbackOffer = cashBackOffers?.FirstOrDefault();
+    var coupon = coupons?.FirstOrDefault();
+
+    void AnnounceItems()
+    {
+        if (cashbackOffer != null)
+        {
+            <span class="sf-announce__item">
+                <i class="bx bx-wallet"></i>
+                @if (cashbackOffer.CashbackType == "Fixed")
+                {
+                    <span>كاش باك بقيمة <strong>@cashbackOffer.CashbackVal ريال</strong> يعود إلى محفظتك</span>
+                }
+                else
+                {
+                    <span>كاش باك بنسبة <strong>@cashbackOffer.CashbackVal%</strong> يعود إلى محفظتك</span>
+                }
+            </span>
+        }
+
+        if (coupon != null)
+        {
+            <span class="sf-announce__item">
+                <i class="bx bx-purchase-tag"></i>
+                <span>استخدم كود الخصم: <strong>@coupon.CouponCode</strong></span>
+            </span>
+        }
+
+        @if (statements != null)
+        {
+            foreach (var statement in statements)
+            {
+                <span class="sf-announce__item">
+                    @if (!string.IsNullOrWhiteSpace(statement.IconClass))
+                    {
+                        <i class="@statement.IconClass"></i>
+                    }
+                    <span>@statement.Text</span>
+                </span>
+            }
+        }
+    }
+}
+
+@if (setting != null || cashbackOffer != null || coupon != null || (statements != null && statements.Any()))
+{
+    <div class="sf-announce" dir="rtl" role="marquee" aria-label="شريط الإعلانات">
+        <div class="sf-announce__track">
+            <div class="sf-announce__group">
+                @{ AnnounceItems(); }
+            </div>
+            <div class="sf-announce__group" aria-hidden="true">
+                @{ AnnounceItems(); }
+            </div>
+        </div>
+    </div>
+}

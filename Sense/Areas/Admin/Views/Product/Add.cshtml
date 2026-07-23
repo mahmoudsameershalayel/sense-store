@@ -1,0 +1,99 @@
+﻿@using Sense.Application.DTOs.ProductDTOs
+@model ProductForCreateUpdateDto
+
+@{
+    var categories = ViewBag.Categories;
+    var providers = ViewBag.Providers;
+}
+
+<form asp-controller="Product" asp-action="Add" method="POST" class="form">
+    <div class="container-xxl">
+        <div class="card mb-4">
+            <div class="card-header mb-4">
+                <h3 class="card-title">املأ بيانات المنتج</h3>
+            </div>
+            <div class="card-body pt-0">
+                <!-- Product Name and Price -->
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <label asp-for="Name" class="form-label required">إسم المنتج</label>
+                        <input type="text" asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger fs-7"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Price" class="form-label required">سعر المنتج</label>
+                        <input type="number" asp-for="Price" step="any" class="form-control" />
+                        <span asp-validation-for="Price" class="text-danger fs-7"></span>
+                    </div>
+                </div>
+
+                <!-- Quantity and Category -->
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <label asp-for="QuantityAvaliable" class="form-label required">الكمية المتاحة</label>
+                        <input type="number" asp-for="QuantityAvaliable" class="form-control" />
+                        <span asp-validation-for="QuantityAvaliable" class="text-danger fs-7"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="CategoryId" class="form-label required">صنف المنتج</label>
+                        <select asp-for="CategoryId" class="form-select form-select-lg" data-allow-clear="true">
+                            <option disabled selected hidden>-- اختر الصنف --</option>
+                            @foreach (var category in categories)
+                            {
+                                <option value="@category?.Id">@category?.Name</option>
+                            }
+                        </select>
+                        <span asp-validation-for="CategoryId" class="text-danger fs-7"></span>
+                    </div>
+                </div>
+
+                <!-- Provider -->
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <label asp-for="ProviderId" class="form-label">المزود (اختياري)</label>
+                        <select asp-for="ProviderId" class="form-select form-select-lg" data-allow-clear="true">
+                            <option value="">-- منتج المتجر (بدون مزود) --</option>
+                            @if (providers != null)
+                            {
+                                @foreach (var provider in providers)
+                                {
+                                    <option value="@provider?.Id">@provider?.DisplayName</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="ProviderId" class="text-danger fs-7"></span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-5">
+                    <label asp-for="Description" class="form-label">الوصف (اختياري)</label>
+                    <textarea asp-for="Description" rows="4" class="form-control" placeholder="(إختياري)"></textarea>
+                </div>
+
+
+              
+
+                <!-- Submit & Reset Buttons -->
+                <div class="d-flex gap-3 mt-6">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ki-duotone ki-check fs-2"></i> إنشاء
+                    </button>
+                    <button type="reset" class="btn btn-light-warning">
+                        <i class="ki-duotone ki-refresh fs-2"></i> إعادة الضبط
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        $("#select2Basic").select2({
+            placeholder: "اختر الصنف",
+            allowClear: true
+        });
+        </script>
+}

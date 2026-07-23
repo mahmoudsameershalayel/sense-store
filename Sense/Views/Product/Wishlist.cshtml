@@ -1,0 +1,91 @@
+@{
+    ViewData["Title"] = "المفضلة";
+}
+
+<!-- ترويسة الصفحة -->
+<div class="sf-page-head" dir="rtl">
+    <div class="container">
+        <ul class="sf-breadcrumb">
+            <li><a href="/">الرئيسية</a></li>
+            <li>المفضلة</li>
+        </ul>
+        <h1>المفضلة</h1>
+        <p class="sf-page-head__desc">
+            المنتجات التي أعجبتك في مكان واحد — أضفها إلى السلة متى كنت جاهزاً.
+        </p>
+    </div>
+</div>
+
+<section class="sf-section sf-section--muted" dir="rtl">
+    <div class="container">
+        <div id="wishlistLoading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">جاري التحميل...</span>
+            </div>
+        </div>
+
+        <div id="wishlistEmpty" class="sf-empty d-none">
+            <div class="sf-empty__icon"><i class="bi bi-heart"></i></div>
+            <h5 class="sf-empty__title">لا توجد منتجات في المفضلة</h5>
+            <p class="sf-empty__text">
+                أثناء التصفح، اضغط على أيقونة القلب لحفظ المنتجات التي تعجبك هنا والعودة إليها لاحقاً.
+            </p>
+            <a href="@Url.Action("Index", "Product")" class="sf-btn sf-btn--primary">
+                <i class="bi bi-bag"></i>
+                تصفح المنتجات
+            </a>
+        </div>
+
+        <div class="row g-3" id="wishlistContainer"></div>
+    </div>
+</section>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        function loadWishlist() {
+            var favorites = window.SenseFavorites ? window.SenseFavorites.getFavorites() : [];
+            var $loading = $('#wishlistLoading');
+            var $empty = $('#wishlistEmpty');
+            var $container = $('#wishlistContainer');
+
+            if (!favorites.length) {
+                $loading.addClass('d-none');
+                $empty.removeClass('d-none');
+                $container.empty();
+                return;
+            }
+
+            $.get('@Url.Action("GetProductsByIds", "Product")', { ids: favorites.join(',') })
+                .done(function (html) {
+                    $loading.addClass('d-none');
+                    $container.html(html);
+                    if (window.SenseFavorites) {
+                        window.SenseFavorites.refresh();
+                    }
+                })
+                .fail(function () {
+                    $loading.addClass('d-none');
+                    $empty.removeClass('d-none');
+                });
+        }
+
+        $(document).ready(function () {
+            loadWishlist();
+        });
+
+        // Remove the card immediately when un-favorited from this page
+        document.addEventListener('favorites:changed', function (e) {
+            var card = document.querySelector('.fav-btn[data-product-id="' + e.detail.productId + '"]');
+            if (card && !window.SenseFavorites.isFavorite(e.detail.productId)) {
+                var col = card.closest('.col-6, .col-md-4, .col-lg-3, .col-xl-2');
+                if (col) {
+                    col.remove();
+                }
+                if (!window.SenseFavorites.getFavorites().length) {
+                    $('#wishlistEmpty').removeClass('d-none');
+                }
+            }
+        });
+    </script>
+}

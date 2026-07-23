@@ -1,0 +1,1877 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using Sense.Domain.Enums
+@using Sense.Application.DTOs.AppointmentDTOs
+@using Sense.Application.DTOs.FreeMaintenanceOfferDTOs
+@using Sense.Application.DTOs.OrderDTOs
+@using Sense.Infrastructure.Extensions
+
+@{
+    var appointments = ViewBag.Appointments;
+    var addresses = ViewBag.Addresses;
+    var orders = ViewBag.Orders as List<OrderDto>;
+    var maintenanceRecords = ViewBag.MaintenanceRecords;
+    var freeMaintenanceOffers = ViewBag.FreeMaintenanceOffers as List<FreeMaintenanceOfferDto>;
+    var brands = ViewBag.Brands;
+    var user = ViewBag.User;
+    var token = ViewBag.Token;
+    var services = ViewBag.Services;
+    var wallet = ViewBag.Wallet;
+    var userMessages = ViewBag.UserMessages;
+    var customer = ViewBag.Customer;
+
+    var serviceType = Context.Request.Query["ServiceType"];
+    var appointmentStatus = Context.Request.Query["Status"];
+    var brandId = Context.Request.Query["BrandId"];
+
+    var appointmentTotalPages = ViewBag.AppointmentTotalPages;
+    var appointmentCurrentPage = ViewBag.AppointmentCurrentPage;
+
+    var maintenanceTotalPages = ViewBag.MaintenanceTotalPages;
+    var maintenanceCurrentPage = ViewBag.MaintenanceCurrentPage;
+
+}
+
+@section Styles
+{
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet" />
+
+    <style type="text/css">
+          .step-icon {
+        transition: transform 0.3s ease-in-out;
+        font-size: 1.5rem;
+    }
+
+    .step-icon.completed {
+        color: #28a745;
+        animation: popIn 0.4s ease;
+    }
+
+    @@keyframes popIn {
+        0% { transform: scale(0); opacity: 0; }
+        80% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(1); }
+    }
+
+    .progress {
+        height: 8px;
+        background-color: #e9ecef;
+    }
+
+    .progress-bar {
+        transition: width 0.5s ease;
+    }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 500px;
+            width: 100%;
+            height: 500px; 
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages-list {
+            flex: 1;
+            overflow-y: auto; /* show scrollbar always */
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            height: 400px;
+            background-color: #fff; /* cleaner white background */
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f0f0f0;
+        }
+
+            .messages-list::-webkit-scrollbar {
+                width: 10px;
+            }
+
+            .messages-list::-webkit-scrollbar-track {
+                background: #f0f0f0;
+                border-radius: 10px;
+            }
+
+            .messages-list::-webkit-scrollbar-thumb {
+                background-color: #888;
+                border-radius: 10px;
+                border: 2px solid #f0f0f0;
+                transition: background-color 0.3s ease;
+            }
+
+                .messages-list::-webkit-scrollbar-thumb:hover {
+                    background-color: #555;
+                }
+
+        .message {
+            display: block;
+            max-width: 75%;
+            padding: 14px 18px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            line-height: 1.4;
+            position: relative;
+            word-wrap: break-word;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        .sent {
+            background-color: #4A90E2; /* modern blue */
+            color: white;
+            margin-left: auto;
+            border-radius: 20px 20px 0 20px;
+            box-shadow: 0 3px 8px rgba(74, 144, 226, 0.4);
+        }
+
+            .sent:hover {
+                background-color: #357ABD;
+            }
+
+
+        .received {
+            background-color: #E2E2E2; /* light gray for received */
+            color: #222;
+            margin-right: auto;
+            border-radius: 20px 20px 20px 0;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+
+        .timestamp {
+            font-size: 0.75rem;
+            color: #999;
+            text-align: right;
+            margin-top: 6px;
+            display: block;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Input and send button */
+        .input-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        #messageInput {
+            flex-grow: 1;
+            padding: 14px 20px;
+            font-size: 16px;
+            border: 1.5px solid #ccc;
+            border-radius: 30px;
+        }
+
+      
+
+            #messageInput:focus {
+                outline: none;
+                border-color: #4A90E2;
+                box-shadow: 0 0 8px rgba(74, 144, 226, 0.5);
+            }
+
+        #sendButton {
+            background-color: #4A90E2;
+            color: white;
+            padding: 14px 22px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+
+            #sendButton:hover {
+                background-color: #357ABD;
+                box-shadow: 0 5px 12px rgba(53, 122, 189, 0.8);
+            }
+
+            #sendButton:focus {
+                outline: none;
+            }
+            /* FontAwesome send icon */
+.send-btn i {
+    font-size: 20px;
+}
+
+/* Smooth fade-in for messages */
+.message {
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments */
+@@media (max-width: 600px) {
+    .chat-container {
+        max-width: 95%;
+        padding: 15px;
+    }
+    #messageInput {
+        font-size: 14px;
+    }
+    #sendButton {
+        font-size: 14px;
+        padding: 12px 18px;
+    }
+}
+
+        /* FontAwesome Send icon */
+        .send-btn i {
+            font-size: 20px;
+        }
+
+        /* Scroll behavior */
+        .messages-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-list::-webkit-scrollbar-thumb {
+            background-color: #bbb;
+            border-radius: 4px;
+        }
+
+        /* Smooth transition for new messages */
+        .message {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @@keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive styles for smaller screens */
+        @@media (max-width: 600px) {
+            .chat-container {
+                max-width: 90%;
+                padding: 15px;
+            }
+
+            #messageInput {
+                font-size: 14px;
+            }
+
+            #sendButton {
+                font-size: 14px;
+            }
+        }
+
+        .contact-banner {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background-color: #061C42;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+            .contact-banner::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1;
+            }
+
+        .contact-banner-text {
+            position: relative;
+            z-index: 2;
+        }
+
+            .contact-banner-text h1 {
+                font-size: 3rem;
+                color: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .contact-banner-text p {
+                font-size: 1.25rem;
+            }
+
+        .custom-btn {
+            background-color: #253F8E;
+            color: #FFD700;
+            border: 2px solid #253F8E;
+        }
+
+            .custom-btn:hover {
+                background-color: transparent;
+                color: #253F8E;
+                border: 2px solid #253F8E;
+                border-radius: 50px;
+                padding: 0.5rem 1rem;
+                transition: all 0.3s ease;
+                text-decoration: none;
+            }
+
+        .info-btn {
+            background-color: #253F8E;
+            color: #FFD700;
+            border: 2px solid #253F8E;
+        }
+
+            .info-btn:hover {
+                background-color: transparent;
+                color: #253F8E;
+                border: 2px solid #253F8E;
+                transition: all 0.3s ease;
+                text-decoration: none;
+            }
+
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            direction: rtl;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+            table thead {
+                background-color: #f8f9fa;
+            }
+
+                table thead th {
+                    font-size: 14px;
+                    font-weight: 600;
+                    padding: 10px 12px;
+                    white-space: nowrap;
+                    text-align: center;
+                    border-bottom: 1px solid #dee2e6;
+                }
+
+            table tbody td {
+                font-size: 13px;
+                padding: 8px 10px;
+                vertical-align: middle;
+                text-align: center;
+            }
+
+            table tbody tr {
+                transition: background-color 0.2s ease;
+                height: 40px;
+            }
+
+                table tbody tr:hover {
+                    background-color: #f1f1f1;
+                }
+
+            /* Striped rows (if using .table-striped) */
+            table.table-striped tbody tr:nth-of-type(odd) {
+                background-color: #fcfcfc;
+            }
+
+            /* Smaller buttons inside tables */
+            table .btn {
+                font-size: 12px;
+                padding: 5px 10px;
+            }
+
+        @@media (max-width: 768px) {
+            table thead th,
+            table tbody td {
+                font-size: 12px;
+                padding: 6px 8px;
+            }
+
+            table .btn {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+        }
+
+        .chat-container {
+            max-width: 500px;
+            margin: auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+
+        .messages-list {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        #messageInput {
+            width: 70%;
+            padding: 5px;
+        }
+
+        #sendButton {
+            padding: 5px 10px;
+        }
+    </style>
+}
+
+<!-- Contact Banner Image -->
+<div class="contact-banner">
+    <div class="contact-banner-text">
+        <h1>
+            حسابي
+        </h1>
+    </div>
+</div>
+
+<section id="contact" class="contact section m-5">
+    <div class="container">
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="appointmentTabs" role="tablist">
+            @*
+                Legacy (maintenance-center era): appointments + maintenance-records tabs.
+                Hidden since the project became a pure e-commerce marketplace.
+
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="my-appointments-tab" data-bs-toggle="tab" data-bs-target="#my-appointments" type="button" role="tab">
+                    مواعيدي
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#invoices" type="button" role="tab">
+                    سجلات الصيانة
+                </button>
+            </li>
+            *@
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="store-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab">
+                    مشترياتي
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="address-tab" data-bs-toggle="tab" data-bs-target="#address" type="button" role="tab">
+                    عناويني
+                </button>
+            </li>
+            @*
+                Hidden per request: wallet + messages tabs.
+
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="wallet-tab" data-bs-toggle="tab" data-bs-target="#wallet" type="button" role="tab">
+                    محفظتي
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
+                    الرسائل
+                </button>
+            </li>
+            *@
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">
+                    ملفي الشخصي
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Tabs Content -->
+    <div class="tab-content mt-3" id="appointmentTabsContent">
+        <div class="tab-pane fade" id="my-appointments" role="tabpanel">
+            <div class="container py-5">
+                <div class="row text-end">
+                    <div class="col-md-6 mb-2">
+                        <h1 class="fw-bold mb-4 text-end">مواعيدي</h1>
+                    </div>
+                    <div class="col-md-6 mb-2 d-flex align-items-end justify-content-start" dir="ltr">
+                        <button class="btn custom-btn mb-3" style="border-radius: 50px; padding: 0.5rem 1rem; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#appointmentModal">
+                            حجز موعد
+                        </button>
+                    </div>
+                </div>
+
+                <form method="get" asp-action="Index" class="mb-4">
+                    <div class="row text-end">
+
+                        <!-- Service Type Filter -->
+                        <div class="col-md-3 mb-2">
+                            <label for="ServiceType">نوع الخدمة</label>
+                            <select class="form-select" name="ServiceType">
+                                <option value="">-- الكل --</option>
+                                @foreach (var item in Enum.GetValues(typeof(ServiceType)))
+                                {
+                                    var field = item.GetType().GetField(item.ToString());
+                                    var display = field.GetCustomAttributes(typeof(DisplayAttribute), false).FirstOrDefault() as DisplayAttribute;
+                                    var name = display?.Name ?? item.ToString();
+                                    var val = (int)item;
+                                    <option value="@val">@name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Status Filter -->
+                        <div class="col-md-3 mb-2">
+                            <label for="Status">حالة الحجز</label>
+                            <select class="form-select" name="Status">
+                                <option value="">-- الكل --</option>
+                                @foreach (var status in Enum.GetValues(typeof(AppointmentStatus)))
+                                {
+                                    var display = status.GetType()
+                                    .GetField(status.ToString())
+                                    ?.GetCustomAttributes(typeof(DisplayAttribute), false)
+                                    .FirstOrDefault() as DisplayAttribute;
+                                    var name = display?.Name ?? status.ToString();
+                                    var val = (int)status;
+                                    <option value="@val">@name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Brand Filter -->
+                        <div class="col-md-3 mb-2">
+                            <label for="BrandId">ماركة السيارة</label>
+                            <select class="form-select" name="BrandId">
+                                <option value="">-- الكل --</option>
+                                @foreach (var brand in brands)
+                                {
+                                    <option value="@brand.Id">@brand.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Filter Button -->
+                        <div class="col-md-3 mb-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">فلتر</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="table-responsive shadow rounded-3">
+                    <table class="table table-bordered table-hover align-middle text-center" id="myAppointmentsTable" dir="rtl">
+                        <thead class="table-light">
+                            <tr>
+                                <th>رقم الحجز</th>
+                                <th>موديل السيارة</th>
+                                <th>ماركة السيارة</th>
+                                <th>نوع الخدمة</th>
+                                <th>تاريخ التقديم</th>
+                                <th>تاريخ الحجز</th>
+                                <th>وقت الحجز</th>
+                                <th>إسم الفرع</th>
+                                <th>حالة الحجز</th>
+                                <th>التفاصيل</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appointmentsBody">
+                            @foreach (var item in appointments)
+                            {
+                                <tr>
+                                    <td>@item.Id#</td>
+                                    <td>@item.ModelYear</td>
+                                    <td>@item.Brand?.Name</td>
+                                    <td>
+                                        @item.Service?.TitleAr
+                                    </td>
+                                    <td>
+                                        @item.CreatedAtDate
+                                    </td>
+                                    <td>
+                                        @(string.IsNullOrEmpty(item.ScheduledDate) ? "لم يتم التعيين" : item.ScheduledDate)
+                                    </td>
+                                    <td>
+                                        @(string.IsNullOrEmpty(item.ScheduledTime) ? "لم يتم التعيين" : item.ScheduledTime)
+                                    </td>
+                                    <td>
+                                        @(string.IsNullOrEmpty(item.Branch?.BranchName) ? "لم يتم التعيين" : item.Branch.BranchName)
+                                    </td>
+                                    <td>
+                                        @{
+                                            var badgeClass = item.Status switch
+                                            {
+                                                "Completed" => "bg-success",
+                                                "Pending" => "bg-warning",
+                                                "Scheduled" => "bg-primary",
+                                                _ => "bg-danger"
+                                            };
+                                            var statusEnum = (AppointmentStatus)Enum.Parse(typeof(AppointmentStatus), item.Status);
+                                            var arabicStatus = statusEnum.GetDisplayName();
+                                        }
+                                        <span class="badge @badgeClass fw-bold px-3 py-2">@arabicStatus</span>
+                                    </td>
+                                    <td>
+                                        <a asp-controller="Appointment" asp-action="Details" asp-route-id="@item.Id" class="btn info-btn btn-sm">
+                                            <i class="fas fa-info-circle"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="pagination-container text-center mt-3">
+                <!-- Previous Page Button -->
+                @if (appointmentCurrentPage > 1)
+                {
+                    <a href="@Url.Action("Index", new {
+        pageNumber = appointmentCurrentPage - 1,
+        pageSize = 5,
+        ServiceType = serviceType,
+        Status = appointmentStatus,
+        BrandId = brandId
+    })" class="btn btn-primary">
+                        الصفحة السابقة
+                    </a>
+                }
+
+                <!-- Page Number Display -->
+                <span class="mx-2">صفحة @appointments.MetaData.CurrentPage من @appointments.MetaData.TotalPages</span>
+
+                <!-- Next Page Button -->
+                @if (appointmentCurrentPage < appointmentTotalPages)
+                {
+                    <a href="@Url.Action("Index", new {
+        pageNumber = appointmentCurrentPage + 1,
+        pageSize = 5,
+        ServiceType = serviceType,
+        Status = appointmentStatus,
+        BrandId = brandId
+    })" class="btn btn-primary">
+                        الصفحة التالية
+                    </a>
+                }
+            </div>
+
+        </div>
+
+        <div class="tab-pane fade" id="profile" role="tabpanel">
+            <div class="container py-5">
+                <div class="d-flex justify-content-between mb-4">
+                    <!-- Edit Profile button aligned to the left -->
+                    <!-- Edit Profile Button -->
+                    <button class="btn custom-btn mb-3" style="border-radius: 50px; padding: 0.5rem 1rem; text-decoration: none;"
+                            data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        تعديل الملف الشخصي
+                    </button>
+                    <!-- Profile title centered -->
+                    <h2 class="text-center mb-4 mx-auto">ملفي الشخصي</h2>
+                    <!-- Upload Profile Image button aligned to the right -->
+                    <button class="btn custom-btn mb-3" style="border-radius: 50px; padding: 0.5rem 1rem; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#uploadProfileImageModal">رفع صورة الملف الشخصي</button>
+                </div>
+                <div class="card p-4 shadow-sm">
+                    <div class="text-center mb-4">
+                        @if (!string.IsNullOrEmpty(user.ImageURL))
+                        {
+                            <img src="@user.ImageURL" id="profileImage" class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <img src="~/assets/img/avatar-default.svg" id="profileImage" class="rounded-circle" style="width: 120px; height: 120px;" />
+
+                        }
+
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">الاسم الكامل</label>
+                            <p class="form-control bg-light border-0" id="userFullName">@user.FullName</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">رقم الهاتف</label>
+                            <p class="form-control bg-light border-0" id="userPhoneNumber">@user.PhoneNumber</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">هاتف إضافي 1</label>
+                            <p class="form-control bg-light border-0">@user.Phone1</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">هاتف إضافي 2</label>
+                            <p class="form-control bg-light border-0">@user.Phone2</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">صلاحياتي</label>
+                            <p class="form-control bg-light border-0">@user.UserType</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">نقاطي</label>
+                            <p class="form-control bg-light border-0">@user.MyPoints</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">حالة الحساب</label>
+                            @if (user.IsActive)
+                            {
+                                <span class="badge bg-success fs-6">نشط</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger fs-6">معطل</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @*
+                Legacy (maintenance-center era): free-maintenance offers card.
+                Hidden since the project became a pure e-commerce marketplace.
+
+            <div class="card p-4 shadow-sm">
+                <div class="text-center mb-4">
+                    عروض الصيانة المجانية
+                </div>
+
+                <div class="row g-4">
+                    @foreach (var offer in freeMaintenanceOffers)
+                    {
+                        @await Component.InvokeAsync("IsFreeMaintenanceEligible", new { customerId = customer.Id, offer = offer });
+                    }
+                </div>
+            </div>
+            *@
+        </div>
+
+        <div class="tab-pane fade" id="invoices" role="tabpanel">
+            <div class="container py-5">
+                <div class="row text-end">
+                    <div class="col-md-6 mb-2">
+                        <h1 class="fw-bold mb-4 text-end">سجلات الصيانة</h1>
+                    </div>
+
+                </div>
+                @*
+                <form method="get" asp-action="Index" class="mb-4">
+                <div class="row text-end">
+
+                <!-- Service Type Filter -->
+                <div class="col-md-3 mb-2">
+                <label for="ServiceType">نوع الخدمة</label>
+                <select class="form-select" name="ServiceType">
+                <option value="">-- الكل --</option>
+                @foreach (var item in Enum.GetValues(typeof(ServiceType)))
+                {
+                var field = item.GetType().GetField(item.ToString());
+                var display = field.GetCustomAttributes(typeof(DisplayAttribute), false).FirstOrDefault() as DisplayAttribute;
+                var name = display?.Name ?? item.ToString();
+                var val = (int)item;
+                <option value="@val">@name</option>
+                }
+                </select>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="col-md-3 mb-2">
+                <label for="Status">حالة الحجز</label>
+                <select class="form-select" name="Status">
+                <option value="">-- الكل --</option>
+                @foreach (var status in Enum.GetValues(typeof(AppointmentStatus)))
+                {
+                var display = status.GetType()
+                .GetField(status.ToString())
+                ?.GetCustomAttributes(typeof(DisplayAttribute), false)
+                .FirstOrDefault() as DisplayAttribute;
+                var name = display?.Name ?? status.ToString();
+                var val = (int)status;
+                <option value="@val">@name</option>
+                }
+                </select>
+                </div>
+
+                <!-- Brand Filter -->
+                <div class="col-md-3 mb-2">
+                <label for="BrandId">ماركة السيارة</label>
+                <select class="form-select" name="BrandId">
+                <option value="">-- الكل --</option>
+                @foreach (var brand in brands)
+                {
+                <option value="@brand.Id">@brand.Name</option>
+                }
+                </select>
+                </div>
+
+                <!-- Filter Button -->
+                <div class="col-md-3 mb-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">فلتر</button>
+                </div>
+                </div>
+                </form>
+                *@
+                <div class="table-responsive shadow rounded-3">
+                    <table class="table table-bordered table-hover align-middle text-center" id="myMaintenanceRecordsTable" dir="rtl">
+                        <thead class="table-light">
+                            <tr>
+                                <th>رقم السجل</th>
+                                <th>إسم المشرف</th>
+                                <th>تاريخ بدء الصيانة</th>
+                                <th>وقت بدء الصيانة</th>
+                                <th>تاريخ إنتهاء الصيانة</th>
+                                <th>وقت إنتهاء الصيانة</th>
+                                <th>الحالة</th>
+                                <th>التفاصيل</th>
+                            </tr>
+                        </thead>
+                        <tbody id="maintenanceRecordsBody">
+                            @foreach (var item in maintenanceRecords)
+                            {
+                                var maintenanceStatus =(MaintenanceStatus) Enum.Parse(typeof(MaintenanceStatus) , item.Status);
+                                <tr>
+                                    <td>@item.Id#</td>
+                                    <td>@item.SupervisorName</td>
+                                    <td>@item.StartDate</td>
+                                    <td>@item.StartTime</td>
+                                    <td>
+                                        @(string.IsNullOrEmpty(item.EndDate) ? "لم تنتهي الصيانة" : item.EndDate)
+                                    </td>
+                                    <td>
+                                        @(string.IsNullOrEmpty(item.EndTime) ? "لم تنتهي الصيانة" : item.EndTime)
+                                    </td>
+                                    <td>
+                                        @{
+                                            var badgeMaintenanceClass = maintenanceStatus switch
+                                            {
+                                                MaintenanceStatus.Completed => "bg-success",
+                                                MaintenanceStatus.UnderMaintenance => "bg-warning",
+                                                _ => "bg-danger"
+                                            };
+                                        }
+                                            <span class="badge @badgeMaintenanceClass">@maintenanceStatus.GetDisplayName()</span>
+                                    </td>
+                                   <td>
+                                        <a asp-controller="MaintenanceRecord" asp-action="Details" asp-route-id="@item.Id" class="btn info-btn btn-sm">
+                                            <i class="fas fa-info-circle"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="pagination-container text-center mt-3">
+                <!-- Previous Page Button -->
+                @if (maintenanceCurrentPage > 1)
+                {
+                    <a href="@Url.Action("Index", new {
+        pageNumber = maintenanceCurrentPage - 1,
+        pageSize = 5,
+        ServiceType = serviceType,
+        Status = appointmentStatus,
+        BrandId = brandId
+    })" class="btn btn-primary">
+                        الصفحة السابقة
+                    </a>
+                }
+
+                <!-- Page Number Display -->
+                <span class="mx-2">صفحة @maintenanceRecords.MetaData.CurrentPage من @maintenanceRecords.MetaData.TotalPages</span>
+
+                <!-- Next Page Button -->
+                @if (maintenanceCurrentPage < maintenanceTotalPages)
+                {
+                    <a href="@Url.Action("Index", new {
+        pageNumber = maintenanceCurrentPage + 1,
+        pageSize = 5,
+        ServiceType = serviceType,
+        Status = appointmentStatus,
+        BrandId = brandId
+    })" class="btn btn-primary">
+                        الصفحة التالية
+                    </a>
+                }
+            </div>
+        </div>
+        <div class="tab-pane fade show active" id="orders" role="tabpanel">
+            <div class="container py-5">
+                <div class="row text-end">
+                    <div class="col-md-6 mb-2">
+                        <h1 class="fw-bold mb-4 text-end">مشترياتي</h1>
+                    </div>
+
+                </div>
+                @*
+                <form method="get" asp-action="Index" class="mb-4">
+                <div class="row text-end">
+
+                <!-- Service Type Filter -->
+                <div class="col-md-3 mb-2">
+                <label for="ServiceType">نوع الخدمة</label>
+                <select class="form-select" name="ServiceType">
+                <option value="">-- الكل --</option>
+                @foreach (var item in Enum.GetValues(typeof(ServiceType)))
+                {
+                var field = item.GetType().GetField(item.ToString());
+                var display = field.GetCustomAttributes(typeof(DisplayAttribute), false).FirstOrDefault() as DisplayAttribute;
+                var name = display?.Name ?? item.ToString();
+                var val = (int)item;
+                <option value="@val">@name</option>
+                }
+                </select>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="col-md-3 mb-2">
+                <label for="Status">حالة الحجز</label>
+                <select class="form-select" name="Status">
+                <option value="">-- الكل --</option>
+                @foreach (var status in Enum.GetValues(typeof(AppointmentStatus)))
+                {
+                var display = status.GetType()
+                .GetField(status.ToString())
+                ?.GetCustomAttributes(typeof(DisplayAttribute), false)
+                .FirstOrDefault() as DisplayAttribute;
+                var name = display?.Name ?? status.ToString();
+                var val = (int)status;
+                <option value="@val">@name</option>
+                }
+                </select>
+                </div>
+
+                <!-- Brand Filter -->
+                <div class="col-md-3 mb-2">
+                <label for="BrandId">ماركة السيارة</label>
+                <select class="form-select" name="BrandId">
+                <option value="">-- الكل --</option>
+                @foreach (var brand in brands)
+                {
+                <option value="@brand.Id">@brand.Name</option>
+                }
+                </select>
+                </div>
+
+                <!-- Filter Button -->
+                <div class="col-md-3 mb-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">فلتر</button>
+                </div>
+                </div>
+                </form>
+                *@
+                <div class="table-responsive shadow rounded-3">
+                    <table class="table table-bordered table-hover align-middle text-center" id="myOrdersTable" dir="rtl">
+                        <thead class="table-light">
+                            <tr>
+                                <th>رقم الطلب</th>
+                                <th>تاريخ الطلب</th>
+                                <th>وقت الطلب</th>
+                                <th>حالة الطلب</th>
+                                <th>طريقة الدفع</th>
+                                <th>حالة الدفع</th>
+                                <th>التفاصيل</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersBody">
+                            @foreach (var item in orders)
+                            {
+                                    var orderStatusEnum = (OrderStatus)Enum.Parse(typeof(OrderStatus), item.OrderStatus);
+                                    var PaymentMethodEnum = (PaymentMethod)Enum.Parse(typeof(PaymentMethod), item.PaymentMethod);
+                                    var PaymentStatus = (PaymentStatus)Enum.Parse(typeof(PaymentStatus), item.PaymentStatus);
+
+                                    var arabicOrderStatus = orderStatusEnum.GetDisplayName();
+                                    var arabicPaymentMethod = PaymentMethodEnum.GetDisplayName();
+                                    var arabicPaymentStatus = PaymentStatus.GetDisplayName();
+                                <tr>
+                                    <td>@item.Id#</td>
+                                    <td>@item.OrderDate</td>
+                                    <td>@item.OrderTime</td>
+                                    <td>@arabicOrderStatus</td>
+                                    <td>@arabicPaymentMethod</td>
+                                    <td>@arabicPaymentStatus</td>
+                                    <td>
+                                        <a asp-controller="Order" asp-action="Details" asp-route-id="@item.Id" class="btn info-btn btn-sm">
+                                            <i class="fas fa-info-circle"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="wallet" role="tabpanel">
+            <div class="container mt-4">
+                <h2 class="mb-4">محفظتي</h2>
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">الرصيد الحالي</h5>
+                        <p class="display-6 text-success fw-bold">@wallet.Balance.ToString("C2")</p>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">العمليات الأخيرة</h5>
+                        @if (wallet.Transactions != null)
+                        {
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>المبلغ</th>
+                                        <th>النوع</th>
+                                        <th>الوصف</th>
+                                        <th>التاريخ</th>
+                                        <th>الوقت</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var tx in wallet.Transactions)
+                                    {
+                                        <tr>
+                                            <td>@tx.Amount.ToString("C2")</td>
+                                            <td>@tx.TransactionType</td>
+                                            <td>@tx.Details</td>
+                                            <td>@tx.CreatedAtDate</td>
+                                            <td>@tx.CreatedAtTime</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <p class="text-muted">لا توجد معاملات حالياً.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="address" role="tabpanel">
+            <div class="container py-5">
+                <div class="row text-end">
+                    <div class="col-md-6 mb-2">
+                        <h1 class="fw-bold mb-4 text-end">عناويني</h1>
+                    </div>
+                    <div class="col-md-6 mb-2 d-flex align-items-end justify-content-start" dir="ltr">
+                        <button class="btn custom-btn mb-3" style="border-radius: 50px; padding: 0.5rem 1rem; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#addressModal">
+                            إضافة عنوان
+                        </button>
+                    </div>
+                </div>
+
+                @*
+                <form method="get" asp-action="Index" class="mb-4">
+                <div class="row text-end">
+
+                <!-- Service Type Filter -->
+                <div class="col-md-3 mb-2">
+                <label for="ServiceType">نوع الخدمة</label>
+                <select class="form-select" name="ServiceType">
+                <option value="">-- الكل --</option>
+                @foreach (var item in Enum.GetValues(typeof(ServiceType)))
+                {
+                var field = item.GetType().GetField(item.ToString());
+                var display = field.GetCustomAttributes(typeof(DisplayAttribute), false).FirstOrDefault() as DisplayAttribute;
+                var name = display?.Name ?? item.ToString();
+                var val = (int)item;
+                <option value="@val">@name</option>
+                }
+                </select>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="col-md-3 mb-2">
+                <label for="Status">حالة الحجز</label>
+                <select class="form-select" name="Status">
+                <option value="">-- الكل --</option>
+                @foreach (var status in Enum.GetValues(typeof(AppointmentStatus)))
+                {
+                var display = status.GetType()
+                .GetField(status.ToString())
+                ?.GetCustomAttributes(typeof(DisplayAttribute), false)
+                .FirstOrDefault() as DisplayAttribute;
+                var name = display?.Name ?? status.ToString();
+                var val = (int)status;
+                <option value="@val">@name</option>
+                }
+                </select>
+                </div>
+
+                <!-- Brand Filter -->
+                <div class="col-md-3 mb-2">
+                <label for="BrandId">ماركة السيارة</label>
+                <select class="form-select" name="BrandId">
+                <option value="">-- الكل --</option>
+                @foreach (var brand in brands)
+                {
+                <option value="@brand.Id">@brand.Name</option>
+                }
+                </select>
+                </div>
+
+                <!-- Filter Button -->
+                <div class="col-md-3 mb-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">فلتر</button>
+                </div>
+                </div>
+                </form>
+                *@
+                <div class="table-responsive shadow rounded-3">
+                    <table class="table table-bordered table-hover align-middle text-center" id="myAddressesTable" dir="rtl">
+                        <thead class="table-light">
+                            <tr>
+                                <th>رقم العنوان</th>
+                                <th>المدينة</th>
+                                <th>الشارع</th>
+                                <th>الحي السكني</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="addressesBody">
+                            @foreach (var item in addresses)
+                            {
+                                <tr>
+                                    <td>@item.Id</td>
+                                    <td>@item.City</td>
+                                    <td>@item.Street</td>
+                                    <td>@item.Neighborhood</td>
+                                    <td>
+                                        <a asp-controller="Address" asp-action="Details" asp-route-id="@item.Id" class="btn info-btn btn-sm">
+                                            <i class="fas fa-info-circle"></i>
+                                        </a>
+                                        <a asp-route-id="@item.Id" data-id="@item.Id"
+                                           class="btn btn-sm btn-danger btn-address-delete">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+        <div class="tab-pane fade" id="history" role="tabpanel">
+            <div class="chat-container">
+                <div id="messagesList" class="messages-list"></div>
+
+                <div class="input-container">
+                    <input type="text" id="messageInput" placeholder="Type your message..." />
+                    <button id="sendButton" class="send-btn">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+<!-- Modal for Address Booking -->
+<div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addressModalLabel">إضافة عنوان</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addressForm">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow-sm mb-4">
+                                <h5 class="card-header" style="background-color: #253F8E; color: white;">املأ بيانات عنوانك</h5>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                                            <label for="city" class="form-label">المدينة</label>
+                                            <input type="text" class="form-control" id="city" name="city">
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <label for="street" class="form-label">الشارع</label>
+                                            <input type="text" class="form-control" id="street" name="street">
+                                        </div>
+                                    </div>
+                                   
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                                            <label for="neighborhood" class="form-label">الحي السكني</label>
+                                            <input type="text" class="form-control" id="neighborhood" name="neighborhood">
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <label for="addressDetails" class="form-label">تفاصيل إضافية</label>
+                                            <textarea class="form-control" id="addressDetails" name="address" rows="4"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">اختر الموقع على الخريطة</label>
+                                        <div id="map" style="height: 300px;"></div>
+                                    </div>
+                                    <input type="hidden" id="locationLat" name="locationLat" />
+                                    <input type="hidden" id="locationLong" name="locationLong" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Submit Buttons -->
+                    <div class="row mt-4">
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <button type="submit" class="btn btn-lg w-100" style="background-color: #253F8E; color: white;">إضافة</button>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6 mb-3">
+                            <input type="reset" class="btn btn-warning btn-lg w-100" value="إعادة الضبط">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>  
+</div>
+
+
+<!-- Modal for Appointment Booking -->
+<div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="appointmentModalLabel">حجز موعد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Appointment Form -->
+                <form id="appointmentForm">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow-sm mb-4">
+                                <h5 class="card-header" style="background-color: #253F8E; color: white;">املأ بيانات سيارتك</h5>
+                                <div class="card-body">
+                                    <div class="mb-4">
+                                        <label for="vehicleBrand" class="form-label">ماركة السيارة</label>
+                                        <select id="vehicleBrand" class="select2 form-select form-select-lg">
+                                            <option hidden disabled selected> -- اختر الماركة -- </option>
+                                            @foreach (var item in brands)
+                                            {
+                                                <option value="@item.Id">
+                                                    @item.Name
+                                                </option>
+                                            }
+
+                                        </select>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="vehicleModel" class="form-label">موديل السيارة</label>
+                                        <select id="vehicleModel" class="select2 form-select form-select-lg">
+                                            <option hidden disabled selected> -- اختر الموديل -- </option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="vehicleModelYear" class="form-label">سنة موديل السيارة</label>
+                                        <select id="vehicleModelYear" class="select2 form-select form-select-lg">
+                                            <option hidden disabled selected> -- اختر سنة الموديل -- </option>
+                                            @for (var i = 1900; i <= DateTime.Now.Year; i++)
+                                            {
+                                                <option value="@i">@i</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Appointment Info Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow-sm mb-4">
+                                <h5 class="card-header" style="background-color: #253F8E; color: white;">املأ بيانات الحجز</h5>
+                                <div class="card-body">
+                                    <div class="mb-4">
+                                        <label for="serviceId" class="form-label">نوع الحجز</label>
+                                        <select id="serviceId" class="select2 form-select form-select-lg">
+                                            <option hidden disabled selected> -- اختر نوع الحجز -- </option>
+                                            @foreach (var item in services)
+                                            {
+                                                <option value="@item.Id">
+                                                    @item.TitleAr
+                                                </option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="row">
+                                        <!-- Appointment Details -->
+                                        <div class="col-md-12 mb-4">
+                                            <label for="exampleFormControlTextarea1" class="form-label">ادخل تفاصيل طلبك</label>
+                                            <textarea class="form-control" id="exampleFormControlTextarea1" rows="4"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Submit Buttons -->
+                    <div class="row mt-4">
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <button type="submit" class="btn btn-lg w-100" style="background-color: #253F8E; color: white;">حجز</button>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6 mb-3">
+                            <input type="reset" class="btn btn-warning btn-lg w-100" value="إعادة الضبط">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">تعديل الملف الشخصي</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <div class="mb-3">
+                        <label for="fullName" class="form-label">الاسم الكامل</label>
+                        <input type="text" class="form-control" id="fullName" value="@user.FullName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phoneNumber" class="form-label">رقم الهاتف</label>
+                        <input type="text" class="form-control" id="phoneNumber" value="@user.PhoneNumber">
+                    </div>
+                    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Upload Profile Image Modal -->
+<div class="modal fade" id="uploadProfileImageModal" tabindex="-1" aria-labelledby="uploadProfileImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">رفع صورة الملف الشخصي</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info m-3 text-right">
+                    <h5 class="alert-heading mb-2">
+                        <i class="fas fa-info-circle ml-2"></i>
+                        تعليمات رفع الصورة:
+                    </h5>
+                    <ul class="list-unstyled mb-0">
+                        <li>• يجب أن تكون الصورة بصيغة JPEG , PNG أو JPG </li>
+                        <li>• الحد الأقصى لحجم كل ملف: 5 ميجابايت (5000 كيلوبايت)</li>
+                    </ul>
+                </div>
+                <form id="uploadProfileImageForm" enctype="multipart/form-data">
+                    <input type="hidden" value="@user.Id" id="userId">
+                    <div class="mb-3">
+                        <label for="image">صورة الملف الشخصي :</label>
+                        <input type="file" class="form-control" id="image">
+                    </div>
+                    <button type="submit" class="btn btn-primary">رفع الصورة</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+    <script type="text/javascript">
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub")
+            .build();
+
+        connection.start()
+            .then(() => {
+                console.log("Connected to chat hub");
+
+                // Load previous messages
+                connection.invoke("GetPreviousMessages")
+                    .then(messages => {
+                        messages.forEach(msg => {
+                            appendMessage(msg, msg.isSender);
+                        });
+                    })
+                    .catch(err => console.error("Failed to load messages: " + err.toString()));
+            })
+            .catch(err => console.error(err.toString()));
+
+        // Send message to tech support
+        document.getElementById("sendButton").addEventListener("click", () => {
+            const messageInput = document.getElementById("messageInput");
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            connection.invoke("SendMessageToTechSupport", message)
+                .catch(err => console.error(err.toString()));
+            const now = new Date();
+            const formattedTimestamp = now.getFullYear() + "-" +
+                String(now.getMonth() + 1).padStart(2, '0') + "-" +
+                String(now.getDate()).padStart(2, '0') + " " +
+                String(now.getHours()).padStart(2, '0') + ":" +
+                String(now.getMinutes()).padStart(2, '0') + ":" +
+                String(now.getSeconds()).padStart(2, '0');
+            appendMessage({ message: message, timestamp: formattedTimestamp }, true);
+            messageInput.value = '';
+        });
+
+        // Receive messages from tech support
+        connection.on("ReceiveSupportMessage", function (msg) {
+            console.log(msg);
+            appendMessage(msg, false);
+        });
+
+        // Show who is assigned to chat
+        connection.on("ChatAssigned", function (techSupportName) {
+            const infoDiv = document.createElement("div");
+            infoDiv.classList.add("system-message");
+            infoDiv.innerText = `You are now chatting with ${techSupportName}`;
+            document.getElementById("messagesList").appendChild(infoDiv);
+        });
+
+        function appendMessage(msg, isSender) {
+            const msgBox = document.getElementById("messagesList");
+
+            const msgDiv = document.createElement("div");
+            msgDiv.classList.add("message", isSender ? "sent" : "received");
+
+            msgDiv.innerHTML = `
+                <div class="content">${msg.message}</div>
+                <div class="timestamp">${msg.timestamp}</div>
+            `;
+
+            msgBox.appendChild(msgDiv);
+            msgBox.scrollTop = msgBox.scrollHeight;
+        }
+
+
+        $(document).ready(function () {
+            $(".btn-activate-offer").on("click", function (e) {
+                e.preventDefault();
+                const $this = $(this);
+                const id = $this.attr("data-offer-id");
+
+                Swal.fire({
+                    title: 'هل أنت متأكد؟',
+                    text: "سيتم تفعيل عرض الصيانة!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'نعم، قم بالتفعيل!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "@Url.Action("Activate", "FreeMaintenanceOffer")/" + id,
+                            type: 'PUT',
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire(
+                                        'تم التفعيل!',
+                                        'تم تفعيل العرض بنجاح.',
+                                        'success'
+                                    );
+                                    const $card = $this.closest(".card");
+
+                                    $this.replaceWith(`<span class="text-success fw-semibold">تم تفعيل العرض</span>`);
+
+                                    if ($card.find(".badge.bg-success").length === 0) {
+                                        $card.prepend(`
+                        <div class="position-absolute top-0 end-0 m-2">
+                            <span class="badge bg-success rounded-circle p-3">
+                                <i class="bi bi-check2-circle fs-4 text-white"></i>
+                            </span>
+                        </div>
+                    `);
+                                    }
+                                } else {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'لم تتم عملية التفعيل',
+                                        text: 'الرجاء التأكد من إكمال الحجوزات المطلوبة و إعادة المحاولة.',
+                                        confirmButtonText: 'حسنًا',
+                                        timer: 3000  // The alert will close after 3 seconds
+                                    });
+                                }
+                            },
+                            error: function (xhr) {
+                                Swal.fire(
+                                    'خطأ!',
+                                    'حدث خطأ أثناء الإنتهاء من الصيانة.',
+                                    'error'
+                                );
+                                console.error(xhr.responseText);
+                            }
+                        });
+                    }
+                });
+            });
+
+
+            $('#vehicleBrand').on('change', function () {
+                var brandId = $(this).val();
+                if (brandId) {
+                    $.ajax({
+                        url: "@Url.Action("GetModelsByBrandId", "Model")/" + brandId,
+                        type: 'GET',
+                        success: function (data) {
+                            var $modelSelect = $('#vehicleModel');
+                            $modelSelect.empty();
+                            $modelSelect.append('<option hidden disabled selected> -- اختر الموديل -- </option>');
+                            $.each(data, function (i, item) {
+                                $modelSelect.append('<option value="' + item.id + '">' + item.name + '</option>');
+                            });
+                        },
+                        error: function () {
+                            alert('فشل في تحميل موديلات هذه الماركة');
+                        }
+                    });
+                }
+            });
+
+
+
+            // Handle form submission
+            $('#appointmentForm').on('submit', function (e) {
+                e.preventDefault(); // Prevent the default form submission
+
+                var formData = {
+                    BrandId: $('#vehicleBrand').val(),
+                    ModelId: $('#vehicleModel').val(),
+                    ModelYear: $('#vehicleModelYear').val(),
+                    ServiceId: $('#serviceId').val(), // Send null if ServiceType is not selected
+                    Details: $('#exampleFormControlTextarea1').val()
+                };
+
+                function getBadgeClass(status) {
+                    switch (status) {
+                        case "Completed": return "bg-success";
+                        case "Pending": return "bg-warning text-dark";
+                        case "Scheduled": return "bg-primary";
+                        default: return "bg-danger";
+                    }
+                }
+
+                $.ajax({
+                    url: '@Url.Action("BookAppointment", "Appointment")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function (response) {
+                        if (response.success) {
+                            // If the appointment was successfully booked
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'تم الحجز بنجاح',
+                                text: 'تمت إضافة الموعد إلى جدولك.',
+                                confirmButtonText: 'حسنًا',
+                                timer: 3000  // The alert will close after 3 seconds
+                            }).then(function () {
+                                $('#appointmentForm')[0].reset();
+                                // Reload the appointments tbody from server
+                                $.get('/Appointment/GetAppointmentsTable', function (data) {
+                                    $('#appointmentsBody').html(data);
+                                }).fail(function (xhr) {
+                                    console.error("Failed to load appointment table:", xhr.responseText);
+                                });
+                            });
+                        } else {
+                            // If there was an issue with the booking (e.g., conflicting schedule)
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'لم يتم الحجز',
+                                text: 'لديك حجز قيد الانتظار بنفس بيانات هذا الحجز . يرجى مراجعة حجوزاتك الحالية قبل إنشاء حجز جديد مشابه.',
+                                confirmButtonText: 'حسنًا',
+                                timer: 3000  // The alert will close after 3 seconds
+                            });
+                        }
+                    },
+                    error: function () {
+                        // If there was an error while making the AJAX request
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'حدث خطأ!',
+                            text: 'حدث خطأ أثناء الحجز. الرجاء المحاولة لاحقاً.',
+                            confirmButtonText: 'حسناً',
+                            timer: 3000  // The alert will close after 3 seconds
+                        });
+                    }
+                });
+
+            });
+
+            let map;
+            let marker;
+            $('#addressModal').on('shown.bs.modal', function () {
+                if (!map) {
+                    map = L.map('map').setView([23.8859, 45.0792], 6); // Center of Saudi Arabia, zoom level adjusted
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(map);
+
+                    map.on('click', function (e) {
+                        const lat = e.latlng.lat;
+                        const lng = e.latlng.lng;
+
+                        $('#locationLat').val(lat);
+                        $('#locationLong').val(lng);
+
+                        if (marker) {
+                            marker.setLatLng([lat, lng]);
+                        } else {
+                            marker = L.marker([lat, lng]).addTo(map);
+                        }
+                    });
+                }
+
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 200); // Fix display issue when modal opens
+            });
+            $('#addressForm').on('submit', function (e) {
+                console.log($('#address').val());
+                e.preventDefault(); // Prevent default form submission
+
+                // Collect form data
+                var formData = {
+                    city: $('#city').val(),
+                    street: $('#street').val(),
+                    neighborhood: $('#neighborhood').val(),
+                    address: $('#addressDetails').val(),
+                    locationLat: $('#locationLat').val(),
+                    locationLong: $('#locationLong').val()
+                };
+
+
+                // Send data via AJAX
+                $.ajax({
+                    url: '@Url.Action("Add", "Address")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function (response) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'تم إرسال العنوان بنجاح',
+                            confirmButtonText: 'موافق',
+                            timer: 3000
+                        });
+                        $('#addressForm')[0].reset(); // Reset form fields
+                        const newRow = `
+                                                                                                            <tr>
+                                                                                                                <td>
+                                                                                                                   ${response.data.id}
+                                                                                                                </td>
+                                                                                                                <td>
+                                                                                                                   ${response.data.city}
+                                                                                                                </td>
+                                                                                                                <td>
+                                                                                                                   ${response.data.street}
+                                                                                                                </td>
+                                                                                                                <td>
+                                                                                                                   ${response.data.neighborhood}
+                                                                                                                </td>
+                                                                                                                        <td>
+                                                                                                <a href="/Address/Details/${response.data.id}" class="btn info-btn btn-sm">
+                                                                                                    <i class="fas fa-info-circle"></i>
+                                                                                                </a>
+                                                                                                        <a asp-route-id="${response.data.id}" data-id="${response.data.id}"
+                                                                                                           class="btn btn-sm btn-danger btn-address-delete">
+                                                                                                            <i class="fas fa-trash-alt"></i>
+                                                                                                        </a>
+                                                                                                    </td>
+                                                                                                            </tr>
+                                                                                                        `;
+
+                        $('#addressesBody').append(newRow);
+
+                    },
+                    error: function (xhr, status, error) {
+                        alert('حدث خطأ أثناء الإرسال: ' + error);
+                    }
+                });
+            });
+
+
+            // Handle the form submission
+            $('#editProfileForm').on('submit', function (e) {
+                e.preventDefault();  // Prevent the form from submitting normally
+
+                // Get the form data
+                var formData = {
+                    fullName: $('#fullName').val(),
+                    phoneNumber: $('#phoneNumber').val(),
+                    phone1: "10",
+                    phone2: "10"
+                };
+
+                // Send AJAX PUT request to update the profile
+                $.ajax({
+                    url: "@Url.Action("UpdateProfile", "Account")",  // Replace with the actual controller action
+                    type: 'PUT',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    success: function (response) {
+                        // Close the modal on success
+
+                        $('#userFullName').text(response.fullName);
+                        $('#userPhoneNumber').text(response.phoneNumber);
+
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'تم تحديث الملف الشخصي بنجاح!',
+                            text: 'تم تحديث بياناتك بنجاح.',
+                            confirmButtonText: 'موافق',
+                            timer: 3000  // The alert will close after 3 seconds
+
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'حدث خطأ!',
+                            text: 'حدث خطأ أثناء تحديث الملف الشخصي. الرجاء المحاولة لاحقاً.',
+                            confirmButtonText: 'حسناً',
+                            timer: 3000  // The alert will close after 3 seconds
+                        });
+                    }
+                });
+            });
+
+
+            // Handle form submission
+            $('#uploadProfileImageForm').on('submit', function (e) {
+                e.preventDefault();  // Prevent the form from submitting normally
+
+                // Create a FormData object to hold the file and other form data
+                var formData = new FormData();
+                formData.append('image', $('#image')[0].files[0]);  // Use 'image' to match controller
+
+                $.ajax({
+                    url: '@Url.Action("UploadProfileImage", "Account")',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'تم رفع الصورة بنجاح!',
+                                text: 'تم رفع الصورة الشخصية بنجاح.',
+                                confirmButtonText: 'موافق',
+                                timer: 3000
+                            });
+                            $('#profileImage').attr('src', response.result); // or response.result.Data if needed
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'حدث خطأ!',
+                                text: response.message || 'حدث خطأ أثناء رفع الصورة.',
+                                confirmButtonText: 'حسناً',
+                                timer: 3000
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'حدث خطأ!',
+                            text: 'حدث خطأ أثناء رفع الصورة. الرجاء المحاولة لاحقاً.',
+                            confirmButtonText: 'حسناً',
+                            timer: 3000
+                        });
+                    }
+                });
+            });
+
+            $(document).on("click", ".btn-address-delete", function (e) {
+
+                const $this = $(this);
+                const id = $(this).attr("data-id");
+
+                Swal.fire({
+                    title: 'هل أنت متأكد؟',
+                    text: "سيتم حذف العنوان نهائيًا!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'نعم، احذفه!',
+                    cancelButtonText: 'إلغاء'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "@Url.Action("Delete", "Address")/" + id,
+                            type: 'DELETE',
+                            success: function (result) {
+                                Swal.fire(
+                                    'تم الحذف!',
+                                    'تم حذف العنوان بنجاح.',
+                                    'success'
+                                );
+                                $this.closest("tr").remove();
+                            }
+                        });
+                    }
+                });
+
+                e.preventDefault();
+            });
+            $(".btn-pge").on("click", function (e) {
+                $this = $(this);
+                var pg = $(this).attr("data-pg");
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "@Url.Action("Index", "Brand", new { area = "Admin" })/" + pg,
+                        type: 'POST'
+
+                    });
+                }
+            });
+        });
+
+
+    </script>
+
+}

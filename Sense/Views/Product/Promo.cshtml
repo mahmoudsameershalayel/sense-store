@@ -1,0 +1,8 @@
+﻿@using Sense.Application.DTOs.ProductDTOs
+@model ProductDto
+
+<h2>@Model.Name</h2>
+<p>@Model.Description</p>
+<img src="@Model.ImageURL" alt="@Model.Name" />
+<p>احصل على هذا المنتج الآن!</p>
+<a href="@Url.Action("AddToCart", "Cart", new { id = Model.Id })" class="btn btn-primary">أضف إلى السلة</a>

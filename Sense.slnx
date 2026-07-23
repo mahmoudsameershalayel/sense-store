@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Sense.Application/Sense.Application.csproj" />
+  <Project Path="Sense.Domain/Sense.Domain.csproj" />
+  <Project Path="Sense.Infrastructure/Sense.Infrastructure.csproj" />
+  <Project Path="Sense/Sense.csproj" />
+</Solution>

@@ -1,0 +1,51 @@
+@using Sense.Domain.Enums
+@using Sense.Infrastructure.Extensions
+@model Sense.Application.DTOs.InvoiceDTOs.InvoiceForUpdateDto
+@{
+    ViewData["Title"] = " ⁄œÌ· «·›« Ê—…";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"> ⁄œÌ· «·›« Ê—… —ﬁ„: @Model.InvoiceNo</h3>
+    </div>
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="InvoiceNo" />
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="InvoiceAmount" class="form-label">„»·€ «·›« Ê—…</label>
+                        <input asp-for="InvoiceAmount" type="number" step="0.01" min="0" class="form-control" />
+                        <span asp-validation-for="InvoiceAmount" class="text-danger"></span>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="InvoiceType" class="form-label">‰Ê⁄ «·›« Ê—…</label>
+                        <select asp-for="InvoiceType" class="form-select">
+                            @foreach (InvoiceType type in Enum.GetValues(typeof(InvoiceType)))
+                            {
+                                <option value="@((int)type)" selected="@(Model.InvoiceType == type)">@type.GetDisplayName()</option>
+                            }
+                        </select>
+                        <span asp-validation-for="InvoiceType" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Õ›Ÿ «· €ÌÌ—« </button>
+                    <a asp-action="Index" class="btn btn-secondary">≈·€«¡</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

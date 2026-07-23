@@ -1,0 +1,1069 @@
+@{
+    ViewData["Title"] = "Product Reports";
+    var bestSeller = ViewBag.BestSeller as IEnumerable<Sense.Application.DTOs.ProductDTOs.ProductDto>;
+    var worstSeller = ViewBag.WorstSeller as IEnumerable<Sense.Application.DTOs.ProductDTOs.ProductDto>;
+    var outOfStock = ViewBag.OutOfStock as IEnumerable<Sense.Application.DTOs.ProductDTOs.ProductDto>;
+}
+
+@section Styles {
+    <style>
+        /* Animation Keyframes */
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        @@keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Card Entrance Animations */
+        .card-animated {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .card-animated-delay-1 {
+            animation-delay: 0.2s;
+            opacity: 0;
+            animation-fill-mode: forwards;
+        }
+
+        .card-animated-delay-2 {
+            animation-delay: 0.4s;
+            opacity: 0;
+            animation-fill-mode: forwards;
+        }
+
+        .card-animated-delay-3 {
+            animation-delay: 0.6s;
+            opacity: 0;
+            animation-fill-mode: forwards;
+        }
+
+        /* Gradient Card Headers */
+        .card-gradient-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .card-gradient-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+        }
+
+        .card-gradient-primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            color: white;
+        }
+
+        .card-gradient-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: white;
+        }
+
+        .card-gradient-danger .card-title,
+        .card-gradient-secondary .card-title,
+        .card-gradient-primary .card-title,
+        .card-gradient-warning .card-title {
+            color: white !important;
+        }
+
+        .card-gradient-danger .ki-duotone,
+        .card-gradient-secondary .ki-duotone,
+        .card-gradient-primary .ki-duotone,
+        .card-gradient-warning .ki-duotone {
+            color: white !important;
+        }
+
+        /* Enhanced Card Styling */
+        .hover-elevate-up {
+            transition: all 0.3s ease;
+        }
+
+        .hover-elevate-up:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1rem 3rem rgba(0,0,0,0.175) !important;
+        }
+
+        .card-modern {
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.075);
+        }
+
+        /* Enhanced Table Styling */
+        .table-modern {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-modern thead {
+            background-color: #f8f9fa;
+        }
+
+        .table-modern thead th {
+            font-weight: bold;
+            font-size: 0.95rem;
+            border-bottom: 2px solid #dee2e6;
+            padding: 1rem 1rem;
+        }
+
+        .table-modern tbody td {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid #f1f1f1;
+            vertical-align: middle;
+        }
+
+        .table-modern tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .table-modern tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Enhanced Image Styling */
+        .symbol img {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .symbol img:hover {
+            transform: scale(1.1);
+        }
+
+        /* Gradient Badges */
+        .badge-gradient-primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            font-weight: bold;
+        }
+
+        .badge-gradient-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            font-weight: bold;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            max-height: 300px;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-container canvas {
+            max-height: 300px;
+        }
+
+        /* Toggle Button Styling */
+        .toggle-view-btn {
+            transition: all 0.3s ease;
+        }
+
+        .toggle-view-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Loading Skeleton */
+        .skeleton-loader {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        /* Enhanced Button Styling */
+        .btn-gradient-primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.3);
+            color: white;
+        }
+
+        /* Empty State Styling */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #e0e0e0;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state .empty-message {
+            font-size: 1.1rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state .empty-description {
+            font-size: 0.9rem;
+            color: #adb5bd;
+        }
+
+        /* Custom Scrollbar for Tables */
+        .table-responsive::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 767px) {
+            .card-modern {
+                padding: 1rem;
+            }
+
+            .chart-container {
+                display: none;
+            }
+
+            .card-title {
+                font-size: 1.1rem;
+            }
+
+            .table-modern thead th,
+            .table-modern tbody td {
+                padding: 0.5rem;
+                font-size: 0.85rem;
+            }
+
+            .symbol img {
+                width: 35px;
+                height: 35px;
+            }
+
+            .btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        @@media (min-width: 768px) and (max-width: 991px) {
+            .chart-container {
+                height: 250px;
+                max-height: 250px;
+            }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Hidden class for toggle functionality */
+        .d-none-custom {
+            display: none !important;
+        }
+    </style>
+}
+
+<div class="d-flex flex-column-fluid">
+    <div class="container">
+        <div class="row g-5 g-xl-8">
+
+            <!-- Out of Stock -->
+            <div class="row g-5 mb-5">
+                <div class="col-12">
+                    <div class="card shadow-lg border-0 rounded-4 hover-elevate-up card-modern card-animated">
+                        <div class="card-header border-0 pt-5 card-gradient-danger">
+                            <h3 class="card-title fw-bold">
+                                <i class="ki-duotone ki-box fs-2 me-2"></i>المنتجات غير المتوفرة
+                            </h3>
+                        </div>
+                        <div class="card-body p-5">
+                            @if (outOfStock != null && outOfStock.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-modern table-hover align-middle gs-0 gy-4">
+                                        <thead>
+                                            <tr class="fw-bold text-muted">
+                                                <th class="py-3 px-4">الصورة</th>
+                                                <th class="py-3 px-4">الاسم</th>
+                                                <th class="py-3 px-4">الكمية</th>
+                                                <th class="py-3 px-4">إضافة مخزون</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in outOfStock)
+                                            {
+                                                <tr>
+                                                    <td class="w-50px py-4 px-4">
+                                                        <div class="symbol symbol-45px">
+                                                            <img src="@item.ImageURL" alt="@item.Name" />
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-dark fw-semibold py-4 px-4">@item.Name</td>
+                                                    <td class="py-4 px-4">@item.QuantityAvaliable</td>
+                                                    <td class="py-4 px-4">
+                                                        <a href="#"
+                                                           class="btn btn-icon btn-light-primary btn-sm me-1 update-stock"
+                                                           data-id="@item.Id"
+                                                           data-name="@item.Name"
+                                                           data-stock="@item.QuantityAvaliable ?? 0"
+                                                           title="تحديث المخزون">
+                                                            <i class="ki-duotone ki-plus-square fs-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                                <span class="path3"></span>
+                                                                <span class="path4"></span>
+                                                                <span class="path5"></span>
+                                                            </i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <i class="ki-duotone ki-check-circle">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <div class="empty-message">لا توجد منتجات غير متوفرة</div>
+                                    <div class="empty-description">جميع المنتجات متوفرة في المخزون</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date Filter Card -->
+                <div class="col-12">
+                    <div class="card shadow-lg border-0 rounded-4 card-modern card-animated card-animated-delay-1">
+                        <div class="card-header border-0 pt-5 card-gradient-secondary">
+                            <h3 class="card-title fw-bold">
+                                <i class="ki-duotone ki-filter fs-2 me-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>تصفية حسب التاريخ
+                            </h3>
+                        </div>
+                        <div class="card-body p-5">
+                            <form id="filterForm">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="filterYear" class="form-label fw-semibold text-muted">السنة</label>
+                                        <select id="filterYear" class="form-select form-select-solid">
+                                            <option value="">الكل</option>
+                                            @for (int year = 2020; year <= DateTime.Now.Year + 1; year++)
+                                            {
+                                                <option value="@year" selected="@(year == ViewBag.Year)">
+                                                    @year
+                                                </option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="filterMonth" class="form-label fw-semibold text-muted">الشهر</label>
+                                        <select id="filterMonth" class="form-select form-select-solid">
+                                            <option value="">الكل</option>
+                                            <option value="1" selected="@(ViewBag.Month == 1)">يناير</option>
+                                            <option value="2" selected="@(ViewBag.Month == 2)">فبراير</option>
+                                            <option value="3" selected="@(ViewBag.Month == 3)">مارس</option>
+                                            <option value="4" selected="@(ViewBag.Month == 4)">أبريل</option>
+                                            <option value="5" selected="@(ViewBag.Month == 5)">مايو</option>
+                                            <option value="6" selected="@(ViewBag.Month == 6)">يونيو</option>
+                                            <option value="7" selected="@(ViewBag.Month == 7)">يوليو</option>
+                                            <option value="8" selected="@(ViewBag.Month == 8)">أغسطس</option>
+                                            <option value="9" selected="@(ViewBag.Month == 9)">سبتمبر</option>
+                                            <option value="10" selected="@(ViewBag.Month == 10)">أكتوبر</option>
+                                            <option value="11" selected="@(ViewBag.Month == 11)">نوفمبر</option>
+                                            <option value="12" selected="@(ViewBag.Month == 12)">ديسمبر</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3 d-flex align-items-end">
+                                        <button type="button" id="applyFilterBtn" class="btn btn-gradient-primary me-2">
+                                            <i class="ki-duotone ki-check fs-3 me-1">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            تطبيق الفلتر
+                                        </button>
+                                        <button type="button" id="resetFilterBtn" class="btn btn-light-secondary">
+                                            <i class="ki-duotone ki-arrows-circle fs-3 me-1">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            إعادة تعيين
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-5">
+                    <!-- Best Seller -->
+                    <div class="col-xl-6">
+                        <div class="card shadow-lg border-0 rounded-4 hover-elevate-up card-modern card-animated card-animated-delay-2">
+                            <div class="card-header border-0 pt-5 card-gradient-primary d-flex align-items-center">
+                                <h3 class="card-title fw-bold flex-grow-1">
+                                    <i class="ki-duotone ki-chart-line fs-2 me-2"></i>المنتجات الأكثر مبيعًا
+                                </h3>
+                                <button type="button" class="btn btn-sm btn-light-primary toggle-view-btn" id="toggleBestSellerView">
+                                    <i class="ki-duotone ki-chart fs-3">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                </button>
+                            </div>
+                            <div class="card-body p-5">
+                                <div id="bestSellerChartContainer" class="chart-container">
+                                    <canvas id="bestSellerChart"></canvas>
+                                </div>
+                                <div id="bestSellerTableContainer">
+                                    @if (bestSeller != null && bestSeller.Any())
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-modern table-hover align-middle gs-0 gy-4">
+                                                <thead>
+                                                    <tr class="fw-bold text-muted">
+                                                        <th class="py-3 px-4">الصورة</th>
+                                                        <th class="py-3 px-4">الاسم</th>
+                                                        <th class="py-3 px-4">المبيعات</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var item in bestSeller)
+                                                    {
+                                                        <tr>
+                                                            <td class="w-50px py-4 px-4">
+                                                                <div class="symbol symbol-45px">
+                                                                    <img src="@item.ImageURL" alt="@item.Name" />
+                                                                </div>
+                                                            </td>
+                                                            <td class="text-dark fw-semibold py-4 px-4">@item.Name</td>
+                                                            <td class="py-4 px-4">
+                                                                <span class="badge badge-gradient-primary">
+                                                                    @(item.TotalSales ?? 0)
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="empty-state">
+                                            <i class="ki-duotone ki-information">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                                <span class="path3"></span>
+                                            </i>
+                                            <div class="empty-message">لا توجد بيانات</div>
+                                            <div class="empty-description">لا توجد بيانات للفترة المحددة</div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Worst Seller -->
+                    <div class="col-xl-6">
+                        <div class="card shadow-lg border-0 rounded-4 hover-elevate-up card-modern card-animated card-animated-delay-3">
+                            <div class="card-header border-0 pt-5 card-gradient-warning d-flex align-items-center">
+                                <h3 class="card-title fw-bold flex-grow-1">
+                                    <i class="ki-duotone ki-chart fs-2 me-2"></i>المنتجات الأقل مبيعًا
+                                </h3>
+                                <button type="button" class="btn btn-sm btn-light-warning toggle-view-btn" id="toggleWorstSellerView">
+                                    <i class="ki-duotone ki-chart fs-3">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                </button>
+                            </div>
+                            <div class="card-body p-5">
+                                <div id="worstSellerChartContainer" class="chart-container">
+                                    <canvas id="worstSellerChart"></canvas>
+                                </div>
+                                <div id="worstSellerTableContainer">
+                                    @if (worstSeller != null && worstSeller.Any())
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-modern table-hover align-middle gs-0 gy-4">
+                                                <thead>
+                                                    <tr class="fw-bold text-muted">
+                                                        <th class="py-3 px-4">الصورة</th>
+                                                        <th class="py-3 px-4">الاسم</th>
+                                                        <th class="py-3 px-4">المبيعات</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var item in worstSeller)
+                                                    {
+                                                        <tr>
+                                                            <td class="w-50px py-4 px-4">
+                                                                <div class="symbol symbol-45px">
+                                                                    <img src="@item.ImageURL" alt="@item.Name" />
+                                                                </div>
+                                                            </td>
+                                                            <td class="text-dark fw-semibold py-4 px-4">@item.Name</td>
+                                                            <td class="py-4 px-4">
+                                                                <span class="badge badge-gradient-warning">
+                                                                    @(item.TotalSales ?? 0)
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="empty-state">
+                                            <i class="ki-duotone ki-information">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                                <span class="path3"></span>
+                                            </i>
+                                            <div class="empty-message">لا توجد بيانات</div>
+                                            <div class="empty-description">لا توجد بيانات للفترة المحددة</div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Update Stock Modal -->
+
+    <div class="modal fade" id="updateStockModal" tabindex="-1" aria-labelledby="updateStockModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="updateStockForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="updateStockModalLabel">تحديث المخزون</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="updateStockProductId" />
+                        <div class="mb-3">
+                            <label for="updateStockProductName" class="form-label">اسم المنتج</label>
+                            <input type="text" class="form-control" id="updateStockProductName" disabled />
+                        </div>
+                        <div class="mb-3">
+                            <label for="updateStockValue" class="form-label">الكمية الجديدة</label>
+                            <input type="number" class="form-control" id="updateStockValue" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">تحديث</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Global Chart Instances
+        let bestSellerChart = null;
+        let worstSellerChart = null;
+
+        // Chart Data from Server
+        const bestSellerData = @Html.Raw(Json.Serialize((bestSeller ?? Enumerable.Empty<Sense.Application.DTOs.ProductDTOs.ProductDto>()).Select(x => new { name = x.Name, sales = x.TotalSales ?? 0 })));
+        const worstSellerData = @Html.Raw(Json.Serialize((worstSeller ?? Enumerable.Empty<Sense.Application.DTOs.ProductDTOs.ProductDto>()).Select(x => new { name = x.Name, sales = x.TotalSales ?? 0 })));
+
+        // Initialize Best Seller Chart
+        function initializeBestSellerChart(data) {
+            const ctx = document.getElementById('bestSellerChart');
+            if (!ctx || data.length === 0) return;
+
+            const labels = data.map(item => item.name);
+            const salesData = data.map(item => item.sales);
+
+            if (bestSellerChart) {
+                bestSellerChart.destroy();
+            }
+
+            bestSellerChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'المبيعات',
+                        data: salesData,
+                        backgroundColor: 'rgba(13, 110, 253, 0.8)',
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            rtl: true,
+                            textDirection: 'rtl',
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            cornerRadius: 8,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return 'المبيعات: ' + context.parsed.x;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize Worst Seller Chart
+        function initializeWorstSellerChart(data) {
+            const ctx = document.getElementById('worstSellerChart');
+            if (!ctx || data.length === 0) return;
+
+            const labels = data.map(item => item.name);
+            const salesData = data.map(item => item.sales);
+
+            if (worstSellerChart) {
+                worstSellerChart.destroy();
+            }
+
+            worstSellerChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'المبيعات',
+                        data: salesData,
+                        backgroundColor: 'rgba(255, 193, 7, 0.8)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            rtl: true,
+                            textDirection: 'rtl',
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            cornerRadius: 8,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return 'المبيعات: ' + context.parsed.x;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize Charts on Page Load
+        $(document).ready(function() {
+            initializeBestSellerChart(bestSellerData);
+            initializeWorstSellerChart(worstSellerData);
+        });
+
+        // Toggle Best Seller View
+        $('#toggleBestSellerView').on('click', function() {
+            const chartContainer = $('#bestSellerChartContainer');
+            const tableContainer = $('#bestSellerTableContainer');
+
+            if (chartContainer.is(':visible')) {
+                chartContainer.hide();
+                tableContainer.show();
+                $(this).find('i').removeClass('ki-chart').addClass('ki-element-11');
+            } else {
+                chartContainer.show();
+                tableContainer.hide();
+                $(this).find('i').removeClass('ki-element-11').addClass('ki-chart');
+            }
+        });
+
+        // Toggle Worst Seller View
+        $('#toggleWorstSellerView').on('click', function() {
+            const chartContainer = $('#worstSellerChartContainer');
+            const tableContainer = $('#worstSellerTableContainer');
+
+            if (chartContainer.is(':visible')) {
+                chartContainer.hide();
+                tableContainer.show();
+                $(this).find('i').removeClass('ki-chart').addClass('ki-element-11');
+            } else {
+                chartContainer.show();
+                tableContainer.hide();
+                $(this).find('i').removeClass('ki-element-11').addClass('ki-chart');
+            }
+        });
+
+        // Handle Update Stock Button Click
+        $('table').on('click', '.update-stock', function (e) {
+            e.preventDefault();
+
+            const $btn = $(this);
+
+            $("#updateStockProductId").val($btn.data("id"));
+            $("#updateStockProductName").val($btn.data("name"));
+            $("#updateStockValue").val($btn.data("stock"));
+
+            $("#updateStockModal").modal("show");
+        });
+
+        // Handle Update Stock Form Submission
+        $("#updateStockForm").on("submit", function (e) {
+            e.preventDefault();
+
+            const dto = {
+                itemId: parseInt($("#updateStockProductId").val()),
+                newStockVal: parseInt($("#updateStockValue").val())
+            };
+
+            $.ajax({
+                url: "/Admin/Product/update-stock",
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(dto),
+                success: function (response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تم تحديث المخزون بنجاح!',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+
+                    $("#updateStockModal").modal("hide");
+                    window.location.reload();
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'حدث خطأ!',
+                        text: xhr.responseText || 'لم يتم تحديث المخزون.',
+                        showConfirmButton: true
+                    });
+                }
+            });
+        });
+
+        // Helper function to generate loading spinner HTML
+        function showLoadingSpinner() {
+            return `
+                <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="mt-3 text-muted">جاري التحميل...</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Helper function to generate a single table row
+        function generateTableRow(item, badgeClass) {
+            return `
+                <tr>
+                    <td class="w-50px py-4 px-4">
+                        <div class="symbol symbol-45px">
+                            <img src="${item.imageURL || ''}" alt="${item.name || ''}" />
+                        </div>
+                    </td>
+                    <td class="text-dark fw-semibold py-4 px-4">${item.name || ''}</td>
+                    <td class="py-4 px-4">
+                        <span class="badge ${badgeClass}">
+                            ${item.totalSales ?? 0}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Helper function to generate complete table HTML
+        function generateTableHTML(items, badgeClass) {
+            if (!items || items.length === 0) {
+                return `
+                    <div class="empty-state">
+                        <i class="ki-duotone ki-information">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                            <span class="path3"></span>
+                        </i>
+                        <div class="empty-message">لا توجد بيانات</div>
+                        <div class="empty-description">لا توجد بيانات للفترة المحددة</div>
+                    </div>
+                `;
+            }
+
+            let tableRows = '';
+            items.forEach(item => {
+                tableRows += generateTableRow(item, badgeClass);
+            });
+
+            return `
+                <div class="table-responsive">
+                    <table class="table table-modern table-hover align-middle gs-0 gy-4">
+                        <thead>
+                            <tr class="fw-bold text-muted">
+                                <th class="py-3 px-4">الصورة</th>
+                                <th class="py-3 px-4">الاسم</th>
+                                <th class="py-3 px-4">المبيعات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Apply Filter Button Click Handler
+        $('#applyFilterBtn').on('click', function () {
+            const $btn = $(this);
+            const year = $('#filterYear').val();
+            const month = $('#filterMonth').val();
+
+            // Disable button and show loading state
+            $btn.prop('disabled', true);
+            const originalHtml = $btn.html();
+            $btn.html(`
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                جاري التحميل...
+            `);
+
+            // Show loading spinners in both table containers
+            $('#bestSellerTableContainer').html(showLoadingSpinner());
+            $('#worstSellerTableContainer').html(showLoadingSpinner());
+
+            // Build query parameters
+            let queryParams = [];
+            if (year) {
+                queryParams.push(`year=${year}`);
+            }
+            if (month) {
+                queryParams.push(`month=${month}`);
+            }
+            const queryString = queryParams.length > 0 ? '?' + queryParams.join('&') : '';
+
+            // Make AJAX request
+            $.ajax({
+                url: '/Admin/Inventory/GetSellers' + queryString,
+                type: 'GET',
+                success: function (response) {
+                    // Update Best Seller table
+                    const bestSellerHtml = generateTableHTML(response.bestSeller, 'badge-gradient-primary');
+                    $('#bestSellerTableContainer').html(bestSellerHtml);
+
+                    // Update Worst Seller table
+                    const worstSellerHtml = generateTableHTML(response.worstSeller, 'badge-gradient-warning');
+                    $('#worstSellerTableContainer').html(worstSellerHtml);
+
+                    // Update Charts
+                    if (response.bestSeller && response.bestSeller.length > 0) {
+                        const bestData = response.bestSeller.map(item => ({
+                            name: item.name,
+                            sales: item.totalSales ?? 0
+                        }));
+                        initializeBestSellerChart(bestData);
+                    } else {
+                        if (bestSellerChart) {
+                            bestSellerChart.destroy();
+                            bestSellerChart = null;
+                        }
+                    }
+
+                    if (response.worstSeller && response.worstSeller.length > 0) {
+                        const worstData = response.worstSeller.map(item => ({
+                            name: item.name,
+                            sales: item.totalSales ?? 0
+                        }));
+                        initializeWorstSellerChart(worstData);
+                    } else {
+                        if (worstSellerChart) {
+                            worstSellerChart.destroy();
+                            worstSellerChart = null;
+                        }
+                    }
+
+                    // Show success notification
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تم تطبيق الفلتر بنجاح',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                },
+                error: function (xhr) {
+                    // Show error notification
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'حدث خطأ!',
+                        text: 'حدث خطأ أثناء تحميل البيانات',
+                        showConfirmButton: true
+                    });
+
+                    // Restore previous content or show error message
+                    $('#bestSellerTableContainer').html('<div class="text-center text-danger py-10">حدث خطأ أثناء تحميل البيانات</div>');
+                    $('#worstSellerTableContainer').html('<div class="text-center text-danger py-10">حدث خطأ أثناء تحميل البيانات</div>');
+                },
+                complete: function () {
+                    // Re-enable button and restore original text
+                    $btn.prop('disabled', false);
+                    $btn.html(originalHtml);
+                }
+            });
+        });
+
+        // Reset Filter Button Click Handler
+        $('#resetFilterBtn').on('click', function () {
+            // Reset dropdown selections
+            $('#filterYear').val('');
+            $('#filterMonth').val('');
+
+            // Reload the page to show default data
+            window.location.reload();
+        });
+    </script>
+}

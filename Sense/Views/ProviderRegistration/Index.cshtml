@@ -1,0 +1,136 @@
+@model Sense.Models.ProviderRegistration.ProviderRegistrationViewModel
+
+@section Styles
+{
+    <style>
+        .provider-registration-hero {
+            background: linear-gradient(135deg, #061c42 0%, #253f8e 100%);
+            color: #fff;
+            padding: 58px 0;
+        }
+
+        .provider-registration-card {
+            border: 0;
+            border-radius: 18px;
+            box-shadow: 0 16px 45px rgba(6, 28, 66, .11);
+        }
+
+        .provider-registration-card .form-control {
+            border-radius: 10px;
+            min-height: 48px;
+        }
+
+        .provider-registration-card textarea.form-control {
+            min-height: 145px;
+        }
+
+        .provider-registration-card .form-label {
+            color: #061c42;
+            font-weight: 700;
+        }
+
+        .provider-registration-submit {
+            background: #253f8e;
+            border-color: #253f8e;
+            border-radius: 999px;
+            min-height: 50px;
+        }
+    </style>
+}
+
+<section class="provider-registration-hero text-center">
+    <div class="container">
+        <p class="mb-2 opacity-75">انضم إلى شركاء Sense Store</p>
+        <h1 class="text-white mb-3">سجّل كمزوّد</h1>
+        <p class="mb-0">أرسل بيانات نشاطك وسيتواصل معك فريقنا بعد مراجعة الطلب.</p>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container" style="max-width: 900px;">
+        <div class="card provider-registration-card">
+            <div class="card-body p-4 p-lg-5">
+                <div class="mb-4">
+                    <h2 class="h4 mb-2" style="color:#061c42;">بيانات طلب الانضمام</h2>
+                    <p class="text-muted mb-0">جميع الحقول مطلوبة. لن تُنشأ بيانات الدخول إلا بعد قبول الطلب.</p>
+                </div>
+
+                <form asp-controller="ProviderRegistration"
+                      asp-action="Index"
+                      method="post"
+                      enctype="multipart/form-data"
+                      novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label asp-for="FullName" class="form-label"></label>
+                            <input asp-for="FullName" class="form-control" autocomplete="name" placeholder="اسم الشخص المسؤول" />
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="BusinessName" class="form-label"></label>
+                            <input asp-for="BusinessName" class="form-control" autocomplete="organization" placeholder="اسم المتجر أو المؤسسة" />
+                            <span asp-validation-for="BusinessName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" autocomplete="email" placeholder="name@example.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="PhoneNumber" class="form-label"></label>
+                            <input asp-for="PhoneNumber" class="form-control" autocomplete="tel" dir="ltr" placeholder="05xxxxxxxx" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="BusinessDescription" class="form-label"></label>
+                            <textarea asp-for="BusinessDescription" class="form-control" placeholder="عرّفنا بنشاطك والمنتجات التي ترغب في بيعها"></textarea>
+                            <span asp-validation-for="BusinessDescription" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Document" class="form-label"></label>
+                            <input asp-for="Document"
+                                   type="file"
+                                   class="form-control"
+                                   accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" />
+                            <div class="form-text">
+                                أرفق صورة الهوية أو السجل/الرخصة التجارية. PDF أو PNG أو JPG، بحد أقصى 10 ميجابايت.
+                                تُحفظ الوثيقة بشكل خاص ولا يمكن الاطلاع عليها إلا من لوحة الإدارة.
+                            </div>
+                            <span asp-validation-for="Document" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input asp-for="AcceptedTerms" class="form-check-input" required />
+                                <label asp-for="AcceptedTerms" class="form-check-label">
+                                    أقر بصحة البيانات وأوافق على مراجعتها للتأكد من أهلية الانضمام كمزوّد.
+                                </label>
+                            </div>
+                            <span asp-validation-for="AcceptedTerms" class="text-danger small d-block"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary provider-registration-submit w-100">
+                                إرسال طلب الانضمام
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,667 @@
+﻿<!--begin::Sidebar-->
+<div id="kt_app_sidebar" class="app-sidebar flex-column" data-kt-drawer="true" data-kt-drawer-name="app-sidebar" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="225px" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_sidebar_mobile_toggle">
+    <!--begin::Logo-->
+    <div class="app-sidebar-logo px-6" id="kt_app_sidebar_logo">
+        <!--begin::Logo image-->
+        <a asp-area="Admin" asp-Controller="Home" asp-action="Index" style="color:white;">
+            لوحة التحكم - مسؤول النظام
+        </a>
+        <!--end::Logo image-->
+        <!--begin::Sidebar toggle-->
+        <!--begin::Minimized sidebar setup:
+            if (isset($_COOKIE["sidebar_minimize_state"]) && $_COOKIE["sidebar_minimize_state"] === "on") {
+                1. "src/js/layout/sidebar.js" adds "sidebar_minimize_state" cookie value to save the sidebar minimize state.
+                2. Set data-kt-app-sidebar-minimize="on" attribute for body tag.
+                3. Set data-kt-toggle-state="active" attribute to the toggle element with "kt_app_sidebar_toggle" id.
+                4. Add "active" class to to sidebar toggle element with "kt_app_sidebar_toggle" id.
+            }
+        -->
+        <div id="kt_app_sidebar_toggle" class="app-sidebar-toggle btn btn-icon btn-shadow btn-sm btn-color-muted btn-active-color-primary h-30px w-30px position-absolute top-50 start-100 translate-middle rotate" data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body" data-kt-toggle-name="app-sidebar-minimize">
+            <i class="ki-duotone ki-black-left-line fs-3 rotate-180">
+                <span class="path1"></span>
+                <span class="path2"></span>
+            </i>
+        </div>
+        <!--end::Sidebar toggle-->
+    </div>
+    <!--end::Logo-->
+    <!--begin::sidebar menu-->
+    <div class="app-sidebar-menu overflow-hidden flex-column-fluid">
+        <!--begin::Menu wrapper-->
+        <div id="kt_app_sidebar_menu_wrapper" class="app-sidebar-wrapper">
+            <!--begin::Scroll wrapper-->
+            <div id="kt_app_sidebar_menu_scroll" class="scroll-y my-5 mx-3"
+                 data-kt-scroll="true"
+                 data-kt-scroll-activate="true"
+                 data-kt-scroll-height="auto"
+                 data-kt-scroll-dependencies="#kt_app_sidebar_logo, #kt_app_sidebar_footer"
+                 data-kt-scroll-wrappers="#kt_app_sidebar_menu"
+                 data-kt-scroll-offset="5px"
+                 data-kt-scroll-save-state="true">
+
+                <!--begin::Menu-->
+                <div class="menu menu-column menu-rounded menu-sub-indention fw-semibold fs-6"
+                     id="#kt_app_sidebar_menu"
+                     data-kt-menu="true"
+                     data-kt-menu-expand="false">
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <a href="/admin/home/index" class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-home fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">الصفحة الرئيسية</span>
+                        </a>
+
+                    </div>
+                    <!--end:Menu item-->
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-user fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">المستخدمون</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <!--end:Menu link-->
+                        <!--begin:Menu sub-->
+                        <div class="menu-sub menu-sub-accordion">
+                            <!--end:Menu item-->
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Customers" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="ApplicationUser"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">العملاء</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Providers" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="Provider"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">المزودون</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "ProviderRequests" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="ProviderRequests"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">طلبات انضمام المزودين</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                        </div>
+                        <!--end:Menu sub-->
+                    </div>
+                    <!--end:Menu item-->
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-shop fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">المنتجات</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <!--end:Menu link-->
+                        <!--begin:Menu sub-->
+                        <div class="menu-sub menu-sub-accordion">
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Product" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="product"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">إدارة المنتجات</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Category" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="category"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">التصنيفات</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                        </div>
+                        <!--end:Menu sub-->
+                    </div>
+                    <!--end:Menu item-->
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-shop fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">المخزون</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <!--end:Menu link-->
+                        <!--begin:Menu sub-->
+                        <div class="menu-sub menu-sub-accordion">
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "’ManageInventory" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="Inventory"
+                                   asp-action="ManageInventory">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">إدارة المخزون</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                        </div>
+                        <!--end:Menu sub-->
+                        <!--begin:Menu sub-->
+                        <div class="menu-sub menu-sub-accordion">
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Inventory" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="Inventory"
+                                   asp-action="Index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">سجلات المخزون</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                        </div>
+                        <!--end:Menu sub-->
+                    </div>
+                    <!--end:Menu item-->
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-shop fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">الطلبات</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <!--end:Menu link-->
+                        <!--begin:Menu sub-->
+                        <div class="menu-sub menu-sub-accordion">
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Orders" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="Order"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">إدارة الطلبات</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                        </div>
+                        <!--end:Menu sub-->
+                    </div>
+                    <!--end:Menu item-->
+                    @*
+                        Legacy (maintenance-center era): appointments/bookings menu.
+                        Hidden since the project became a pure e-commerce marketplace.
+
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-calendar fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">الحجوزات</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <div class="menu-sub menu-sub-accordion">
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Appointment" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="Appointment"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">صفحة الحجوزات</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    *@
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-document fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">الفواتير</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <!--end:Menu link-->
+                        @*
+                            Legacy (maintenance-center era): maintenance-records menu.
+                            Hidden since the project became a pure e-commerce marketplace.
+
+                        <div class="menu-sub menu-sub-accordion">
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "MaintenanceRecords" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="MaintenanceRecord"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">سجلات الصيانة</span>
+                                </a>
+                            </div>
+                        </div>
+                        *@
+                        <!--begin:Menu sub-->
+                        <div class="menu-sub menu-sub-accordion">
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Invoices" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="Invoice"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">فوانير المتجر</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                        </div>
+                        <!--end:Menu sub-->
+                        <!--end:Menu sub-->
+                    </div>
+                    <!--end:Menu item-->
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-element-11 fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">الفروع</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <!--end:Menu link-->
+                        <!--begin:Menu sub-->
+                        <div class="menu-sub menu-sub-accordion">
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Branch" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="branch"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">صفحة الفروع</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "AddBranch" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="branch"
+                                   asp-action="add">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">إضافة فرع</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                        </div>
+                        <!--end:Menu sub-->
+                    </div>
+                    <!--end:Menu item-->
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-tag fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">التسويق</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <!--end:Menu link-->
+                        <!--begin:Menu sub-->
+                        <div class="menu-sub menu-sub-accordion">
+                            @*
+                                Legacy (maintenance-center era): free-maintenance offers menu.
+                                Hidden since the project became a pure e-commerce marketplace.
+
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "FreeMaintenanceOffer" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="FreeMaintenanceOffer"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">عروض الصيانة المجانية</span>
+                                </a>
+                            </div>
+                            *@
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "CashbackOffer" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="CashbackOffer"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">عروض الكاش باك</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                            <!--begin:Menu item
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Coupon" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="Coupon"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">الحملات التسويقية</span>
+                                </a>
+                            </div>
+                            -->
+                            <!--end:Menu item-->
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Coupon" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="Coupon"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">كوبونات الخصم</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+
+                        </div>
+                        <!--end:Menu sub-->
+                    </div>
+                    <!--end:Menu item-->
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-question fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">الإستفسارات</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <!--end:Menu link-->
+                        <!--begin:Menu sub-->
+                        <div class="menu-sub menu-sub-accordion">
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "ContactUs" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="ContactUs"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">صفحة الإستفسارات</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                        </div>
+                        <!--end:Menu sub-->
+                    </div>
+                    <!--end:Menu item-->
+                    <!--begin:Menu item-->
+                    <div class="menu-item pt-5">
+                        <div class="menu-content">
+                            <span class="menu-heading fw-bold text-uppercase fs-7">الصفحات</span>
+                        </div>
+                    </div>
+                    <!--end:Menu item-->
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-notification-status fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                    <span class="path3"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">شريط الإعلانات</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <!--end:Menu link-->
+                        <!--begin:Menu sub-->
+                        <div class="menu-sub menu-sub-accordion">
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Statement" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="Statement"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">إدارة محتوى الشريط العلوي</span>
+                                </a>
+                            </div>
+                        </div>
+                        <!--end:Menu sub-->
+                    </div>
+                    <!--end:Menu item-->
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-element-7 fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">البانرات</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <!--end:Menu link-->
+                        <!--begin:Menu sub-->
+                        <div class="menu-sub menu-sub-accordion">
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Banner" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="Banner"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">صفحة البانرات</span>
+                                </a>
+                            </div>
+                            <!--begin:Menu sub-->
+                            <div class="menu-sub menu-sub-accordion">
+                                <div class="menu-item">
+                                    <a class="menu-link @(ViewBag.ActiveMenu == "AddBanner" ? "active" : "")"
+                                       asp-area="admin"
+                                       asp-controller="banner"
+                                       asp-action="add">
+                                        <span class="menu-bullet">
+                                            <span class="bullet bullet-dot"></span>
+                                        </span>
+                                        <span class="menu-title">إضافة بانر</span>
+                                    </a>
+                                </div>
+                            </div>
+                            <!--end:Menu sub-->
+                        </div>
+                        <!--end:Menu sub-->
+                    </div>
+                    <!--end:Menu item-->
+                    @*
+                        Legacy (maintenance-center era): services menu.
+                        Hidden since the project became a pure e-commerce marketplace.
+
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-element-7 fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">الخدمات</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <div class="menu-sub menu-sub-accordion">
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "Service" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="service"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">صفحة الخدمات</span>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="menu-sub menu-sub-accordion">
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "AddService" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="service"
+                                   asp-action="add">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">إضافة خدمة</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    *@
+                    <!--begin:Menu item-->ٍٍ
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="fa fa-cog"></i>
+                            </span>
+
+                            <span class="menu-title">الإعدادات</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <!--end:Menu link-->
+                        <!--begin:Menu sub-->
+                        <div class="menu-sub menu-sub-accordion">
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "CenterSetting" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="centerSetting"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">إعدادات المتجر</span>
+                                </a>
+                            </div>
+                        </div>
+                        <!--end:Menu sub-->
+                    </div>
+                    <!--end:Menu item-->
+                </div>
+                <!--end::Menu-->
+
+            </div>
+            <!--end::Scroll wrapper-->
+        </div>
+        <!--end::Menu wrapper-->
+    </div>
+    <!--end::sidebar menu-->
+    <!--begin::Footer-->
+    <div class="app-sidebar-footer flex-column-auto pt-2 pb-6 px-6" id="kt_app_sidebar_footer">
+        <a href="#" class="btn btn-flex flex-center btn-custom btn-primary overflow-hidden text-nowrap px-0 h-40px w-100">
+            <span class="btn-label">لوحة التحكم</span>
+            <i class="ki-duotone ki-document btn-icon fs-2 m-0">
+                <span class="path1"></span>
+                <span class="path2"></span>
+            </i>
+        </a>
+    </div>
+    <!--end::Footer-->
+</div>
+<!--end::Sidebar-->

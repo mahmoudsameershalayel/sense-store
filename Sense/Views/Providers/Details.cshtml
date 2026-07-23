@@ -1,0 +1,140 @@
+@using Sense.Domain.DBEntities
+@using Sense.Application.DTOs.ProviderDTOs
+@model ProviderDto
+
+@{
+    var products = ViewBag.Products as List<ProductTbl> ?? new List<ProductTbl>();
+}
+
+@section Styles
+{
+    <style>
+        .provider-banner {
+            position: relative;
+            width: 100%;
+            background-color: #061C42;
+            padding: 40px 0;
+            color: #fff;
+        }
+
+        .provider-header {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .provider-logo {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+            .provider-logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .provider-logo i {
+                font-size: 2.5rem;
+                color: #253F8E;
+            }
+
+        .provider-name {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            color: #fff;
+        }
+
+        .provider-description {
+            color: #cfd8ea;
+            margin: 8px 0 0;
+        }
+
+        .provider-products-section {
+            padding: 40px 0;
+        }
+
+        .provider-products-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #061C42;
+            margin-bottom: 24px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+            .provider-products-title::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                width: 60px;
+                height: 3px;
+                background: #253F8E;
+                border-radius: 2px;
+            }
+
+        @@media (max-width: 576px) {
+            .provider-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .provider-name {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+}
+
+<div class="provider-banner">
+    <div class="provider-header">
+        <div class="provider-logo">
+            @if (!string.IsNullOrWhiteSpace(Model.LogoURL))
+            {
+                <img src="@Model.LogoURL" alt="@Model.DisplayName" />
+            }
+            else
+            {
+                <i class="bi bi-shop"></i>
+            }
+        </div>
+        <div>
+            <h1 class="provider-name">@Model.DisplayName</h1>
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <p class="provider-description">@Model.Description</p>
+            }
+        </div>
+    </div>
+</div>
+
+<section class="provider-products-section">
+    <div class="container">
+        <h2 class="provider-products-title">منتجات @Model.DisplayName</h2>
+
+        @if (products.Any())
+        {
+            <div class="row">
+                <partial name="~/Views/Shared/PartialViews/_ProductCards.cshtml" model="products.AsEnumerable()" />
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info text-center">
+                لا توجد منتجات منشورة لهذا المزود حالياً.
+            </div>
+        }
+    </div>
+</section>

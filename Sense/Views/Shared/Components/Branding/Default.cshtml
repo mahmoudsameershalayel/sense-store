@@ -1,0 +1,47 @@
+@using Sense.Application.DTOs.CenterSettingDTOs
+@model CenterSettingDto
+
+@{
+    const string fallbackName = "متجر سينس";
+    const string fallbackLogo = "/assets/img/logo.png";
+
+    var variant = ((string?)ViewBag.Variant ?? "text").ToLowerInvariant();
+    var centerName = string.IsNullOrWhiteSpace(Model?.CenterName) ? fallbackName : Model.CenterName;
+    var logoUrl = Url.Content(string.IsNullOrWhiteSpace(Model?.LogoUrl) ? fallbackLogo : Model.LogoUrl);
+}
+
+@if (variant == "desktop")
+{
+    <a href="/" class="logo">
+        <img src="@logoUrl" style="height:40px;border-radius:20px;object-fit:cover;" alt="@centerName">
+    </a>
+}
+else if (variant == "mobile")
+{
+    <a href="/" class="mobile-logo d-block text-center">
+        <img src="@logoUrl" alt="@centerName">
+    </a>
+}
+else if (variant == "favicon")
+{
+    <link rel="icon" type="image/png" href="@logoUrl">
+}
+else if (variant == "auth")
+{
+    <span class="app-brand-logo">
+        <img src="@logoUrl" alt="@centerName" style="height:36px;width:36px;object-fit:cover;border-radius:50%;">
+    </span>
+    <span class="app-brand-text demo text-body fw-bold p-2">@centerName</span>
+}
+else if (variant == "logo")
+{
+    <img src="@logoUrl" alt="@centerName" style="height:70px;max-width:180px;object-fit:contain;">
+}
+else if (variant == "footer-logo")
+{
+    <img src="@logoUrl" alt="@centerName">
+}
+else
+{
+    @centerName
+}

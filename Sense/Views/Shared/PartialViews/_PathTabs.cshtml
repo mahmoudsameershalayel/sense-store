@@ -1,0 +1,18 @@
+﻿@{
+    var activeTab = ViewBag.ActiveTab as string ?? "manual";
+}
+
+<ul class="tabs-nav">    
+    <li class="tab-item @((activeTab == "manual") ? "active" : "")">
+        <a href="@Url.Action("ManualPath", "Path")" class="tab-button">المسارات اليدوية</a>
+    </li>
+    <li class="tab-item @((activeTab == "auto") ? "active" : "")">
+        <a href="@Url.Action("AutoPath", "Path")" class="tab-button">التوجيه التلقائي</a>
+    </li>
+    <li class="tab-item @((activeTab == "direct") ? "active" : "")">
+        <a href="@Url.Action("DirectPath", "Path")" class="tab-button">المسار السريع</a>
+    </li>
+    <li class="tab-item @((activeTab == "setting") ? "active" : "")">
+        <a href="@Url.Action("Setting", "Path")" class="tab-button">الإعدادات</a>
+    </li>
+</ul>

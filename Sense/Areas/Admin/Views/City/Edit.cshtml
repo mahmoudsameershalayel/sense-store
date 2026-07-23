@@ -1,0 +1,29 @@
+﻿@model CityTbl
+@{
+}
+<form asp-controller="City" asp-action="Edit" method="POST">
+    <input type="hidden" asp-for="Id">
+    <div class="row mt-5 container">
+        <div class="card mb-4">
+            <h5 class="card-header">تعديل بيانات المدينة</h5>
+            <div class="card-body">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="Name">إسم المدينة</label>
+                        <input type="text" class="form-control" id="Name" asp-for="Name">
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-lg-1 col-md-2 col-sm-4  mb-4">
+                        <button type="submit" class="btn btn-primary btn-create">تعديل</button>
+                    </div>
+                    <div class="col-lg-1 col-md-2 col-sm-4  mb-4">
+                        <input type="reset" class="btn btn-warning" value="إعادة الضبط">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</form>

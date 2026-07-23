@@ -1,0 +1,242 @@
+@using Sense.Application.DTOs.AuthDTOs
+@model VerifyOtpDto
+
+@section Styles
+{
+    <style type="text/css">
+        .auth-logo-only {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+            .auth-logo-only img {
+                max-height: 70px;
+                max-width: 180px;
+                object-fit: contain;
+            }
+        .contact-banner {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background-color: #061C42;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .contact-banner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+
+        .contact-banner-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-banner-text h1 {
+            font-size: 3rem;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        .reset-container {
+            width: 40%;
+            margin: 0 auto;
+        }
+
+        #verify-otp.section {
+            padding: 24px 0;
+        }
+
+        .otp-digits {
+            direction: ltr;
+        }
+
+        .otp-digit {
+            width: 48px;
+            height: 56px;
+            font-size: 1.5rem;
+            text-align: center;
+            padding: 0;
+        }
+
+        @@media (max-width: 768px) {
+            .contact-banner-text h1 {
+                font-size: 2.5rem;
+            }
+            .reset-container {
+                width: 80%;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .contact-banner-text h1 {
+                font-size: 2rem;
+            }
+            .reset-container {
+                width: 90%;
+            }
+            .contact-banner {
+                height: 200px;
+            }
+            .otp-digit {
+                width: 40px;
+                height: 48px;
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+}
+
+<div class="contact-banner">
+    <div class="contact-banner-text">
+        <h1>التحقق من الرمز</h1>
+    </div>
+</div>
+
+<section id="verify-otp" class="contact section">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success text-center mb-3" role="alert">
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger text-center mb-3" role="alert">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="container reset-container">
+        <div class="authentication-wrapper authentication-basic container-p-y">
+            <div class="authentication-inner">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="auth-logo-only">
+                            <a href="/" style="text-decoration:none;">
+                                @await Component.InvokeAsync("Branding", new { variant = "logo" })
+                            </a>
+                        </div>
+
+                        <h4 class="mb-2">أدخل رمز التحقق</h4>
+                        <p class="mb-4">تم إرسال رمز التحقق إلى <strong>@Model.Email</strong></p>
+
+                        <form id="formVerifyOtp" class="mb-3" asp-controller="Auth" asp-action="VerifyOtp" method="POST">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="Email" />
+
+                            <div class="mb-3">
+                                <label class="form-label d-block">رمز التحقق</label>
+                                <div class="otp-digits d-flex justify-content-center gap-2">
+                                    @for (int i = 0; i < 6; i++)
+                                    {
+                                        <input type="text"
+                                               inputmode="numeric"
+                                               pattern="[0-9]*"
+                                               maxlength="1"
+                                               class="form-control otp-digit"
+                                               autocomplete="one-time-code" />
+                                    }
+                                </div>
+                                <input type="hidden" id="otpCode" asp-for="OtpCode" />
+                                <span asp-validation-for="OtpCode" class="text-danger d-block text-center mt-2"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <button class="btn d-grid w-100" style="background-color: #253F8E; color: white;" type="submit">
+                                    تأكيد الرمز
+                                </button>
+                            </div>
+
+                            <div class="text-center">
+                                <a href="#" id="resendOtpLink" class="text-primary" style="text-decoration: underline;">
+                                    إعادة إرسال الرمز
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts
+{
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="text/javascript">
+        (function () {
+            var digits = Array.prototype.slice.call(document.querySelectorAll(".otp-digit"));
+            var hiddenInput = document.getElementById("otpCode");
+
+            function syncHiddenValue() {
+                hiddenInput.value = digits.map(function (d) { return d.value; }).join("");
+            }
+
+            digits.forEach(function (digit, index) {
+                digit.addEventListener("input", function () {
+                    digit.value = digit.value.replace(/[^0-9]/g, "").slice(0, 1);
+                    if (digit.value && index < digits.length - 1) {
+                        digits[index + 1].focus();
+                    }
+                    syncHiddenValue();
+                });
+
+                digit.addEventListener("keydown", function (e) {
+                    if (e.key === "Backspace" && !digit.value && index > 0) {
+                        digits[index - 1].focus();
+                    }
+                });
+
+                digit.addEventListener("paste", function (e) {
+                    var pasted = (e.clipboardData || window.clipboardData).getData("text").replace(/[^0-9]/g, "");
+                    if (!pasted) return;
+                    e.preventDefault();
+                    pasted.slice(0, digits.length).split("").forEach(function (char, i) {
+                        if (digits[i]) digits[i].value = char;
+                    });
+                    syncHiddenValue();
+                    var next = digits[Math.min(pasted.length, digits.length - 1)];
+                    if (next) next.focus();
+                });
+            });
+
+            if (digits[0]) digits[0].focus();
+        })();
+
+        document.getElementById("resendOtpLink").addEventListener("click", function (e) {
+            e.preventDefault();
+
+            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch("@Url.Action("ResendOtp", "Auth")", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: "email=" + encodeURIComponent("@Model.Email") + "&__RequestVerificationToken=" + encodeURIComponent(token)
+            })
+            .then(res => res.json())
+            .then(data => {
+                Swal.fire({
+                    icon: data.success ? "success" : "error",
+                    title: data.success ? "تم الإرسال" : "خطأ",
+                    text: data.message,
+                    confirmButtonText: "حسناً"
+                });
+            });
+        });
+    </script>
+}

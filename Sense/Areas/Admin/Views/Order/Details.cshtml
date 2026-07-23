@@ -1,0 +1,1177 @@
+﻿@using Sense.Application.DTOs.OfferCashbackDTOs
+@using Sense.Application.DTOs.OrderDTOs
+@model OrderDetailsDto
+@{
+    var order = ViewBag.Order as OrderDto;
+    var cashBackOffer = ViewBag.CashbackOffer as CashbackOfferDto;
+}
+@section Styles
+{
+    <style type="text/css">
+        body {
+            font-family: 'Arial', sans-serif;
+            direction: rtl;
+            text-align: right;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+        }
+
+        .a4-container {
+            padding: 20mm;
+            margin: auto;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        .invoice-card {
+            border: none;
+            border-top: 4px solid #667eea;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            padding: 40px;
+            background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .company-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+            .company-header img {
+                max-height: 80px;
+                margin-bottom: 10px;
+            }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+            .section h4 {
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 5px;
+                margin-bottom: 15px;
+                color: #007bff;
+            }
+
+            .section p {
+                margin: 5px 0;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            animation: fadeInUp 0.6s ease-out 0.6s both;
+        }
+
+        th, td {
+            border: none;
+            border-bottom: 1px solid #e9ecef;
+            padding: 15px 20px;
+            text-align: center;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #fafbfc;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .total-section {
+            text-align: left;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .bg-success {
+            background-color: #28a745;
+        }
+
+        .bg-warning {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .bg-danger {
+            background-color: #dc3545;
+        }
+
+        .bg-secondary {
+            background-color: #6c757d;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 13px;
+            color: #777;
+        }
+        /* Product link hover effect */
+        .product-link {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+            .product-link:hover {
+                color: #0056b3 !important;
+                text-decoration: underline !important;
+            }
+
+        /* Additional styles for the modal */
+        #productDetailsModal .modal-content {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        #productDetailsModal .table th {
+            font-weight: 600;
+        }
+
+        #productDetailsModal .card {
+            border: none;
+            transition: transform 0.2s;
+        }
+
+            #productDetailsModal .card:hover {
+                transform: translateY(-5px);
+            }
+
+        #productDetailsModal img {
+            border: 2px solid #e9ecef;
+        }
+
+        /* Print styles - hide modal trigger links when printing */
+        @@media print {
+            .product-link {
+                color: #000 !important;
+                text-decoration: none !important;
+                pointer-events: none;
+            }
+
+                .product-link i {
+                    display: none;
+                }
+        }
+
+        /* Totals Summary Card */
+        .totals-summary-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            animation: fadeInUp 0.6s ease-out 0.8s both;
+        }
+
+        .totals-summary-card p {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dashed #dee2e6;
+        }
+
+        .totals-summary-card p:last-of-type {
+            border-bottom: none;
+        }
+
+        .totals-summary-card h4 {
+            font-size: 1.5rem;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        /* Info rows with icons */
+        .info-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            line-height: 1.8;
+            transition: transform 0.2s;
+        }
+
+        .info-row:hover {
+            transform: translateX(-5px);
+        }
+
+        .info-row i {
+            margin-left: 10px;
+            color: #667eea;
+        }
+
+        .info-row strong {
+            font-weight: 600;
+        }
+
+        /* Leaflet map styles */
+        .leaflet-container {
+            font-family: 'Arial', sans-serif;
+        }
+
+        .address-marker-popup {
+            direction: rtl;
+            text-align: right;
+            font-size: 14px;
+        }
+
+        .address-marker-popup strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Map loading spinner */
+        .map-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .map-loading i {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        /* Custom marker animation */
+        .custom-marker-icon i {
+            animation: markerDrop 0.5s ease-out;
+        }
+
+        @@keyframes markerDrop {
+            0% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Modal animations */
+        #addressMapModal .modal-content {
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @@keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Address details card animation */
+        #addressMapModal .modal-body > div:last-child {
+            animation: slideInRight 0.4s ease-out 0.1s both;
+        }
+
+        /* Enhanced map button styling */
+        .btn-map-view {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-map-view:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+            color: white;
+        }
+
+        .btn-map-view i {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-map-view:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Page Load Animations */
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Hover Effects */
+        .btn {
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-outline-primary {
+            border-radius: 20px;
+            padding: 8px 20px;
+        }
+
+        .btn-outline-primary:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Mobile Optimizations */
+        @@media (max-width: 768px) {
+            .invoice-card {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            .row.mb-3 {
+                flex-direction: column;
+            }
+
+            .col-md-6 {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+
+            /* Stack table cells vertically */
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            tbody tr {
+                margin-bottom: 15px;
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                padding: 10px;
+                background: white;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+
+            td {
+                border: none;
+                position: relative;
+                padding-right: 50%;
+                text-align: left;
+                padding: 10px;
+            }
+
+            td::before {
+                content: attr(data-label);
+                position: absolute;
+                right: 10px;
+                font-weight: bold;
+                text-align: right;
+            }
+
+            .totals-summary-card {
+                padding: 20px;
+            }
+
+            /* Adjust map modal for mobile */
+            #orderAddressMap {
+                height: 300px !important;
+            }
+
+            /* Map modal responsive */
+            #addressMapModal .modal-dialog {
+                max-width: 90%;
+            }
+        }
+
+        /* Additional responsive breakpoint */
+        @@media (max-width: 576px) {
+            #orderAddressMap {
+                height: 300px !important;
+            }
+
+            #addressMapModal .modal-body > div:last-child {
+                padding: 15px !important;
+            }
+
+            #addressMapModal .row > div {
+                width: 100% !important;
+                margin-bottom: 10px;
+            }
+        }
+
+        /* Desktop map modal width */
+        @@media (min-width: 769px) {
+            #addressMapModal .modal-dialog {
+                max-width: 800px;
+            }
+
+            #orderAddressMap {
+                height: 400px !important;
+            }
+        }
+
+        /* Enhanced Product Modal Styles */
+        #productDetailsModal .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-bottom: none;
+        }
+
+        #productDetailsModal .modal-content {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        #productDetailsModal .table {
+            margin-bottom: 0;
+        }
+
+        #productDetailsModal .table th {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        #productDetailsModal .card {
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        #productDetailsModal .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        #productDetailsModal img {
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        #productDetailsModal img:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        /* Touch-friendly buttons */
+        @@media (hover: none) and (pointer: coarse) {
+            .btn {
+                min-height: 44px;
+                padding: 12px 24px;
+            }
+
+            .btn:active {
+                transform: scale(0.95);
+            }
+        }
+
+        /* Print-specific styles */
+        @@media print {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+
+            @@page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+
+            html, body {
+                width: 210mm;
+                height: 297mm;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact !important; /* keep background colors */
+                print-color-adjust: exact !important;
+            }
+            /* إخفاء الـ Navbar */
+            .kt-header, /* إذا كان لديك الـ Navbar من Metronic */
+            .kt-toolbar,
+            .app-header,
+            .app-footer { /* إذا كان لديك شريط أدوات في الـ Navbar */
+                display: none !important;
+            }
+            /* إخفاء الـ Sidebar */
+            .kt-aside { /* إذا كان لديك الـ Sidebar */
+                display: none !important;
+            }
+            /* التأكد أن الفاتورة تظهر بشكل جيد */
+            .a4-container {
+                width: 210mm;
+                min-height: 297mm;
+                padding: 20mm;
+                margin: 0;
+                background: white;
+                box-sizing: border-box;
+            }
+
+            .row {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+            }
+
+            .col-md-6 {
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
+            }
+
+            .invoice-card {
+                border: none;
+                padding: 20px;
+                box-shadow: none;
+            }
+
+            table tbody tr:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .footer {
+                font-size: 12px;
+                text-align: center;
+                margin-top: 40px;
+            }
+            /* إزالة الأزرار أثناء الطباعة */
+            .btn, #addressMapModal, .btn-map-view, #productDetailsModal {
+                display: none !important;
+            }
+
+            table {
+                width: 100% !important;
+            }
+        }
+    </style>
+}
+
+<div class="a4-container">
+
+
+    <div style="text-align: center; margin-bottom: 30px;">
+        <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px 40px; border-radius: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.1);">
+            <h2 style="color: white; margin: 0;"><i class="fas fa-file-invoice"></i> فاتورة مبيعات # @Model.Id</h2>
+        </div>
+    </div>
+
+    <div class="invoice-card">
+        <div class="row mb-3" style="animation: slideInRight 0.6s ease-out 0.4s both;">
+            <div class="col-md-6">
+                <div class="info-row">
+                    <i class="fas fa-user"></i>
+                    <p style="margin: 0;"><strong>اسم العميل:</strong> @Model.Customer?.FullName</p>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-phone"></i>
+                    <p style="margin: 0;"><strong>رقم الهاتف:</strong> @Model.PhoneNumber</p>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <p style="margin: 0;">
+                            <strong>العنوان:</strong> @Model.Address?.City , @Model.Address?.Street  @if (!string.IsNullOrWhiteSpace(Model.Address?.Neighborhood))
+                            {
+                                @($" - الحي السكني :  {Model.Address?.Neighborhood}")
+                            }
+                        </p>
+                        <button type="button" class="btn btn-sm btn-map-view mt-2"
+                                data-bs-toggle="modal" data-bs-target="#addressMapModal">
+                            <i class="fas fa-map-marker-alt me-1"></i> عرض على الخريطة
+                        </button>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-credit-card"></i>
+                    <p style="margin: 0;"><strong>طريقة الدفع:</strong> @order.PaymentMethod</p>
+                </div>
+            </div>
+            <div class="col-md-6 text-end">
+                <div class="info-row">
+                    <i class="fas fa-calendar-alt"></i>
+                    <p style="margin: 0;"><strong>تاريخ الطلب:</strong> @order.OrderDate</p>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-clock"></i>
+                    <p style="margin: 0;"><strong>وقت الطلب:</strong> @order.OrderTime</p>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-box"></i>
+                    <p style="margin: 0;"><strong>حالة الطلب:</strong> @order.OrderStatus</p>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-money-check-alt"></i>
+                    <p style="margin: 0;"><strong>حالة الدفع:</strong> @order.PaymentStatus</p>
+                </div>
+            </div>
+        </div>
+
+        <table class="table table-bordered">
+            <thead class="table-primary">
+                <tr>
+                    <th>#</th>
+                    <th>المنتج</th>
+                    <th>الكمية</th>
+                    <th>السعر</th>
+                    <th>الخصم</th>
+                    <th>الضريبة</th>
+                    <th>الضريبة المضافة</th>
+                    <th>الإجمالي</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.ItemDetails)
+                {
+                    <tr>
+                        <td data-label="#">@item.ProductId</td>
+                        <td data-label="المنتج">
+                            <a href="javascript:void(0)"
+                               onclick="fetchProductDetails(@item.ProductId)"
+                               class="text-primary text-decoration-none fw-bold product-link">
+                                <i class="fa fa-info-circle"></i> @item.ProductName
+                            </a>
+                        </td>
+                        <td data-label="الكمية">@item.ProductAmount</td>
+                        <td data-label="السعر">@item.ProductPrice?.ToString("N2")                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg></td>
+                        <td data-label="الخصم">@item.TotalOfferDisValue.ToString("N2")                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg></td>
+                        <td data-label="الضريبة">@item.TotalTaxValue.ToString("N2")                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg></td>
+                        <td data-label="الضريبة المضافة">@item.TotalVatValue.ToString("N2")                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg></td>
+                        <td data-label="الإجمالي">@item.EznNetValue.ToString("N2")                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="totals-summary-card">
+            <p>
+                <span><i class="fas fa-dollar-sign"></i> <strong>المجموع:</strong></span>
+                <span>@Model.OrderTotal.ToString("N2")                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg></span>
+            </p>
+            <p>
+                <span><i class="fas fa-truck"></i> <strong>رسوم التوصيل:</strong></span>
+                <span>@(Model.DeliveryFee == 0 ? "لم يتم تعيين الرسوم بعد" : Model.DeliveryFee.ToString("N2") + "                         <svg class='riyal-svg currency' fill='currentColor' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 78.917 78.917' width='15' height='15' aria-hidden='true' focusable='false' style='display:inline-block;vertical-align:-0.125em'><path d='M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z' /></svg>")</span>
+            </p>
+            <p>
+                <span><i class="fas fa-ticket-alt"></i> <strong>الخصومات:</strong></span>
+                <span>-@Model.OrderTotalOfferDisValue.ToString("N2")                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg></span>
+            </p>
+
+            <p>
+                <span><i class="fas fa-calculator"></i> <strong>صافي المبلغ قبل خصم النقاط:</strong></span>
+                <span>@Model.OrderNetValue.ToString("N2")                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg></span>
+            </p>
+            @if (Model.PointsTransaction != null)
+            {
+                <p>
+                    <span><i class="fas fa-star"></i> <strong>خصم النقاط:</strong></span>
+                    <span class="text-success">-@Model.PointsTransaction.AmountDeducted.ToString("N2")                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg></span>
+                </p>
+                <h4>
+                    <span><i class="fas fa-money-bill-wave"></i> <strong>الإجمالي النهائي بعد خصم النقاط:</strong></span>
+                    <span>@Model.FinalTotalAfterPointsDiscount.ToString("N2")                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg></span>
+                </h4>
+            }
+            else
+            {
+                <h4>
+                    <span><i class="fas fa-money-bill-wave"></i> <strong>الإجمالي النهائي:</strong></span>
+                    <span>@Model.OrderNetValue.ToString("N2")                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg></span>
+                </h4>
+            }
+        </div>
+
+        @if (Model.PointsTransaction != null)
+        {
+            <div style="margin-top: 30px;">
+                <h4 class="text-primary"><i class="fas fa-coins"></i> خصم النقاط المطبق</h4>
+                <table class="table table-bordered">
+                    <thead class="table-info">
+                        <tr>
+                            <th>عدد النقاط المستردة</th>
+                            <th>قيمة الخصم</th>
+                            <th>معدل التحويل</th>
+                            <th>تاريخ التطبيق</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-label="عدد النقاط المستردة" class="fw-bold">@Model.PointsTransaction.PointsRedeemed نقطة</td>
+                            <td data-label="قيمة الخصم" class="text-success fw-bold">-@Model.PointsTransaction.AmountDeducted.ToString("N2")                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg></td>
+                            <td data-label="معدل التحويل">@Model.PointsTransaction.PointsToSARRate.ToString("N2") ريال/نقطة</td>
+                            <td data-label="تاريخ التطبيق">@Model.PointsTransaction.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        }
+            
+        @if (Model.CashbackUsages.Any())
+        {
+            <div style="margin-top: 30px;">
+                <h4 class="text-primary"><i class="fas fa-gift"></i> الكاش باك المطبق</h4>
+                <table class="table table-bordered">
+                    <thead class="table-info">
+                        <tr>
+                            <th>نوع العرض</th>
+                            <th>قيمة الكاش باك</th>
+                            <th>نوع الإرجاع</th>
+                            <th>تاريخ التطبيق</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cashback in Model.CashbackUsages)
+                        {
+                            <tr>
+                                <td data-label="نوع العرض">
+                                    @if (cashback.CashbackOffer?.CashbackType == "Percentage")
+                                    {
+                                        <span class="badge bg-success">نسبة مئوية (@(cashback.CashbackOffer.CashbackVal)%)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info">مبلغ ثابت</span>
+                                    }
+                                </td>
+                                <td data-label="قيمة الكاش باك" class="text-success fw-bold">@((int)(cashback?.CashbackVal ?? 0))</td>
+                                <td data-label="نوع الإرجاع">
+                                    @{
+                                        string returnType = cashback.CashbackOffer?.ReturnType switch
+                                        {
+                                            "Points" => "نقاط",
+                                            "CashOnWallet" => "رصيد في المحفظة",
+                                            _ => "غير محدد"
+                                        };
+                                    }
+                                    @returnType
+                                </td>
+                                <td data-label="تاريخ التطبيق">@(cashback.DateUsed) @(cashback.TimeUsed)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="text-end mt-3">
+                    <h5 class="text-success text-start"><strong><i class="fas fa-coins"></i> إجمالي الكاش باك المستلم:</strong> @((int)Model.TotalCashbackReceived)</h5>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Address Map Modal -->
+<div class="modal fade" id="addressMapModal" tabindex="-1" aria-labelledby="addressMapModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="direction: rtl; border-radius: 20px; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="modal-title" id="addressMapModalLabel">
+                    <i class="fas fa-map-marker-alt"></i> موقع عنوان التوصيل
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div id="orderAddressMap" style="height: 400px; width: 100%;"></div>
+                <div style="padding: 20px; background: #f8f9fa;">
+                    <h6 style="color: #667eea; margin-bottom: 15px;"><i class="fas fa-info-circle"></i> تفاصيل العنوان الكاملة</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <strong>المدينة:</strong> @Model.Address?.City
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <strong>الشارع:</strong> @Model.Address?.Street
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(Model.Address?.Neighborhood))
+                        {
+                            <div class="col-md-6 mb-2">
+                                <strong>الحي السكني:</strong> @Model.Address?.Neighborhood
+                            </div>
+                        }
+                        <div class="col-12 mb-2">
+                            <strong>العنوان الكامل:</strong> @Model.Address?.City, @Model.Address?.Street @if (!string.IsNullOrWhiteSpace(Model.Address?.Neighborhood)) { @($" - الحي السكني : {Model.Address?.Neighborhood}") }
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <strong>خط العرض:</strong> @Model.Address?.LocationLat
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <strong>خط الطول:</strong> @Model.Address?.LocationLong
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal Structure -->
+<div class="modal fade" id="productDetailsModal" tabindex="-1" aria-labelledby="productDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="direction: rtl; text-align: right;">
+            <div class="modal-header text-white">
+                <h5 class="modal-title" id="productDetailsModalLabel">
+                    <i class="fa fa-box"></i> تفاصيل المنتج
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Loading Spinner -->
+                <div id="productLoadingSpinner" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">جاري التحميل...</span>
+                    </div>
+                    <p class="mt-3">جاري تحميل بيانات المنتج...</p>
+                </div>
+
+                <!-- Product Details Content -->
+                <div id="productDetailsContent" style="display: none;">
+                    <div class="row">
+                        <!-- Product Image -->
+                        <div class="col-md-4 text-center mb-3">
+                            <img id="productImage" src="" alt="صورة المنتج" class="img-fluid rounded shadow" style="max-height: 250px; object-fit: cover;">
+                            <div id="noImagePlaceholder" class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 250px; display: none;">
+                                <i class="fa fa-image fa-3x text-muted"></i>
+                            </div>
+                        </div>
+
+                        <!-- Product Info -->
+                        <div class="col-md-8">
+                            <table class="table table-bordered table-hover">
+                                <tbody>
+                                    <tr>
+                                        <th width="40%" class="bg-light">رقم المنتج</th>
+                                        <td id="productId">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light">اسم المنتج</th>
+                                        <td id="productName" class="fw-bold">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light">الوصف</th>
+                                        <td id="productDescription">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light">السعر</th>
+                                        <td id="productPrice" class="text-success fw-bold">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light">قيمة الخصم</th>
+                                        <td id="productOfferDisVal">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light">الكمية المتاحة</th>
+                                        <td id="productQuantity">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light">إجمالي المبيعات</th>
+                                        <td id="productTotalSales" class="text-primary fw-bold">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light">نوع المنتج</th>
+                                        <td id="productType">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <!-- Additional Details -->
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <div class="card text-center shadow-sm">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-muted">العلامة التجارية</h6>
+                                            <p id="productBrand" class="card-text fw-bold">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center shadow-sm">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-muted">الموديل</h6>
+                                            <p id="productModel" class="card-text fw-bold">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center shadow-sm">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-muted">الفئة</h6>
+                                            <p id="productCategory" class="card-text fw-bold">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="productErrorMessage" class="alert alert-danger" style="display: none;" role="alert">
+                    <i class="fa fa-exclamation-triangle"></i>
+                    <span id="errorText">حدث خطأ أثناء تحميل بيانات المنتج</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fa fa-times"></i> إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <link rel="stylesheet" href="~/assets/plugins/custom/leaflet/leaflet.bundle.css" />
+    <script src="~/assets/plugins/custom/leaflet/leaflet.bundle.js"></script>
+
+    <script>
+        let addressMap;
+        let addressMarker;
+
+        // Initialize map when modal is shown
+        $('#addressMapModal').on('shown.bs.modal', function () {
+            if (!window.addressMapInitialized) {
+                initAddressMap();
+                window.addressMapInitialized = true;
+            } else if (addressMap) {
+                // Invalidate size to fix rendering issues
+                addressMap.invalidateSize();
+            }
+        });
+
+        // Initialize address map with geocoding fallback
+        function initAddressMap() {
+            const latStr = '@Model.Address?.LocationLat';
+            const lngStr = '@Model.Address?.LocationLong';
+            const lat = parseFloat(latStr);
+            const lng = parseFloat(lngStr);
+
+            // Check if coordinates are valid
+            const hasValidCoords = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+
+            if (hasValidCoords) {
+                // Use provided coordinates
+                createMap(lat, lng);
+            } else {
+                // Try geocoding with city name
+                const city = '@Model.Address?.City';
+                if (city && city.trim() !== '') {
+                    geocodeCity(city);
+                } else {
+                    // Default to Riyadh center
+                    createMap(24.7136, 46.6753);
+                }
+            }
+        }
+
+        // Geocode city name using Nominatim API
+        function geocodeCity(city) {
+            // Show loading spinner
+            const mapContainer = $('#orderAddressMap');
+            mapContainer.html('<div class="map-loading"><i class="fas fa-spinner fa-spin"></i><div style="margin-top: 10px;">جاري تحميل الموقع...</div></div>');
+
+            $.ajax({
+                url: 'https://nominatim.openstreetmap.org/search',
+                method: 'GET',
+                data: {
+                    format: 'json',
+                    q: city + ', Saudi Arabia',
+                    limit: 1
+                },
+                headers: {
+                    'User-Agent': 'SenseApp/1.0'
+                },
+                timeout: 5000,
+                success: function(response) {
+                    if (response && response.length > 0) {
+                        const lat = parseFloat(response[0].lat);
+                        const lng = parseFloat(response[0].lon);
+                        createMap(lat, lng);
+                    } else {
+                        console.log('No geocoding results found, using default location');
+                        createMap(24.7136, 46.6753);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Geocoding error:', error);
+                    createMap(24.7136, 46.6753);
+                }
+            });
+        }
+
+        // Create and initialize the map
+        function createMap(lat, lng) {
+            // Clear loading spinner
+            $('#orderAddressMap').html('');
+
+            // Initialize map centered on the coordinates
+            addressMap = L.map('orderAddressMap').setView([lat, lng], 15);
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(addressMap);
+
+            // Create custom marker icon
+            const customIcon = L.divIcon({
+                html: '<i class="fas fa-map-marker-alt" style="color: #dc3545; font-size: 32px;"></i>',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -32],
+                className: 'custom-marker-icon'
+            });
+
+            // Add marker with popup
+            addressMarker = L.marker([lat, lng], { icon: customIcon }).addTo(addressMap);
+
+            const city = '@Model.Address?.City' || '';
+            const street = '@Model.Address?.Street' || '';
+            const neighborhood = '@Model.Address?.Neighborhood' || '';
+
+            const popupContent = `
+                <div class="address-marker-popup">
+                    <strong>📍 عنوان التوصيل</strong>
+                    ${city && street ? `<div>${city}, ${street}</div>` : ''}
+                    ${neighborhood ? `<div>الحي: ${neighborhood}</div>` : ''}
+                </div>
+            `;
+
+            addressMarker.bindPopup(popupContent).openPopup();
+        }
+    </script>
+
+    <script>
+        // Function to fetch and display product details
+        async function fetchProductDetails(productId) {
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('productDetailsModal'));
+            modal.show();
+
+            // Show loading spinner
+            document.getElementById('productLoadingSpinner').style.display = 'block';
+            document.getElementById('productDetailsContent').style.display = 'none';
+            document.getElementById('productErrorMessage').style.display = 'none';
+
+            try {
+                // Make API request to get product by ID
+                const response = await fetch(`/Admin/Product/GetProductById/${productId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('فشل في تحميل بيانات المنتج');
+                }
+
+                const apiResponse = await response.json();
+                const product = apiResponse.data;
+
+                // Hide loading spinner and show content
+                document.getElementById('productLoadingSpinner').style.display = 'none';
+                document.getElementById('productDetailsContent').style.display = 'block';
+
+                // Populate modal with product data
+                document.getElementById('productId').textContent = product.id || '-';
+                document.getElementById('productName').textContent = product.name || '-';
+                document.getElementById('productDescription').textContent = product.description || 'لا يوجد وصف';
+                document.getElementById('productPrice').textContent = product.price ? product.price.toFixed(2) + '                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>' : '-';
+                document.getElementById('productOfferDisVal').textContent = product.offerDisVal ? product.offerDisVal.toFixed(2) + '                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>' : 'لا يوجد خصم';
+                document.getElementById('productQuantity').textContent = product.quantityAvaliable || '0';
+                document.getElementById('productTotalSales').textContent = product.totalSales ? product.totalSales.toFixed(2) + '                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>' : '0.00                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>';
+                document.getElementById('productType').innerHTML = product.isSparePart
+                    ? '<span class="badge bg-warning">قطعة غيار</span>'
+                    : '<span class="badge bg-info">منتج عادي</span>';
+
+                // Handle product image
+                if (product.imageURL) {
+                    document.getElementById('productImage').src = product.imageURL;
+                    document.getElementById('productImage').style.display = 'block';
+                    document.getElementById('noImagePlaceholder').style.display = 'none';
+                } else {
+                    document.getElementById('productImage').style.display = 'none';
+                    document.getElementById('noImagePlaceholder').style.display = 'flex';
+                }
+
+                // Populate brand, model, category
+                document.getElementById('productBrand').textContent = product.brand?.name || 'غير محدد';
+                document.getElementById('productModel').textContent = product.model?.name || 'غير محدد';
+                document.getElementById('productCategory').textContent = product.category?.name || 'غير محدد';
+
+            } catch (error) {
+                console.error('Error fetching product details:', error);
+
+                // Hide loading spinner and show error message
+                document.getElementById('productLoadingSpinner').style.display = 'none';
+                document.getElementById('productDetailsContent').style.display = 'none';
+                document.getElementById('productErrorMessage').style.display = 'block';
+                document.getElementById('errorText').textContent = error.message || 'حدث خطأ أثناء تحميل بيانات المنتج';
+            }
+        }
+    </script>
+}

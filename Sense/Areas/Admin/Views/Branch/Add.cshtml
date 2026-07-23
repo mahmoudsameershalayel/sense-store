@@ -1,0 +1,122 @@
+﻿@using Sense.Application.DTOs.BranchDTOs
+@model BranchForCreateUpdateDto
+
+
+<form asp-controller="Branch" asp-action="Add" method="POST" class="form">
+    <div class="container-xxl">
+        <div class="card card-flush mb-10">
+            <div class="card-header">
+                <h3 class="card-title">املأ بيانات الفرع</h3>
+            </div>
+            <div class="card-body pt-0">
+                <!-- Product Name and Price -->
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <label asp-for="BranchName" class="form-label required">إسم الفرع</label>
+                        <input type="text" asp-for="BranchName" class="form-control" />
+                        <span asp-validation-for="BranchName" class="text-danger fs-7"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="BranchAddress" class="form-label required">عنوان الفرع</label>
+                        <input type="text" asp-for="BranchAddress" class="form-control" />
+                        <span asp-validation-for="BranchAddress" class="text-danger fs-7"></span>
+                    </div>
+                </div>
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <label asp-for="PhoneNumber" class="form-label required">رقم الهاتف</label>
+                        <input type="text" asp-for="PhoneNumber" class="form-control" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger fs-7"></span>
+                    </div>
+                  
+                </div>
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <label asp-for="OpenAtTime" class="form-label required">وقت الافتتاح</label>
+                        <input type="time" asp-for="OpenAtTime" class="form-control" />
+                        <span asp-validation-for="OpenAtTime" class="text-danger fs-7"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="CloseAtTime" class="form-label required">وقت الإغلاق</label>
+                        <input type="time" asp-for="CloseAtTime" class="form-control" />
+                        <span asp-validation-for="CloseAtTime" class="text-danger fs-7"></span>
+                    </div>
+                </div>
+                <!-- Longitude and Latitude from Map -->
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <label asp-for="Longitude" class="form-label required">خط الطول</label>
+                        <input type="number" asp-for="Longitude" step="any" class="form-control" readonly id="longitude" />
+                        <span asp-validation-for="Longitude" class="text-danger fs-7"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Latitude" class="form-label required">خط العرض</label>
+                        <input type="number" asp-for="Latitude" step="any" class="form-control" readonly id="latitude" />
+                        <span asp-validation-for="Latitude" class="text-danger fs-7"></span>
+                    </div>
+                </div>
+
+                <!-- Map Container -->
+                <div id="map" style="height: 400px; width: 100%;"></div>
+
+               
+
+                <!-- Submit & Reset Buttons -->
+                <div class="d-flex gap-3 mt-6">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ki-duotone ki-check fs-2"></i> إنشاء
+                    </button>
+                    <button type="reset" class="btn btn-light-warning">
+                        <i class="ki-duotone ki-refresh fs-2"></i> إعادة الضبط
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section Scripts
+{
+    <!-- Leaflet CSS and JS (no API key required) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script type="text/javascript">
+        let map;
+        let marker;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const latitudeInput = document.getElementById('latitude');
+            const longitudeInput = document.getElementById('longitude');
+
+            const initialLat = parseFloat(latitudeInput.value) || 24.7136; // Default Riyadh
+            const initialLng = parseFloat(longitudeInput.value) || 46.6753;
+
+            const center = [initialLat, initialLng];
+
+            // Initialize the map
+            map = L.map('map').setView(center, 10);
+
+            // Load map tiles from OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add a draggable marker
+            marker = L.marker(center, { draggable: true }).addTo(map);
+
+            // Update inputs when marker is moved
+            marker.on('dragend', function () {
+                const position = marker.getLatLng();
+                latitudeInput.value = position.lat.toFixed(6);
+                longitudeInput.value = position.lng.toFixed(6);
+            });
+
+            // Set marker position on map click
+            map.on('click', function (e) {
+                marker.setLatLng(e.latlng);
+                latitudeInput.value = e.latlng.lat.toFixed(6);
+                longitudeInput.value = e.latlng.lng.toFixed(6);
+            });
+        });
+    </script>
+}

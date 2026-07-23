@@ -1,0 +1,272 @@
+﻿@using Sense.Domain.Enums
+@using Sense.Application.DTOs.AuthDTOs
+@using Sense.Application.DTOs.CustomerDTOs
+@using Sense.Infrastructure.Extensions
+@model List<CustomerDto>
+@{
+    var message = TempData["Message"];
+    var errorMessage = TempData["ErrorMessage"];
+    var name = Context.Request.Query["Name"];
+}
+<!--begin::Tables Widget 10-->
+<div class="card mb-xl-8">
+    <!--begin::Header-->
+    <div class="card-header border-0 pt-5">
+        <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold fs-3 mb-1">جدول العملاء</span>
+            <span class="text-muted mt-1 fw-semibold fs-7">يحتوي هذا الجدول على جميع بيانات العملاء والعمليات عليها.</span>
+        </h3>
+        <div class="card-toolbar" title="اضغط لإضافة عميل">
+            <a asp-area="admin" asp-controller="ApplicationUser" asp-action="add" class="btn btn-sm btn-light btn-active-primary">
+                <i class="ki-duotone ki-plus fs-2"></i>عميل جديد
+            </a>
+        </div>
+    </div>
+    <!--end::Header-->
+    <!--begin::Body-->
+    <div class="card-body pt-3">
+        <!-- Add AJAX functionality to the form -->
+        <form id="filterForm" method="get" asp-action="Index" class="mb-4">
+            <div class="row gx-5 gy-2">
+                <!-- Service Type Filter -->
+                <div class="col-md-3 mb-2">
+                    <label for="customerName" class="form-label">إسم العميل</label>
+                    <input id="customerName" type="text" class="form-control" placeholder="البحث بإسم العميل">
+                </div>
+                <!-- Filter Button -->
+                <div class="col-md-3 mb-2 d-flex align-items-end">
+                    <button type="button" id="filterButton" class="btn btn-primary w-20"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        </form>
+        <!--begin::Table container-->
+        <div class="table-responsive" id="applicationUsersTable">
+            <!--begin::Table-->
+            <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+                <!--begin::Table head-->
+                <thead>
+                    <tr class="fw-bold text-muted bg-light">
+                        <th class="ps-4 min-w-200px rounded-start">العميل</th>
+                        <th class="min-w-120px">الإسم بالكامل</th>
+                        <th class="min-w-120px">الإيميل</th>
+                        <th class="min-w-100px">رقم الهاتف</th>
+                        <th class="min-w-120px">صلاحية المستخدم</th>
+                        <th class="min-w-50px">حالة الحساب</th>
+                        <th class="min-w-50px text-end rounded-end"></th>
+                    </tr>
+                </thead>
+                <!--end::Table head-->
+                <!--begin::Table body-->
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="symbol symbol-50px m-5">
+                                        <img src="@item.ImageURL" class="" alt="" />
+                                    </div>
+                                    <div class="d-flex justify-content-start flex-column">
+                                        <a href="#" class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">@item.FullName</a>
+                                        <a href="#" class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">@item.Id#</a>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <a href="#" class="text-gray-900 fw-bold text-hover-primary d-block mb-1 fs-6">@item.FullName</a>
+                            </td>
+                            <td>
+                                <a href="#" class="text-gray-900 fw-bold text-hover-primary d-block mb-1 fs-6">@item.Email</a>
+                            </td>
+                            <td>
+                                <a href="#" class="text-gray-900 fw-bold text-hover-primary d-block mb-1 fs-6">@item.PhoneNumber</a>
+                            </td>
+                            <td>
+                                <span class="badge badge-light-primary fs-7 fw-bold">
+                                    عميل</span>
+                            </td>
+                            <td>
+                                <span id="status-badge-@item.Id"
+                                      class="badge toggle-status @(item.IsActive ? "bg-success" : "bg-danger") fs-7 fw-bold"
+                                      data-id="@item.Id"
+                                      role="button"
+                                      style="cursor: pointer;color:white;"
+                                      title="اضغط لتغيير حالة الحساب">
+                                    @(item.IsActive ? "نشط" : "معطل")
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a asp-area="admin" asp-controller="ApplicationUser" asp-action="uploadimage" asp-route-id="@item.Id" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" title="ارفع صورة للمنتج">
+                                    <i class="ki-duotone ki-switch fs-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                </a>
+                                 <a asp-area="admin" asp-controller="ApplicationUser" asp-action="ActivityReport" asp-route-id="@item.UserId"
+                                   class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
+                                   title="تقرير نشاط العميل">
+                                    <i class="ki-duotone ki-chart fs-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                               </a>
+                                @*
+                                <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
+                                    <i class="ki-duotone ki-pencil fs-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                </a>
+                                *@
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+                <!--end::Table body-->
+            </table>
+            <!--end::Table-->
+            <!-- Pagination -->
+            <div class="pagination-container text-center mt-3">
+                <!-- Previous Page Button -->
+                @if (ViewBag.CurrentPage > 1)
+                {
+                    <a href="@Url.Action("Index", new {
+                        pageNumber = ViewBag.CurrentPage - 1,
+                        pageSize = ViewBag.PageSize,
+                        searchTerm = ViewBag.SearchTerm,
+                        name = name,
+                    })" class="btn btn-primary">
+                        الصفحة السابقة
+                    </a>
+                }
+
+                <!-- Page Number Display -->
+                <span class="mx-2">
+                    صفحة @ViewBag.CurrentPage من @ViewBag.TotalPages
+                </span>
+
+                <!-- Next Page Button -->
+                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                {
+                    <a href="@Url.Action("Index", new {
+                        pageNumber = ViewBag.CurrentPage + 1,
+                        pageSize = ViewBag.PageSize,
+                        searchTerm = ViewBag.SearchTerm,
+                        name = name,
+                    })" class="btn btn-primary">
+                        الصفحة التالية
+                    </a>
+                }
+            </div>
+        </div>
+        <!--end::Table container-->
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#filterButton').on('click', function (e) {
+                e.preventDefault();
+                var name = $('#customerName').val();
+
+                // Send AJAX request
+                $.ajax({
+                    url: "@Url.Action("Index", "ApplicationUser", new { area = "Admin" })",
+                    type: 'GET',
+                    data: { name: name }, 
+                    success: function (response) {
+                        // Update the appointments table with the new content
+                        $('#applicationUsersTable').html($(response).find('#applicationUsersTable').html());
+                    },
+                    error: function () {
+                        alert("There was an error while filtering the data.");
+                    }
+                });
+            });
+
+
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-bottom-left",
+                "preventDuplicates": true,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "2000", 
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+
+            $('.toggle-status').click(function () {
+    var button = $(this);
+    var userId = button.data('id');
+    var isActive = button.hasClass('bg-success'); // true if currently active
+
+    // If the user is active, confirm before disabling
+    if (isActive) {
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: "سيتم تعطيل حساب هذا المستخدم",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم، قم بالتعطيل',
+            cancelButtonText: 'إلغاء'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                changeUserStatus(userId, button);
+            }
+        });
+    } else {
+           Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: "سيتم تفعيل حساب هذا المستخدم",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم، قم بالتفعيل',
+            cancelButtonText: 'إلغاء'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                changeUserStatus(userId, button);
+            }
+        });
+    }
+});
+
+            function changeUserStatus(userId, button) {
+    $.ajax({
+        url: "@Url.Action("ChangeStatus", "ApplicationUser", new { area = "Admin" })/" + userId,
+        type: 'PUT',
+        success: function (response) {
+            toastr.success(response.message);
+
+            // Toggle badge content and style
+            const badge = $('#status-badge-' + userId);
+            const isNowActive = badge.hasClass('bg-danger');
+
+            badge.removeClass('bg-success bg-danger');
+            badge.addClass(isNowActive ? 'bg-success' : 'bg-danger');
+            badge.text(isNowActive ? 'نشط' : 'معطل');
+        },
+        error: function () {
+            toastr.error("حدث خطأ أثناء تغيير حالة الحساب.");
+        }
+    });
+}
+
+        });
+
+    </script>
+}

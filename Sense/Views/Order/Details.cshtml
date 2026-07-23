@@ -1,0 +1,1487 @@
+﻿@using Sense.Application.DTOs.OfferCashbackDTOs
+@using Sense.Application.DTOs.OrderDTOs
+@model OrderDetailsDto
+@{
+    var order = ViewBag.Order as OrderDto;
+    var cashBackOffer = ViewBag.CashbackOffer as CashbackOfferDto;
+    var riyalSvg = new Microsoft.AspNetCore.Html.HtmlString("<svg class=\"riyal-svg currency\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 78.917 78.917\" width=\"15\" height=\"15\" aria-hidden=\"true\" focusable=\"false\" style=\"display:inline-block;vertical-align:-0.125em\"><path d=\"M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z\" /></svg>");
+}
+@section Styles
+{
+    <link rel="stylesheet" href="~/assets/plugins/custom/leaflet/leaflet.bundle.css" />
+    <style type="text/css">
+        body {
+            font-family: 'Arial', sans-serif;
+            direction: rtl;
+            text-align: right;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+        }
+
+        .a4-container {
+            padding: 20mm;
+            margin: auto;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        .invoice-card {
+            border: none;
+            border-top: 4px solid #253F8E;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            padding: 40px;
+            background: #ffffff;
+        }
+
+        .company-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+            .company-header img {
+                max-height: 80px;
+                margin-bottom: 10px;
+            }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+            .section h4 {
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 5px;
+                margin-bottom: 15px;
+                color: #007bff;
+            }
+
+            .section p {
+                margin: 5px 0;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: none;
+            border-bottom: 1px solid #e9ecef;
+            padding: 15px 20px;
+            text-align: center;
+        }
+
+        thead {
+            background: #253F8E;
+            color: white;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #fafbfc;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .total-section {
+            text-align: left;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .bg-success {
+            background-color: #28a745;
+        }
+
+        .bg-warning {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .bg-danger {
+            background-color: #dc3545;
+        }
+
+        .bg-secondary {
+            background-color: #6c757d;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 13px;
+            color: #777;
+        }
+
+        /* Points Redemption Section Styles - Centered and Justified */
+        .points-redemption-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            padding: 0 15px;
+        }
+
+        .points-redemption-card {
+            background: #253F8E;
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            box-shadow: 0 15px 35px rgba(37, 63, 142, 0.4);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .points-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .points-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .points-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .points-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .points-balance {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .points-display {
+            text-align: center;
+        }
+
+        .points-count {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 3px 6px rgba(0,0,0,0.3);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .points-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            color: #f0f8ff;
+        }
+
+        .points-icon {
+            font-size: 4rem;
+            opacity: 0.6;
+            color: #fff;
+            margin: 0 30px;
+        }
+
+        .conversion-rate {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        .points-form {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .form-row-centered {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .form-control-modern {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 10px;
+            padding: 15px 20px;
+            color: #333;
+            font-size: 1.1rem;
+            min-width: 250px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .form-control-modern:focus {
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
+            outline: none;
+        }
+
+        .btn-redeem {
+            background: #ee5a24;
+            border: none;
+            border-radius: 25px;
+            padding: 15px 35px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 6px 20px rgba(238, 90, 36, 0.4);
+            min-width: 150px;
+            cursor: pointer;
+        }
+
+        .btn-redeem:hover {
+            background: #d64a17;
+            color: white;
+        }
+
+        .btn-redeem:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .points-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 0.95rem;
+            opacity: 0.9;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .points-info span {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .discount-preview {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .alert-centered {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 768px) {
+            .points-balance {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .points-icon {
+                font-size: 3rem;
+                margin: 15px 0;
+            }
+
+            .form-row-centered {
+                flex-direction: column;
+            }
+
+            .form-control-modern {
+                min-width: 100%;
+            }
+
+            .points-info {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        /* Print-specific styles */
+        @@media print {
+            @@page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+
+            html, body {
+                width: 210mm;
+                height: 297mm;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact !important; /* keep background colors */
+                print-color-adjust: exact !important;
+            }
+            /* إخفاء الـ Navbar */
+            .kt-header, /* إذا كان لديك الـ Navbar من Metronic */
+            .kt-toolbar,
+            .app-header,
+            .app-footer { /* إذا كان لديك شريط أدوات في الـ Navbar */
+                display: none !important;
+            }
+            /* إخفاء الـ Sidebar */
+            .kt-aside { /* إذا كان لديك الـ Sidebar */
+                display: none !important;
+            }
+            /* التأكد أن الفاتورة تظهر بشكل جيد */
+            .a4-container {
+                width: 210mm;
+                min-height: 297mm;
+                padding: 20mm;
+                margin: 0;
+                background: white;
+                box-sizing: border-box;
+            }
+
+            .row {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+            }
+
+            .col-md-6 {
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
+            }
+
+            .invoice-card {
+                border: none;
+                padding: 20px;
+                box-shadow: none;
+            }
+
+            .footer {
+                font-size: 12px;
+                text-align: center;
+                margin-top: 40px;
+            }
+            /* إزالة الأزرار أثناء الطباعة */
+            .btn, .points-redemption-wrapper {
+                display: none !important;
+            }
+
+            table {
+                width: 100% !important;
+            }
+        }
+
+        .contact-banner {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background-color: #253F8E;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .contact-banner-text {
+            position: relative;
+            z-index: 2;
+        }
+
+            .contact-banner-text h1 {
+                font-size: 3rem;
+                color: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .contact-banner-text p {
+                font-size: 1.25rem;
+            }
+
+        table th, table td {
+            padding: 5px 10px; /* Decrease padding */
+            line-height: 1.2; /* Adjust line-height for smaller height */
+        }
+
+        /* If you want to specifically target only the rows with <th> */
+        table tr th {
+            padding: 5px 10px; /* Adjust padding for <th> elements */
+            font-size: 12px; /* Optional: Reduce font size for <th> */
+        }
+
+        /* You can also reduce the height of the <tr> directly */
+        table tr {
+            height: 30px; /* Example: Adjust the height of each row */
+        }
+
+        /* Totals Summary Card */
+        .totals-summary-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+
+        .totals-summary-card p {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dashed #dee2e6;
+        }
+
+        .totals-summary-card p:last-of-type {
+            border-bottom: none;
+        }
+
+        .totals-summary-card h4 {
+            font-size: 1.5rem;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        /* Info rows with icons */
+        .info-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            line-height: 1.8;
+        }
+
+        .info-row i {
+            margin-left: 10px;
+            color: #253F8E;
+        }
+
+        .info-row strong {
+            font-weight: 600;
+        }
+
+        /* Leaflet map styles */
+        .leaflet-container {
+            font-family: 'Arial', sans-serif;
+        }
+
+        .address-marker-popup {
+            direction: rtl;
+            text-align: right;
+            font-size: 14px;
+        }
+
+        .address-marker-popup strong {
+            color: #253F8E;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Map loading spinner */
+        .map-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .map-loading i {
+            color: #253F8E;
+            font-size: 24px;
+        }
+
+        .btn-outline-primary {
+            border-radius: 20px;
+            padding: 8px 20px;
+        }
+
+        /* Mobile Optimizations */
+        @@media (max-width: 768px) {
+            .contact-banner {
+                height: 200px;
+            }
+
+            .contact-banner-text h1 {
+                font-size: 2rem;
+            }
+
+            .invoice-card {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            .row.mb-3 {
+                flex-direction: column;
+            }
+
+            .col-md-6 {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+
+            /* Stack table cells vertically */
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            tbody tr {
+                margin-bottom: 15px;
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                padding: 10px;
+                background: white;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+
+            td {
+                border: none;
+                position: relative;
+                padding-right: 50%;
+                text-align: left;
+                padding: 10px;
+            }
+
+            td::before {
+                content: attr(data-label);
+                position: absolute;
+                right: 10px;
+                font-weight: bold;
+                text-align: right;
+            }
+
+            .totals-summary-card {
+                padding: 20px;
+            }
+
+            /* Adjust map modal for mobile */
+            #orderAddressMap {
+                height: 300px !important;
+            }
+
+            /* Map modal responsive */
+            #addressMapModal .modal-dialog {
+                max-width: 90%;
+            }
+
+            /* Hide button text on very small screens */
+            .btn[data-bs-target="#addressMapModal"] .btn-text-mobile {
+                display: none;
+            }
+        }
+
+        /* Additional responsive breakpoint */
+        @@media (max-width: 576px) {
+            #orderAddressMap {
+                height: 300px !important;
+            }
+
+            #addressMapModal .modal-body > div:last-child {
+                padding: 15px !important;
+            }
+
+            #addressMapModal .row > div {
+                width: 100% !important;
+                margin-bottom: 10px;
+            }
+        }
+
+        /* Desktop map modal width */
+        @@media (min-width: 769px) {
+            #addressMapModal .modal-dialog {
+                max-width: 800px;
+            }
+
+            #orderAddressMap {
+                height: 400px !important;
+            }
+        }
+
+        /* Touch-friendly buttons */
+        @@media (hover: none) and (pointer: coarse) {
+            .btn {
+                min-height: 44px;
+                padding: 12px 24px;
+            }
+
+            .form-control-modern {
+                min-height: 44px;
+            }
+
+            #pointsToRedeem {
+                inputmode: numeric;
+            }
+        }
+
+        .points-loading-skeleton {
+            padding: 20px;
+        }
+
+        .skeleton-header, .skeleton-balance, .skeleton-form {
+            background: #f0f0f0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .skeleton-header { height: 60px; }
+        .skeleton-balance { height: 100px; }
+        .skeleton-form { height: 80px; }
+
+        /* Mobile touch optimizations */
+        @@media (max-width: 768px) {
+            /* Larger touch targets for buttons */
+            .btn-redeem, #redeemBtn {
+                min-height: 48px;
+                font-size: 16px;
+                padding: 12px 24px;
+                touch-action: manipulation;
+            }
+            
+            /* Prevent zoom on input focus */
+            .form-control-modern {
+                font-size: 16px !important;
+                touch-action: manipulation;
+            }
+            
+            /* Better modal sizing on mobile */
+            #addressMapModal .modal-dialog {
+                margin: 10px;
+                max-width: calc(100% - 20px);
+            }
+            
+            #orderAddressMap {
+                height: 300px !important;
+            }
+            
+            /* Improve points card spacing */
+            .points-redemption-card {
+                padding: 15px;
+                margin: 15px 0;
+            }
+            
+            /* Optimize map controls for touch */
+            .leaflet-control-zoom a {
+                width: 40px;
+                height: 40px;
+                line-height: 40px;
+                font-size: 20px;
+            }
+        }
+
+        /* Prevent double-tap zoom on buttons */
+        button, .btn, input[type="submit"] {
+            touch-action: manipulation;
+        }
+
+        /* Print Animation Removal */
+        @@media print {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+
+            .btn, .points-redemption-wrapper, #addressMapModal, .btn[data-bs-target="#addressMapModal"] {
+                display: none !important;
+            }
+
+            .invoice-card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+
+            table tbody tr:hover {
+                transform: none;
+                box-shadow: none;
+            }
+        }
+    </style>
+}
+<div class="contact-banner">
+    <div class="contact-banner-text">
+        <h1>
+            تفاصيل الطلب
+        </h1>
+
+    </div>
+</div>
+<div class="a4-container">
+
+    <div style="text-align: center; margin-bottom: 30px;">
+        <div style="display: inline-block; background: #253F8E; padding: 20px 40px; border-radius: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.1);">
+            <h2 style="color: white; margin: 0;"><i class="fas fa-file-invoice"></i> تفاصيل الطلب # @Model.Id</h2>
+        </div>
+    </div>
+    
+    <!-- Points Redemption Section - Centered and Justified -->
+    <div class="points-redemption-wrapper" id="pointsRedemptionSection" style="display: none;">
+        <div id="pointsStatusMessage" role="status" aria-live="polite" class="sr-only"></div>
+        <div id="pointsLoadingState" class="points-loading-skeleton">
+            <div class="skeleton-header"></div>
+            <div class="skeleton-balance"></div>
+            <div class="skeleton-form"></div>
+        </div>
+        <div class="points-redemption-card">
+            <div class="points-content">
+                <div class="points-header">
+                    <div class="points-title">استرداد النقاط</div>
+                    <div class="points-subtitle">احصل على خصم فوري على فاتورة المشتريات</div>
+                </div>
+                
+                <div class="points-balance">
+                    <div class="points-display">
+                        <div class="points-count" id="currentPoints">0</div>
+                        <div class="points-label">النقاط المتاحة</div>
+                    </div>
+                    <div class="points-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                </div>
+                
+                <div class="conversion-rate" id="conversionRate">
+                    معدل التحويل: 1 نقطة = 1.00                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+
+                </div>
+                
+                <div class="points-form">
+                    <form id="pointsRedemptionForm">
+                        <div class="form-row-centered">
+                            <input type="number" 
+                                   class="form-control form-control-modern" 
+                                   id="pointsToRedeem" 
+                                   placeholder="أدخل عدد النقاط المراد استردادها" 
+                                   min="0" 
+                                   max="0"
+                                   aria-label="عدد النقاط المراد استردادها"
+                                   aria-describedby="pointsInfo conversionRate"
+                                   inputmode="numeric"
+                                   pattern="[0-9]*">
+                            <button type="submit" 
+                                    class="btn btn-redeem" 
+                                    id="redeemBtn"
+                                    aria-label="استرداد النقاط للحصول على خصم">
+                                <i class="fas fa-gift me-2" aria-hidden="true"></i>
+                                استرداد النقاط
+                            </button>
+                        </div>
+                        
+                        <div class="discount-preview" id="discountPreview" style="display: none;">
+                            الخصم المتوقع: <span id="discountAmount">0.00</span>                        <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+
+                        </div>
+                        
+                        <div class="points-info">
+                            <span>الحد الأدنى: <span id="minPoints">100</span> نقطة</span>
+                            <span>الحد الأقصى: <span id="maxPoints">10000</span> نقطة</span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="invoice-card">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="info-row">
+                    <i class="fas fa-user"></i>
+                    <p style="margin: 0;"><strong>اسم العميل:</strong> @Model.Customer?.FullName</p>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-phone"></i>
+                    <p style="margin: 0;"><strong>رقم الهاتف:</strong> @Model.PhoneNumber</p>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <p style="margin: 0;"><strong>العنوان:</strong> @Model.Address?.City, @Model.Address?.Neighborhood, @Model.Address?.Street</p>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-credit-card"></i>
+                    <p style="margin: 0;"><strong>طريقة الدفع:</strong> @order.PaymentMethod</p>
+                </div>
+            </div>
+            <div class="col-md-6 text-end">
+                <div class="info-row">
+                    <i class="fas fa-calendar-alt"></i>
+                    <p style="margin: 0;"><strong>تاريخ الطلب:</strong> @order.OrderDate</p>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-clock"></i>
+                    <p style="margin: 0;"><strong>وقت الطلب:</strong> @order.OrderTime</p>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-box"></i>
+                    <p style="margin: 0;"><strong>حالة الطلب:</strong> @order.OrderStatus</p>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-money-check-alt"></i>
+                    <p style="margin: 0;"><strong>حالة الدفع:</strong> @order.PaymentStatus</p>
+                </div>
+            </div>
+        </div>
+
+        <table class="table table-bordered">
+            <thead class="table-primary">
+                <tr>
+                    <th>#</th>
+                    <th>المنتج</th>
+                    <th>الكمية</th>
+                    <th>السعر</th>
+                    <th>الإجمالي</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.ItemDetails)
+                {
+                    <tr>
+                        <td data-label="#">@item.ProductId</td>
+                        <td data-label="المنتج">@item.ProductName</td>
+                        <td data-label="الكمية">@item.ProductAmount</td>
+                        <td data-label="السعر">@item.ProductPrice?.ToString("N2") @riyalSvg</td>
+                        <td data-label="الإجمالي">@item.EznNetValue.ToString("N2") @riyalSvg</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="totals-summary-card">
+            <p>
+                <span> <strong>المجموع:</strong></span>
+                <span>
+                    @Model.OrderTotal.ToString("N2")
+                    <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+                </span>
+            </p>
+            <p>
+                <span><strong>رسوم التوصيل:</strong></span>
+                <span>
+                    @if (Model.DeliveryFee == 0)
+                    {
+                        <text>لم يتم تعيين الرسوم بعد</text>
+                    }
+                    else
+                    {
+                        @Model.DeliveryFee.ToString("N2") @riyalSvg
+                    }
+                </span>
+            </p>
+            <p>
+                <span> <strong>خصم الكوبون:</strong></span>
+                <span>-@Model.OrderTotalOfferDisValue.ToString("N2") @riyalSvg</span>
+            </p>
+            <p id="pointsDiscountRow" style="display: none;">
+                <span> <strong>خصم النقاط:</strong></span>
+                <span>-<span id="pointsDiscountAmount">0.00</span> @riyalSvg</span>
+            </p>
+            <p>
+                <span> <strong>الإجمالي النهائي:</strong></span>
+                <span id="finalTotal">@Model.OrderNetValue.ToString("N2") @riyalSvg</span>
+            </p>
+        </div>
+
+        @if (Model.CashbackUsages.Any())
+        {
+            <div style="margin-top: 30px;">
+                <h4 class="text-primary"><i class="fas fa-gift"></i> الكاش باك المطبق</h4>
+                <table class="table table-bordered">
+                    <thead class="table-info">
+                        <tr>
+                            <th>نوع العرض</th>
+                            <th>قيمة الكاش باك</th>
+                            <th>نوع الإرجاع</th>
+                            <th>تاريخ التطبيق</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cashback in Model.CashbackUsages)
+                        {
+                            <tr>
+                                <td data-label="نوع العرض">
+                                    @if (cashback.CashbackOffer?.CashbackType == "Percentage")
+                                    {
+                                        <span class="badge bg-success">نسبة مئوية (@(cashback.CashbackOffer.CashbackVal)%)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info">مبلغ ثابت</span>
+                                    }
+                                </td>
+                                <td data-label="قيمة الكاش باك" class="text-success fw-bold">@((int)(cashback?.CashbackVal ?? 0))</td>
+                                <td data-label="نوع الإرجاع">
+                                    @{
+                                        string returnType = cashback.CashbackOffer?.ReturnType switch
+                                        {
+                                            "Points" => "نقاط",
+                                            "CashOnWallet" => "رصيد في المحفظة",
+                                            _ => "غير محدد"
+                                        };
+                                    }
+                                    @returnType
+                                </td>
+                                <td data-label="تاريخ التطبيق">@(cashback.DateUsed) @(cashback.TimeUsed)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="text-end mt-3">
+                    <h5 class="text-success text-end"><strong><i class="fas fa-coins"></i> إجمالي الكاش باك المستلم:</strong> @((int)Model.TotalCashbackReceived)</h5>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Address Map Modal -->
+<div class="modal fade" id="addressMapModal" tabindex="-1" aria-labelledby="addressMapModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="direction: rtl; border-radius: 20px; overflow: hidden;">
+            <div class="modal-header" style="background: #253F8E; color: white;">
+                <h5 class="modal-title" id="addressMapModalLabel">
+                    <i class="fas fa-map-marker-alt"></i> موقع عنوان التوصيل
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div id="orderAddressMap" style="height: 400px; width: 100%;"></div>
+                <div style="padding: 20px; background: #f8f9fa;">
+                    <h6 style="color: #253F8E; margin-bottom: 15px;"><i class="fas fa-info-circle"></i> تفاصيل العنوان الكاملة</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <strong>المدينة:</strong> @Model.Address?.City
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <strong>الشارع:</strong> @Model.Address?.Street
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(Model.Address?.Neighborhood))
+                        {
+                            <div class="col-md-6 mb-2">
+                                <strong>الحي السكني:</strong> @Model.Address?.Neighborhood
+                            </div>
+                        }
+                        <div class="col-12 mb-2">
+                            <strong>العنوان الكامل:</strong> @Model.Address?.Address
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <strong>خط العرض:</strong> @Model.Address?.LocationLat
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <strong>خط الطول:</strong> @Model.Address?.LocationLong
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="~/assets/plugins/custom/leaflet/leaflet.bundle.js"></script>
+<script>
+    // Check for required dependencies
+    if (typeof jQuery === 'undefined') {
+        console.error('jQuery is required but not loaded');
+        return;
+    }
+    if (typeof Swal === 'undefined') {
+        console.error('SweetAlert2 is required but not loaded');
+        return;
+    }
+    const RIYAL_SVG = '<svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>';
+    let pointsInfo = null;
+    let originalTotal = @Model.OrderNetValue;
+    let existingPointsTransaction = null;
+    let addressMap;
+    let addressMarker;
+    let pointsLoadRetryCount = 0;
+    const MAX_RETRY_ATTEMPTS = 3;
+
+    // Load points information when page loads
+    $(document).ready(function() {
+        loadPointsInfoWithRetry();
+    });
+
+    function loadPointsInfoWithRetry() {
+        loadPointsInfo();
+    }
+
+    // Initialize map when modal is shown
+    $('#addressMapModal').on('shown.bs.modal', function () {
+        if (!window.addressMapInitialized) {
+            initAddressMap();
+            window.addressMapInitialized = true;
+        } else if (addressMap) {
+            // Invalidate size to fix rendering issues
+            setTimeout(() => {
+                addressMap.invalidateSize();
+                // Re-center map on mobile
+                if (addressMarker && window.innerWidth <= 768) {
+                    addressMap.setView(addressMarker.getLatLng(), 14);
+                }
+            }, 100);
+        }
+    });
+
+    // Handle modal close to prevent memory leaks
+    $('#addressMapModal').on('hidden.bs.modal', function () {
+        if (addressMap) {
+            addressMap.invalidateSize();
+        }
+    });
+
+    // Initialize address map with geocoding fallback
+    function initAddressMap() {
+        const latStr = '@Model.Address?.LocationLat';
+        const lngStr = '@Model.Address?.LocationLong';
+        const lat = parseFloat(latStr);
+        const lng = parseFloat(lngStr);
+
+        // Check if coordinates are valid
+        const hasValidCoords = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+
+        if (hasValidCoords) {
+            // Use provided coordinates
+            createMap(lat, lng);
+        } else {
+            // Try geocoding with city name
+            const city = '@Model.Address?.City';
+            if (city && city.trim() !== '') {
+                geocodeCity(city);
+            } else {
+                // Default to Riyadh center
+                createMap(24.7136, 46.6753);
+            }
+        }
+    }
+
+    // Geocode city name using Nominatim API
+    function geocodeCity(city) {
+        // Show loading spinner
+        const mapContainer = $('#orderAddressMap');
+        mapContainer.html('<div class="map-loading"><i class="fas fa-spinner fa-spin"></i><div style="margin-top: 10px;">جاري تحميل الموقع...</div></div>');
+
+        $.ajax({
+            url: 'https://nominatim.openstreetmap.org/search',
+            method: 'GET',
+            data: {
+                format: 'json',
+                q: city + ', Saudi Arabia',
+                limit: 1
+            },
+            headers: {
+                'User-Agent': 'SenseApp/1.0'
+            },
+            timeout: 5000,
+            success: function(response) {
+                if (response && response.length > 0) {
+                    const lat = parseFloat(response[0].lat);
+                    const lng = parseFloat(response[0].lon);
+                    createMap(lat, lng);
+                } else {
+                    console.log('No geocoding results found, using default location');
+                    createMap(24.7136, 46.6753);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Geocoding error:', error);
+                createMap(24.7136, 46.6753);
+            }
+        });
+    }
+
+    // Create and initialize the map
+    function createMap(lat, lng) {
+        // Clear loading spinner
+        $('#orderAddressMap').html('');
+
+        // Initialize map centered on the coordinates
+        addressMap = L.map('orderAddressMap').setView([lat, lng], 15);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(addressMap);
+
+        // Create custom marker icon
+        const customIcon = L.divIcon({
+            html: '<i class="fas fa-map-marker-alt" style="color: #dc3545; font-size: 32px;"></i>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32],
+            className: 'custom-marker-icon'
+        });
+
+        // Add marker with popup
+        addressMarker = L.marker([lat, lng], { icon: customIcon }).addTo(addressMap);
+
+        const city = '@Model.Address?.City' || '';
+        const street = '@Model.Address?.Street' || '';
+        const neighborhood = '@Model.Address?.Neighborhood' || '';
+
+        const popupContent = `
+            <div class="address-marker-popup">
+                <strong>📍 عنوان التوصيل</strong>
+                ${city && street ? `<div>${city}, ${street}</div>` : ''}
+                ${neighborhood ? `<div>الحي: ${neighborhood}</div>` : ''}
+            </div>
+        `;
+
+        addressMarker.bindPopup(popupContent).openPopup();
+    }
+
+    function loadPointsInfo() {
+        // Show loading skeleton
+        $('#pointsLoadingState').show();
+        $('.points-content').hide();
+        
+        $.ajax({
+            url: '@Url.Action("InfoOrder", "Points")?orderId=@Model.Id',
+            method: 'GET',
+            timeout: 10000,
+            success: function(response) {
+                pointsLoadRetryCount = 0; // Reset on success
+                $('#pointsLoadingState').hide();
+                $('.points-content').show();
+                
+                if (response.result.code === 200) {
+                    pointsInfo = response.data;
+                    updatePointsUI();
+                    announceToScreenReader('تم تحميل معلومات النقاط بنجاح');
+                    if (pointsInfo.data.alreadyRedeemed) {
+                        loadExistingTransaction();
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#pointsLoadingState').hide();
+                
+                // Retry logic for network errors
+                if ((status === 'timeout' || status === 'error') && pointsLoadRetryCount < MAX_RETRY_ATTEMPTS) {
+                    pointsLoadRetryCount++;
+                    console.log(`Retrying points load (attempt ${pointsLoadRetryCount}/${MAX_RETRY_ATTEMPTS})...`);
+                    setTimeout(loadPointsInfo, 2000 * pointsLoadRetryCount); // Exponential backoff
+                } else {
+                    showPointsLoadError(status, error);
+                }
+            }
+        });
+    }
+    
+    function showPointsLoadError(status, error) {
+        const errorMessages = {
+            'timeout': 'انتهت مهلة الاتصال. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.',
+            'error': 'حدث خطأ في تحميل معلومات النقاط. يرجى تحديث الصفحة.',
+            'parsererror': 'خطأ في معالجة البيانات. يرجى المحاولة لاحقاً.'
+        };
+        
+        const message = errorMessages[status] || 'حدث خطأ غير متوقع';
+        
+        $('#pointsRedemptionSection').show();
+        $('.points-content').html(`
+            <div class="alert alert-warning text-center" style="margin: 20px; padding: 20px; border-radius: 12px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ffc107; margin-bottom: 15px;"></i>
+                <h5 style="margin-bottom: 10px;">تعذر تحميل معلومات النقاط</h5>
+                <p style="margin-bottom: 15px;">${message}</p>
+                <button onclick="loadPointsInfo()" class="btn btn-primary">
+                    <i class="fas fa-redo me-2"></i>إعادة المحاولة
+                </button>
+            </div>
+        `);
+    }
+    
+    function loadExistingTransaction() {
+        // This would ideally call an API to get existing transaction details
+        // For now, we'll simulate this by checking if there's a transaction
+        // In a real implementation, you'd want to add an endpoint to get transaction details
+        $.ajax({
+            url: '@Url.Action("GetTransactionByOrder", "Points")?orderId=@Model.Id',
+            method: 'GET',
+            success: function(response) {
+                if (response.result && response.result.code === 200 && response.data) {
+                    // Show the existing discount
+                    const discountAmount = response.data.amountDeducted;
+                    const newTotal = originalTotal - discountAmount;
+                    
+                    $('#pointsDiscountAmount').text(discountAmount.toFixed(2));
+                    $('#pointsDiscountRow').show();
+                    $('#finalTotal').html(newTotal.toFixed(2) + ' ' + RIYAL_SVG);
+                }
+            },
+            error: function(xhr) {
+                // If endpoint doesn't exist, ignore the error
+                console.log('Transaction details endpoint not available');
+            }
+        });
+    }
+    
+    function updatePointsUI() {
+        if (!pointsInfo) return;
+        
+        $('#currentPoints').text(pointsInfo.data.currentPoints);
+        $('#minPoints').text(pointsInfo.data.minRedeemPoints);
+        $('#maxPoints').text(pointsInfo.data.maxRedeemPoints);
+        $('#pointsToRedeem').attr('max', Math.min(pointsInfo.data.currentPoints, pointsInfo.data.maxRedeemPoints));
+        $('#conversionRate').html(`معدل التحويل: 1 نقطة = ${pointsInfo.data.pointsToSARRate.toFixed(2)} ${RIYAL_SVG}`);
+        
+        // Server-side eligibility check
+        if (pointsInfo.isEligible === false) {
+            if (pointsInfo.data.alreadyRedeemed) {
+                showAlreadyRedeemedMessage();
+            } else {
+                $('#pointsRedemptionSection').hide();
+            }
+            return;
+        }
+        
+        if (pointsInfo.data.canRedeem && !pointsInfo.data.alreadyRedeemed) {
+            $('#pointsRedemptionSection').show();
+            $('#redeemBtn').prop('disabled', false);
+        } else {
+            if (pointsInfo.data.alreadyRedeemed) {
+                showAlreadyRedeemedMessage();
+            } else {
+                $('#pointsRedemptionSection').hide();
+            }
+        }
+    }
+    
+    function showAlreadyRedeemedMessage() {
+        $('#pointsRedemptionSection').show();
+        $('.points-form').html(`
+            <div class="alert-centered">
+                <i class="fas fa-info-circle me-2"></i>
+                تم استرداد النقاط مسبقاً لهذا الطلب
+            </div>
+        `);
+    }
+    
+    // Debounce function for performance
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Handle points input change with debounced real-time preview
+    const updateDiscountPreview = debounce(function() {
+        const points = parseInt($('#pointsToRedeem').val()) || 0;
+        if (points > 0 && pointsInfo && pointsInfo.data) {
+            const discountAmount = points * pointsInfo.data.pointsToSARRate;
+            $('#discountAmount').text(discountAmount.toFixed(2));
+            $('#discountPreview').show();
+        } else {
+            $('#discountPreview').hide();
+        }
+    }, 300);
+
+    $('#pointsToRedeem').on('input', updateDiscountPreview);
+    
+    // Handle points redemption form submission
+    $('#pointsRedemptionForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const pointsToRedeem = parseInt($('#pointsToRedeem').val());
+        
+        // Comprehensive validation
+        if (!pointsToRedeem || isNaN(pointsToRedeem) || pointsToRedeem <= 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'تحذير',
+                text: 'يرجى إدخال عدد صحيح من النقاط',
+                confirmButtonText: 'حسناً',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+        
+        if (pointsToRedeem < pointsInfo.data.minRedeemPoints) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'تحذير',
+                text: `الحد الأدنى لاسترداد النقاط هو ${pointsInfo.data.minRedeemPoints} نقطة`,
+                confirmButtonText: 'حسناً',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+        
+        if (pointsToRedeem > pointsInfo.data.maxRedeemPoints) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'تحذير',
+                text: `الحد الأقصى لاسترداد النقاط هو ${pointsInfo.data.maxRedeemPoints} نقطة`,
+                confirmButtonText: 'حسناً',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+        
+        if (pointsToRedeem > pointsInfo.data.currentPoints) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'رصيد غير كافٍ',
+                text: `رصيدك الحالي: ${pointsInfo.data.currentPoints} نقطة فقط`,
+                confirmButtonText: 'حسناً',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+        
+        // Show confirmation dialog before redemption
+        Swal.fire({
+            title: 'تأكيد الاسترداد',
+            html: `
+                <p>هل أنت متأكد من استرداد <strong>${pointsToRedeem}</strong> نقطة؟</p>
+                <p>سيتم خصم <strong>${(pointsToRedeem * pointsInfo.data.pointsToSARRate).toFixed(2)}</strong> ${RIYAL_SVG} من الفاتورة</p>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'نعم، استرداد',
+            cancelButtonText: 'إلغاء',
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                redeemPoints(pointsToRedeem);
+            }
+        });
+    });
+    
+    // Optimize for mobile touch interactions
+    if ('ontouchstart' in window) {
+        // Add haptic feedback simulation for mobile
+        $('#redeemBtn, .btn-redeem').on('touchstart', function() {
+            $(this).addClass('touch-active');
+        }).on('touchend touchcancel', function() {
+            $(this).removeClass('touch-active');
+        });
+        
+        // Prevent accidental double-tap zoom on number input
+        $('#pointsToRedeem').on('touchend', function(e) {
+            e.preventDefault();
+            $(this).focus();
+        });
+    }
+    
+    // Accessibility helper function
+    function announceToScreenReader(message) {
+        $('#pointsStatusMessage').text(message);
+        setTimeout(() => $('#pointsStatusMessage').text(''), 3000);
+    }
+    
+    function redeemPoints(pointsToRedeem) {
+        const redeemData = {
+            pointsToRedeem: pointsToRedeem,
+            orderId: @Model.Id
+        };
+        
+        $('#redeemBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>جاري الاسترداد...');
+        
+        $.ajax({
+            url: '@Url.Action("Redeem", "Points")',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(redeemData),
+            success: function(response) {
+                if (response.result.code === 200) {
+                    const discountAmount = response.data.amountDeducted;
+                    const newTotal = originalTotal - discountAmount;
+
+                    // Update UI
+                    $('#pointsDiscountAmount').text(discountAmount.toFixed(2));
+                    $('#pointsDiscountRow').show();
+                    $('#finalTotal').html(newTotal.toFixed(2) + ' ' + RIYAL_SVG);
+                    $('#currentPoints').text(response.data.remainingPoints);
+
+                    showAlreadyRedeemedMessage();
+
+                    announceToScreenReader('تم استرداد النقاط بنجاح');
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تم الاسترداد بنجاح!',
+                        html: `تم خصم ${discountAmount.toFixed(2)} ${RIYAL_SVG} من إجمالي الفاتورة`,
+                        confirmButtonText: 'ممتاز!'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطأ',
+                        text: response.result.message || 'حدث خطأ أثناء استرداد النقاط',
+                        confirmButtonText: 'حسناً'
+                    });
+                }
+            },
+            error: function(xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ',
+                    text: 'حدث خطأ أثناء الاتصال بالخادم',
+                    confirmButtonText: 'حسناً'
+                });
+            },
+            complete: function() {
+                $('#redeemBtn').prop('disabled', false).html('<i class="fas fa-gift me-2"></i>استرداد النقاط');
+            }
+        });
+    }
+</script>
+}

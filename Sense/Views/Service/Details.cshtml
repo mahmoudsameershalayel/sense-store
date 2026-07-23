@@ -1,0 +1,174 @@
+﻿@using Sense.Application.DTOs.ServiceDTOs
+@model ServiceDto
+@{
+    var otherServices = ViewBag.OtherServices as List<ServiceDto>;
+}
+
+@section Styles
+{
+    <style>
+        .contact-banner {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background: url('https://media.istockphoto.com/id/499178422/photo/new-auto-parts.jpg?s=612x612&w=0&k=20&c=JFj6CcYMubYwTFV7WeDwgRUq1ED6r2dLcKyle7BF93U=') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .contact-banner::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .contact-banner-text {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .contact-banner-text h1 {
+            font-size: 3rem;
+            margin: 0;
+            color: #fff;
+        }
+
+        .services-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .services-details-one img {
+            border-radius: 12px;
+            object-fit: cover;
+            max-height: 400px;
+            width: 100%;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .services-details-one img:hover {
+            transform: scale(1.02);
+            opacity: 0.95;
+        }
+
+        .related-post {
+            margin-top: 60px;
+        }
+
+        .related-post .title h2 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .single-services {
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .single-services:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .services-img img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .services-content h3 {
+            font-size: 1rem;
+            padding: 15px;
+            margin: 0;
+            color: #222;
+        }
+
+        @@media (max-width: 767.98px) {
+            .contact-banner-text h1 {
+                font-size: 2rem;
+            }
+
+            .services-img img {
+                height: 180px;
+            }
+        }
+    </style>
+}
+
+<!-- Header -->
+<div class="contact-banner">
+    <div class="contact-banner-text">
+        <h1>تفاصيل الخدمة</h1>
+    </div>
+</div>
+
+<!-- Main Content -->
+<section class="services-details-area pt-100 pb-70">
+    <div class="container">
+        <div class="row align-items-center g-5 mt-5">
+            <!-- Description (Left) -->
+            <div class="col-lg-7 col-md-12">
+                <h3 class="mb-3 fw-bold">
+                    @Html.Raw(Model.TitleAr.Replace("\n", "<br>"))
+                </h3>
+                <div class="services-content pe-lg-5">
+                    @Html.Raw(Model.DetailsAr.Replace("\n", "<br>"))
+                </div>
+            </div>
+
+            <!-- Image (Right) + Button -->
+            <div class="col-lg-5 col-md-12 text-center text-lg-end">
+                <div class="services-details-one mb-4">
+                    <img src="@Model.ImageURL" class="img-fluid rounded-3 shadow-sm" style="max-height: 400px;" alt="@Model.TitleAr" />
+                </div>
+
+                <a asp-controller="Account" asp-action="Index" class="btn custom-btn-filled btn-lg px-4 w-100 w-lg-auto">
+                    حجز موعد
+                </a>
+            </div>
+        </div>
+
+        <!-- Related Services -->
+        <div class="related-post mt-5">
+            <div class="title">
+                <h2>الخدمات الأخرى</h2>
+            </div>
+
+            <div class="row">
+                @foreach (var service in otherServices)
+                {
+                    <div class="col-lg-4 col-sm-6">
+                        <div class="single-services">
+                            <div class="services-img">
+                                <a class="imgContainer2" asp-controller="service" asp-action="details" asp-route-id="@service.Id">
+                                    <img src="@service.ImageURL" alt="@service.TitleAr" />
+                                </a>
+                            </div>
+
+                            <div class="services-content">
+                                <h3>
+                                    <a asp-controller="service" asp-action="details" asp-route-id="@service.Id">
+                                        @service.TitleAr
+                                    </a>
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,155 @@
+﻿<!-- Modal for Address Booking -->
+<div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="addressForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addressModalLabel">إضافة عنوان</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label for="city" class="form-label">المدينة</label>
+                        <input type="text" class="form-control" id="city" name="city" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="street" class="form-label">الشارع</label>
+                        <input type="text" class="form-control" id="street" name="street" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="neighborhood" class="form-label">الحي السكني</label>
+                        <input type="text" class="form-control" id="neighborhood" name="neighborhood" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="addressDetails" class="form-label">تفاصيل إضافية</label>
+                        <textarea class="form-control" id="addressDetails" name="addressDetails" rows="3"></textarea>
+                    </div>
+
+                    <div class="alert alert-info d-flex align-items-center" role="alert">
+                        <i class="bi bi-geo-alt-fill me-2"></i>
+                        لإضافة عنوان من خلال الخريطة، يرجى التوجه إلى قسم <strong>عناويني</strong> في لوحة التحكم الخاصة بك.
+                    </div>
+                    <!-- Map Container
+                    <div class="mb-3">
+                        <label class="form-label">حدد الموقع على الخريطة</label>
+                        <div id="map" style="height: 400px; width: 100%; border: 1px solid #ddd; border-radius: 8px;"></div>
+                        <small class="text-muted">اضغط على الخريطة لتحديد الموقع</small>
+                    </div>
+                     -->
+                    <input type="hidden" id="locationLat" name="locationLat" />
+                    <input type="hidden" id="locationLong" name="locationLong" />
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">إضافة</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize map when modal is fully shown
+    $('#addressModal').one('shown.bs.modal', function () {
+         Swal.fire({
+        icon: 'info',
+        title: 'تنبيه',
+        html: `لإضافة عنوان باستخدام الخريطة، يرجى الذهاب إلى قسم
+               <b>عناويني</b> في لوحة التحكم.`,
+        confirmButtonText: 'موافق'
+    });
+        console.log('Modal shown event triggered');
+
+        if (typeof initializeMap === 'function') {
+            console.log('Initializing map...');
+            initializeMap();
+
+            // Multiple invalidateSize calls for better reliability
+            setTimeout(function() {
+                if (typeof map !== 'undefined' && map) {
+                    console.log('First invalidateSize');
+                    map.invalidateSize();
+                }
+            }, 100);
+
+            setTimeout(function() {
+                if (typeof map !== 'undefined' && map) {
+                    console.log('Second invalidateSize');
+                    map.invalidateSize();
+                }
+            }, 300);
+
+            setTimeout(function() {
+                if (typeof map !== 'undefined' && map) {
+                    console.log('Third invalidateSize');
+                    map.invalidateSize();
+                }
+            }, 500);
+        } else {
+            console.error('initializeMap function not found');
+        }
+    });
+
+    // Destroy map when modal hides
+    $('#addressModal').on('hidden.bs.modal', function () {
+        console.log('Modal hidden - cleaning up map');
+        if (typeof map !== 'undefined' && map) {
+            map.remove();
+            map = null;
+            marker = null;
+        }
+    });
+
+    // Handle form submission
+    $('#addressForm').on('submit', function (e) {
+        e.preventDefault();
+
+        var formData = {
+            city: $('#city').val(),
+            street: $('#street').val(),
+            neighborhood: $('#neighborhood').val(),
+            addressDetails: $('#addressDetails').val(),
+            locationLat: $('#locationLat').val(),
+            locationLong: $('#locationLong').val()
+        };
+
+        $.ajax({
+            url: '@Url.Action("Add", "Address")',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function (response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'تم إرسال العنوان بنجاح',
+                    confirmButtonText: 'موافق',
+                    timer: 3000
+                });
+                $('#addressModal').modal('hide');
+                $('#addressForm')[0].reset();
+
+                $.get('/Address/GetMyAddresses', function (data) {
+                    let select = $('#addressId');
+                    select.empty().append('<option value="">-- اختر العنوان --</option>');
+                    data.forEach(addr => {
+                        select.append(`<option value="${addr.id}">${addr.city}, ${addr.street} - الحي السكني: ${addr.neighborhood}</option>`);
+                    });
+                });
+
+                $(document).trigger('addressAdded', [response.data]);
+            },
+            error: function (xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'حدث خطأ أثناء الإرسال',
+                    text: error
+                });
+            }
+        });
+    });
+</script>

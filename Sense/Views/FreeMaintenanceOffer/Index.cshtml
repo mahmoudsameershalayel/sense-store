@@ -1,0 +1,184 @@
+﻿@using Sense.Application.DTOs.FreeMaintenanceOfferDTOs
+@model List<FreeMaintenanceOfferDto>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var offer = Model.FirstOrDefault();
+}
+
+@section Styles {
+    <style>
+        .contact-banner {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background: url('@Url.Content("~/assets/img/freemaintenance.jpg")') no-repeat center center/cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+            .contact-banner::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1;
+            }
+
+        .contact-banner-text {
+            position: relative;
+            z-index: 2;
+        }
+
+            .contact-banner-text h1 {
+                font-size: 3rem;
+                color: white;
+            }
+
+        .offers-container {
+            display: flex;
+            justify-content: center;
+            padding: 30px 15px;
+        }
+
+        .offer-card {
+            width: 90%; /* or set a fixed width like 600px */
+            max-width: 700px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            text-align: center; /* ✅ Center all text */
+        }
+
+        .offer-card-body {
+            padding: 20px;
+        }
+
+        .offer-card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .offer-card-description {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .offer-prices {
+            justify-content: center; /* ✅ center prices row */
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .discounted-price {
+            color: #E60023;
+            font-weight: bold;
+            font-size: 1.4rem;
+        }
+
+        .text-warning-custom {
+            color: #ffc107;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .offer-status {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .text-success {
+            color: #28a745;
+        }
+
+        .text-danger {
+            color: #dc3545;
+        }
+
+        .text-warning-custom {
+            color: #ffc107;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .add-to-cart {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+
+      @@media (max-width: 768px) {
+    .offer-card {
+        width: 95%;
+    }
+
+    .offer-card-title {
+        font-size: 1.3rem;
+    }
+
+    .discounted-price {
+        font-size: 1.2rem;
+    }
+}
+    </style>
+}
+
+<div class="contact-banner">
+    <div class="contact-banner-text">
+        <h1>عرض صيانة مجانية</h1>
+    </div>
+ </div>
+    
+@if (offer != null)
+    {
+    <div class="offers-container" dir="rtl">
+        <div class="offer-card">
+            <div class="offer-card-image-wrapper">
+                <img src="@(string.IsNullOrEmpty(offer.ImageURL) ? Url.Content("~/assets/img/placeholder-offer.jpg") : offer.ImageURL)"
+                     alt="@offer.Title" class="offer-card-image" />
+            </div>
+
+            <div class="offer-card-body">
+                <h3 class="offer-card-title">@offer.Title</h3>
+                <p class="offer-card-description">@offer.Description</p>
+
+                <div class="offer-prices">
+                    <span class="discounted-price">مجاني!</span>
+                </div>
+
+                <p>عدد المواعيد المطلوبة: <strong>@offer.RequiredAppointments</strong></p>
+                <p>مدة الصيانة المجانية: <strong>@offer.FreePeriodInDays</strong> أيام</p>
+
+                <p class="text-warning-custom">
+                    تأكد من تسجيل الدخول إلى حسابك لتتمكن من تفعيل العرض عند استيفاء الشروط عبر ملفك الشخصي.
+                </p>
+            </div>
+        </div>
+    </div>
+
+}
+else
+{
+    <div class="text-center py-5">
+        <h4>لا يوجد عرض متاح حالياً.</h4>
+    </div>
+}

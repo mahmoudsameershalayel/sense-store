@@ -1,0 +1,1798 @@
+﻿@using Sense.Domain.DBEntities
+@using Sense.Application.DTOs.AddressDTOs
+@using System.Globalization
+@model ShoppingCartTbl
+@{
+    var addresses = ViewBag.Addresses as List<AddressDto>;
+    var total = ViewBag.Total;
+    var deliveryFee = ViewBag.DeliveryFee ?? 0m;
+}
+@section Styles
+{
+    <style type="text/css">
+        .contact-banner {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background-color: #253F8E;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .contact-banner-text {
+            position: relative;
+            z-index: 2;
+        }
+
+            .contact-banner-text h1 {
+                font-size: 3rem;
+                color: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .contact-banner-text p {
+                font-size: 1.25rem;
+            }
+
+        .custom-btn {
+            background-color: #253F8E;
+            color: #FFD700;
+            border: 2px solid #253F8E;
+        }
+
+        /* Cart Table / Row Styles */
+        .cart-table {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .cart-table-header {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 700;
+            color: #253F8E;
+            font-size: 0.95rem;
+        }
+
+        .cart-product-card {
+            display: flex;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+            .cart-product-card:last-child {
+                border-bottom: none;
+            }
+
+        .cart-col-product {
+            flex: 3;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-align: right;
+        }
+
+        .cart-col-quantity {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .cart-col-price {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .cart-row-remove {
+            flex: 0 0 auto;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #fff5f5;
+            color: #e53e3e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+        }
+
+        /* Typography Styles */
+        .cart-product-title {
+            font-family: 'Cairo', 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin: 0;
+            line-height: 1.5;
+            text-align: right;
+            letter-spacing: -0.01em;
+        }
+
+        .cart-product-price {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            justify-content: center;
+        }
+
+        .cart-label {
+            font-size: 0.875rem;
+            color: #718096;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        /* Cart Summary Modern Styles */
+        .cart-summary-modern {
+            background-color: #ffffff;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 2px solid #e2e8f0;
+        }
+
+        .cart-summary-header {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #253F8E;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+            .cart-summary-header::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 60px;
+                height: 3px;
+                background-color: #c2932c;
+                border-radius: 2px;
+            }
+
+        .cart-summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.875rem 0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 1rem;
+        }
+
+        .cart-summary-total {
+            background-color: #253F8E;
+            color: white;
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            font-size: 1.35rem;
+            font-weight: 800;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .discount-badge {
+            background-color: #48bb78;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        /* Smooth Scroll Behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        @@media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+        }
+
+        /* Quantity Control Styles */
+        .quantity-control-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .quantity-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 2px solid #253F8E;
+            background: white;
+            color: #253F8E;
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .quantity-btn:active {
+                transform: scale(0.95);
+                transition: transform 0.1s ease;
+            }
+
+        .quantity-btn.loading {
+            pointer-events: none;
+            opacity: 0.6;
+            position: relative;
+        }
+
+        .quantity-btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #253F8E;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        .quantity-display.updating {
+            animation: pulse 0.6s ease;
+            color: #253F8E;
+            font-weight: 700;
+        }
+
+        .quantity-display {
+            min-width: 50px;
+            height: 36px;
+            background-color: #253F8E;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 0 1rem;
+        }
+
+        /* Coupon Section Styles */
+        .coupon-section {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border: 2px dashed #cbd5e0;
+        }
+
+        .coupon-input {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px 0 0 10px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+            .coupon-input:focus {
+                border-color: #253F8E;
+                box-shadow: 0 0 0 3px rgba(37, 63, 142, 0.1);
+                outline: none;
+            }
+
+        .coupon-apply-btn {
+            background-color: #c2932c;
+            color: #253F8E;
+            border: none;
+            border-radius: 0 10px 10px 0;
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .coupon-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        .coupon-result {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            animation: slideDown 0.3s ease;
+        }
+
+        /* Touch Feedback Utility */
+        .touch-feedback:active {
+            transform: scale(0.95);
+            opacity: 0.8;
+        }
+
+        /* Checkout Button Styles */
+        .checkout-btn-primary {
+            background-color: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2.5rem;
+            font-size: 1.25rem;
+            font-weight: 800;
+            width: 100%;
+            margin-top: 1.5rem;
+        }
+
+            .checkout-btn-primary:active {
+                transform: scale(0.98);
+                transition: transform 0.1s ease;
+            }
+
+        /* Empty Cart Styles */
+        .empty-cart-container {
+            background-color: #f7fafc;
+            border-radius: 20px;
+            padding: 4rem 2rem;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+            border: 2px dashed #cbd5e0;
+        }
+
+        .empty-cart-icon {
+            font-size: 5rem;
+            color: #cbd5e0;
+            margin-bottom: 1.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .empty-cart-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .empty-cart-text {
+            font-size: 1.1rem;
+            color: #718096;
+            margin-bottom: 2rem;
+        }
+
+        .browse-products-btn {
+            background-color: #253F8E;
+            color: white;
+            padding: 0.875rem 2rem;
+            border-radius: 10px;
+            font-weight: 700;
+            border: none;
+        }
+
+        /* Animations */
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.15);
+            }
+        }
+
+        @@keyframes scaleOut {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            to {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+        }
+
+        @@keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @@keyframes shimmer {
+            0% {
+                left: -100%;
+            }
+
+            100% {
+                left: 100%;
+            }
+        }
+
+        @@keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        @@keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .pulse-animation {
+            animation: pulse 0.6s ease;
+        }
+
+        .scale-out-animation {
+            animation: scaleOut 0.3s ease forwards;
+        }
+
+        .slide-down-animation {
+            animation: slideDown 0.3s ease;
+        }
+
+        @@keyframes successPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(72, 187, 120, 0);
+            }
+        }
+
+        @@keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        @@keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-animation {
+            animation: successPulse 0.6s ease;
+        }
+
+        .error-animation {
+            animation: errorShake 0.5s ease;
+        }
+
+        .bounce-in-animation {
+            animation: bounceIn 0.5s ease;
+        }
+
+        /* Skeleton Loader Styles */
+        .skeleton-loader {
+            display: none;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .skeleton-loader.active {
+            display: block;
+        }
+
+        .skeleton-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .skeleton-item {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        .skeleton-image {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 1rem;
+        }
+
+        .skeleton-text {
+            height: 20px;
+            margin-bottom: 0.75rem;
+        }
+
+        .skeleton-text.short {
+            width: 60%;
+        }
+
+        .skeleton-text.medium {
+            width: 80%;
+        }
+
+        .skeleton-button {
+            height: 44px;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        /* Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .toast-notification {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 300px;
+            animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s;
+            pointer-events: auto;
+        }
+
+        .toast-notification.success {
+            border-left: 4px solid #48bb78;
+        }
+
+        .toast-notification.error {
+            border-left: 4px solid #e53e3e;
+        }
+
+        .toast-notification.info {
+            border-left: 4px solid #4299e1;
+        }
+
+        .toast-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .toast-notification.success .toast-icon {
+            color: #48bb78;
+        }
+
+        .toast-notification.error .toast-icon {
+            color: #e53e3e;
+        }
+
+        .toast-notification.info .toast-icon {
+            color: #4299e1;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: #2d3748;
+        }
+
+        .toast-message {
+            font-size: 0.875rem;
+            color: #718096;
+        }
+
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @@keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateX(400px);
+            }
+        }
+
+        /* Mini Loading Overlay for Cart Updates */
+        .cart-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9998;
+            backdrop-filter: blur(2px);
+        }
+
+        .cart-loading-overlay.active {
+            display: flex;
+        }
+
+        .cart-loading-spinner {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .cart-loading-spinner i {
+            font-size: 2.5rem;
+            color: #253F8E;
+            animation: spin 1s linear infinite;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .cart-loading-spinner p {
+            font-weight: 600;
+            color: #2d3748;
+            margin: 0;
+        }
+
+        /* Mobile Responsiveness */
+        @@media (max-width: 991px) {
+            .cart-summary-modern {
+                margin-top: 2rem;
+            }
+        }
+
+        @@media (max-width: 767px) {
+            .cart-product-card {
+                position: relative;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+                padding: 1rem 1rem 1rem 3rem;
+            }
+
+            .cart-col-product,
+            .cart-col-quantity,
+            .cart-col-price {
+                flex: none;
+            }
+
+            .cart-col-quantity {
+                justify-content: flex-start;
+            }
+
+            .cart-col-price {
+                justify-content: flex-start;
+            }
+
+            .cart-row-remove {
+                position: absolute;
+                top: 1rem;
+                left: 1rem;
+                margin-left: 0;
+            }
+
+            .cart-product-title {
+                font-size: 1rem;
+                line-height: 1.5;
+                letter-spacing: 0.01em;
+            }
+
+            .cart-product-price {
+                font-size: 1.1rem;
+            }
+
+            .quantity-control-wrapper {
+                gap: 0.5rem;
+                margin: 0;
+            }
+
+            /* Larger tap targets */
+            .quantity-btn {
+                width: 44px;
+                height: 44px;
+                min-width: 44px;
+                min-height: 44px;
+                font-size: 1.1rem;
+            }
+
+            .quantity-display {
+                min-width: 50px;
+                height: 40px;
+                font-size: 1.1rem;
+            }
+
+            .cart-summary-modern {
+                padding: 1.5rem;
+                border-radius: 16px;
+            }
+
+            .cart-summary-header {
+                font-size: 1.25rem;
+            }
+
+            .checkout-btn-primary {
+                padding: 0.875rem 2rem;
+                font-size: 1.1rem;
+            }
+
+            .coupon-section {
+                padding: 1rem;
+            }
+
+            .coupon-apply-btn {
+                min-height: 48px;
+            }
+
+            /* Toast positioning for mobile */
+            .toast-container {
+                top: 60px;
+                right: 10px;
+                left: 10px;
+            }
+
+            .toast-notification {
+                min-width: auto;
+                width: 100%;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .contact-banner {
+                height: 100px;
+            }
+
+            .contact-banner-text h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding-bottom: calc(var(--bottom-nav-height) + 30px + env(safe-area-inset-bottom));
+            }
+
+            .checkout-btn-primary {
+                min-height: 56px;
+                padding: 1rem 2rem;
+                font-size: 1.15rem;
+            }
+
+                .checkout-btn-primary:active {
+                    transform: scale(0.95);
+                }
+        }
+
+        @@media (max-width: 480px) {
+            .cart-product-title {
+                font-size: 0.95rem;
+                line-height: 1.4;
+            }
+
+            .cart-product-price {
+                font-size: 1rem;
+            }
+
+            .cart-summary-header {
+                font-size: 1.15rem;
+                margin-bottom: 1rem;
+            }
+
+            .cart-summary-row {
+                font-size: 0.9rem;
+                padding: 0.75rem 0;
+            }
+
+            .cart-summary-total {
+                font-size: 1rem;
+                padding: 1rem 0;
+            }
+        }
+
+        @@media (min-width: 481px) and (max-width: 640px) {
+            .cart-product-title {
+                font-size: 1.05rem;
+                line-height: 1.45;
+            }
+
+            .cart-summary-header {
+                font-size: 1.2rem;
+            }
+        }
+
+        @@media (orientation: landscape) and (max-height: 600px) {
+            .contact-banner {
+                height: 150px;
+            }
+
+            .contact-banner-text h1 {
+                font-size: 1.5rem;
+            }
+
+            .cart-summary-modern {
+                position: sticky;
+                top: 80px;
+                padding: 1rem;
+            }
+
+            .cart-summary-header {
+                font-size: 1rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .cart-summary-row {
+                padding: 0.5rem 0;
+            }
+
+            .checkout-btn-primary {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+
+        /* Loading States */
+        .skeleton-loader {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        .btn-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .overlay-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            animation: slideDownToast 0.4s ease forwards;
+            z-index: 10000;
+        }
+
+        @@keyframes slideDownToast {
+            to {
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+    </style>
+}
+
+<!-- ترويسة الصفحة -->
+<div class="sf-page-head" dir="rtl">
+    <div class="container">
+        <ul class="sf-breadcrumb">
+            <li><a href="/">الرئيسية</a></li>
+            <li>سلة التسوق</li>
+        </ul>
+        <h1>سلة التسوق</h1>
+        <p class="sf-page-head__desc">
+            راجع منتجاتك، عدّل الكميات، وطبّق كود الخصم قبل إتمام الطلب.
+        </p>
+    </div>
+</div>
+<section id="contact" class="sf-section sf-section--muted" dir="rtl">
+
+
+    <div class="container">
+
+        @if (Model.Items != null && Model.Items.Any())
+        {
+            <!-- Skeleton Loader -->
+            <div id="cartSkeletonLoader" class="skeleton-loader">
+                <div class="row">
+                    <div class="col-12 col-sm-6 col-lg-4 mb-4">
+                        <div class="skeleton-card">
+                            <div class="skeleton-item skeleton-image"></div>
+                            <div class="skeleton-item skeleton-text"></div>
+                            <div class="skeleton-item skeleton-text short"></div>
+                            <div class="skeleton-item skeleton-text medium"></div>
+                            <div class="skeleton-item skeleton-button"></div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4 mb-4">
+                        <div class="skeleton-card">
+                            <div class="skeleton-item skeleton-image"></div>
+                            <div class="skeleton-item skeleton-text"></div>
+                            <div class="skeleton-item skeleton-text short"></div>
+                            <div class="skeleton-item skeleton-text medium"></div>
+                            <div class="skeleton-item skeleton-button"></div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4 mb-4">
+                        <div class="skeleton-card">
+                            <div class="skeleton-item skeleton-image"></div>
+                            <div class="skeleton-item skeleton-text"></div>
+                            <div class="skeleton-item skeleton-text short"></div>
+                            <div class="skeleton-item skeleton-text medium"></div>
+                            <div class="skeleton-item skeleton-button"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cart-table cart-items-container">
+                <div class="cart-table-header d-none d-md-flex">
+                    <div class="cart-col-product">المنتج</div>
+                    <div class="cart-col-quantity">الكمية</div>
+                    <div class="cart-col-price">السعر</div>
+                    <div style="flex: 0 0 auto; width: 32px; margin-left: 1rem;"></div>
+                </div>
+
+                @foreach (var item in Model.Items)
+                {
+                    <div class="cart-product-card">
+                        <div class="cart-col-product">
+                            @await Component.InvokeAsync("CartDetails", new { productId = item.ProductId })
+                        </div>
+
+                        <div class="cart-col-quantity">
+                            <div class="quantity-control-wrapper">
+                                <button class="btn quantity-btn update-quantity" data-action="decrease" data-product-id="@item.ProductId">-</button>
+                                <span class="quantity-display" id="quantity-@item.ProductId" data-quantity="@item.ProductQuantity">@item.ProductQuantity</span>
+                                <button class="btn quantity-btn update-quantity" data-action="increase" data-product-id="@item.ProductId">+</button>
+                            </div>
+                        </div>
+
+                        <div class="cart-col-price">
+                            <div class="cart-product-price text-success">
+                                @item.ProductPrice?.ToString("N0", new System.Globalization.CultureInfo("ar-SA"))
+                                <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="17" height="17" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+                            </div>
+                        </div>
+
+                        <button class="cart-row-remove remove-from-cart" data-product-id="@item.ProductId" title="حذف المنتج">
+                            <i class="bx bx-trash"></i>
+                        </button>
+                    </div>
+                }
+            </div>
+
+            <div class="mt-5 cart-summary-modern" id="cartSummary">
+                <h4 class="cart-summary-header">ملخص السلة</h4>
+
+                <div class="cart-summary-row">
+                    <span>عدد المنتجات:</span>
+                    <strong>@Model.Items.Count</strong>
+                </div>
+
+                <div class="cart-summary-row">
+                    <span>إجمالي السعر قبل الخصم:</span>
+                    <span id="originalTotal"
+                         data-raw-total="@total">
+                        @total.ToString("N0", CultureInfo.GetCultureInfo("ar-SA"))
+                        <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="17" height="17" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+                    </span>
+                </div>
+
+                <div class="cart-summary-row">
+                    <span>قيمة الخصم:</span>
+                    <span id="disVal" class="discount-badge">
+                        0
+                        <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="17" height="17" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+                    </span>
+                </div>
+
+                <div class="cart-summary-row">
+                    <span>رسوم التوصيل:</span>
+                    <input type="hidden" id="deliveryFeeRaw" value="@deliveryFee" />
+
+                    <strong class="text-primary">
+                        <span id="deliveryFeeValue">
+                            @deliveryFee.ToString("N0", CultureInfo.GetCultureInfo("ar-SA"))
+                        </span>
+                        <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="17" height="17" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+
+                    </strong>
+                </div>
+
+                <div class="coupon-section">
+                    <div class="input-group">
+                        <input type="text" class="form-control coupon-input" id="couponCode" placeholder="أدخل كود الخصم">
+                        <button class="btn coupon-apply-btn" id="applyCouponBtn" type="button">
+                            <i class="bx bx-check-circle"></i> تطبيق
+                        </button>
+                        <span class="spinner-border spinner-border-sm coupon-spinner ms-2" role="status" aria-hidden="true" style="display:none;" id="couponSpinner"></span>
+                    </div>
+                    <div id="couponResult" class="coupon-result text-success fw-bold" style="display:none;"></div>
+                </div>
+
+                <div class="cart-summary-total">
+                    <span>الإجمالي النهائي:</span>
+                    <strong>
+                        <span id="cart-total-value">
+                            @(total + deliveryFee)
+                        </span>
+                        <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="17" height="17" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+
+                    </strong>
+                </div>
+
+
+                <a asp-controller="Order"
+                   asp-action="Confirm"
+                   id="confirmBtn"
+                   class="btn checkout-btn-primary">
+                    <i class="bx bx-check-circle"></i> إتمام الشراء
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="sf-empty">
+                <div class="sf-empty__icon"><i class="fas fa-shopping-cart"></i></div>
+                <h5 class="sf-empty__title">سلة التسوق فارغة</h5>
+                <p class="sf-empty__text">
+                    لم تقم بإضافة أي منتجات بعد — تصفح المتجر واختر ما يناسبك، وستجد كل ما أضفته هنا.
+                </p>
+                <a href="@Url.Action("Index", "Product")" class="sf-btn sf-btn--primary">
+                    <i class="bx bx-store"></i> تصفح المنتجات
+                </a>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Toast Notification Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Cart Loading Overlay -->
+<div class="cart-loading-overlay" id="cartLoadingOverlay">
+    <div class="cart-loading-spinner">
+        <i class="bx bx-loader-alt"></i>
+        <p>جاري التحديث...</p>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content shadow-sm">
+            <div class="modal-header">
+                <h5 class="modal-title" id="checkoutModalLabel">بيانات الطلب</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div id="addressModalContainer"></div>
+
+            <div class="modal-body">
+                <form id="checkoutForm">
+                    <label for="addressId" class="form-label mb-1 me-2">اختر العنوان</label>
+
+                    <div class="mb-3 d-flex align-items-center gap-2">
+
+                        <select class="form-select" id="addressId" name="AddressId" required style="flex: 1;">
+                            <option value="">-- اختر العنوان --</option>
+                            @if (addresses != null)
+                            {
+                                @foreach (var addr in addresses)
+                                {
+                                    <option value="@addr.Id">
+                                        @addr.City , @addr.Street - @if (!string.IsNullOrWhiteSpace(addr.Neighborhood))
+                                        {
+                                            @($"الحي السكني :  {addr.Neighborhood}")
+                                        }
+                                    </option>
+                                }
+                            }
+                        </select>
+
+                        <button type="button"
+                                id="btnAddAddress"
+                                class="btn custom-btn mb-3"
+                                style="border-radius:50px;padding:.5rem 1rem;">
+                            إضافة عنوان
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="paymentMethod" class="form-label">طريقة الدفع</label>
+                        <select class="form-select" id="paymentMethod" name="PaymentMethod" required>
+                            <option value="">-- اختر طريقة الدفع--</option>
+                            <option value="1">أونلاين مدى</option>
+                            <option value="2">محفظة</option>
+                            <option value="3">الدفع عند الاستلام</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="orderMemo" class="form-label">ملاحظة</label>
+                        <textarea class="form-control" id="orderMemo" name="OrderMemo" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">إرسال الطلب</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="card shadow-sm mt-4 d-none" id="addressCard">
+    <h5 class="card-header" style="background:#253F8E;color:white">
+        إضافة عنوان
+    </h5>
+
+    <div class="card-body">
+        <form id="addressForm">
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>المدينة</label>
+                    <input type="text" class="form-control" id="city">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>الشارع</label>
+                    <input type="text" class="form-control" id="street">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>الحي</label>
+                    <input type="text" class="form-control" id="neighborhood">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>تفاصيل إضافية</label>
+                    <textarea class="form-control" id="addressDetails"></textarea>
+                </div>
+            </div>
+
+            <label class="form-label">اختر الموقع على الخريطة</label>
+            <div id="map" style="height:300px;"></div>
+
+            <input type="hidden" id="locationLat">
+            <input type="hidden" id="locationLong">
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">إضافة</button>
+                <button type="button" id="btnCancelAddress" class="btn btn-secondary">
+                    إلغاء
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.29/dist/sweetalert2.all.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script type="text/javascript">
+        var isUserAuthenticated = @(User.Identity?.IsAuthenticated == true ? "true" : "false");
+        $('#confirmBtn').on('click', function (e) {
+            e.preventDefault();
+            var code = $('#couponCode').val().trim();
+            var url = '/Order/Confirm?couponCode=' + encodeURIComponent(code);
+            if (!isUserAuthenticated) {
+                window.location.href = '/Account/Register?returnUrl=' + encodeURIComponent(url);
+                return;
+            }
+            window.location.href = url;
+        });
+        // Toast Notification Function
+        function showToast(type, title, message) {
+            const toastContainer = $('#toastContainer');
+            const icons = {
+                success: 'bx-check-circle',
+                error: 'bx-error-circle',
+                info: 'bx-info-circle'
+            };
+
+            const toast = $(`
+                <div class="toast-notification ${type}">
+                    <i class="bx ${icons[type]} toast-icon"></i>
+                    <div class="toast-content">
+                        <div class="toast-title">${title}</div>
+                        <div class="toast-message">${message}</div>
+                    </div>
+                </div>
+            `);
+
+            toastContainer.append(toast);
+
+            setTimeout(() => {
+                toast.fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
+
+        let map;
+        let marker;
+
+        $('#btnAddAddress').on('click', function () {
+            $('#addressCard').removeClass('d-none');
+
+            setTimeout(() => {
+                if (!map) {
+                    map = L.map('map').setView([23.8859, 45.0792], 6);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap'
+                    }).addTo(map);
+
+                    map.on('click', function (e) {
+                        const { lat, lng } = e.latlng;
+
+                        $('#locationLat').val(lat);
+                        $('#locationLong').val(lng);
+
+                        if (marker) {
+                            marker.setLatLng([lat, lng]);
+                        } else {
+                            marker = L.marker([lat, lng]).addTo(map);
+                        }
+                    });
+                }
+
+                map.invalidateSize();
+            }, 200);
+        });
+
+        $('#btnCancelAddress').on('click', function () {
+            $('#addressCard').addClass('d-none');
+        });
+
+        // Page Load Animations
+        $(document).ready(function() {
+            // Show skeleton loader initially
+            const $skeletonLoader = $('#cartSkeletonLoader');
+            const $cartContent = $('.cart-items-container');
+
+            // Only show skeleton if there are cart items
+            if ($cartContent.length > 0) {
+                $skeletonLoader.addClass('active');
+                $cartContent.hide();
+
+                // After content is ready
+                setTimeout(() => {
+                    $skeletonLoader.removeClass('active');
+                    $cartContent.fadeIn(400);
+
+                    // Trigger entrance animations for cart items
+                    $('.cart-product-card').each(function(index) {
+                        $(this).css('--item-index', index);
+                    });
+                }, 800);
+            }
+        });
+
+        $(document).ready(function () {
+
+                    // Handle Checkout Button Click
+                $('#checkoutBtn').on('click', function () {
+                    $.ajax({
+                        url: '@Url.Action("IsAuthenticated", "Account")',
+                        method: 'GET',
+                        success: function (res) {
+                            if (res.isAuthenticated) {
+                                // Redirect to the confirm page
+                                window.location.href = '@Url.Action("Confirm", "Order")';
+                            } else {
+                                // Redirect to login if not authenticated
+                                window.location.href = '@Url.Action("Login", "Account")?msg=checkout_required';
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('خطأ', 'تعذر التحقق من حالة المستخدم. حاول لاحقاً.', 'error');
+                        }
+                    });
+                });
+
+                    // Event for updating quantity (plus/minus)
+                    $(".update-quantity").click(function () {
+                        const button = $(this);
+                        const productId = button.data("product-id");
+                        const action = button.data("action");
+                        const quantitySpan = $("#quantity-" + productId);
+                        const $card = button.closest('.cart-product-card');
+                        let currentQuantity = parseInt(quantitySpan.text());
+
+                        // Determine new quantity
+                        let newQuantity = action === "increase" ? currentQuantity + 1 : currentQuantity - 1;
+                        if (newQuantity < 1) return; // Prevent zero or negative quantities
+
+                        // Add loading state
+                        button.addClass('loading');
+                        quantitySpan.addClass('updating');
+
+                        // Send AJAX request to update quantity
+                        $.ajax({
+                            url: "@Url.Action("UpdateQuantity", "Product")",
+                            method: "POST",
+                            contentType: "application/json",
+                            data: JSON.stringify({
+                                productId: productId,
+                                productQuantity: newQuantity
+                            }),
+                            success: function (res) {
+                                // Remove loading states
+                                button.removeClass('loading');
+                                quantitySpan.removeClass('updating');
+
+                                if (res.success) {
+                                    // Update the quantity on the page
+                                    quantitySpan.text(newQuantity);
+
+                                    // Dynamically update the cart content
+                                    $('#contact').load(location.href + ' #contact > *', function () {
+                                        // Rebind events for updated content
+                                        rebindCartEventHandlers();
+                                    });
+
+                                    updateCartItemCount();
+                                    updateCartSummary();
+                                } else {
+                                    // Add error animation
+                                    $card.addClass('error-animation');
+                                    setTimeout(() => {
+                                        $card.removeClass('error-animation');
+                                    }, 500);
+
+                                    showToast('error', 'خطأ', res.message || 'فشل تحديث الكمية');
+                                }
+                            },
+                            error: function () {
+                                // Remove loading states
+                                button.removeClass('loading');
+                                quantitySpan.removeClass('updating');
+
+                                // Add error animation
+                                $card.addClass('error-animation');
+                                setTimeout(() => {
+                                    $card.removeClass('error-animation');
+                                }, 500);
+
+                                showToast('error', 'خطأ', 'فشل الاتصال بالخادم');
+                            }
+                        });
+                    });
+
+                    // Function to rebind event handlers after content update
+                    function rebindCartEventHandlers() {
+                        // Rebind quantity update events
+                        $(".update-quantity").off("click").on("click", function () {
+                            const button = $(this);
+                            const productId = button.data("product-id");
+                            const action = button.data("action");
+                            const quantitySpan = $("#quantity-" + productId);
+                            const $card = button.closest('.cart-product-card');
+                            let currentQty = parseInt(quantitySpan.text());
+
+                            // Ensure the correct value is being used for updating quantity
+                            let newQty = action === "increase" ? currentQty + 1 : currentQty - 1;
+                            if (newQty < 1) return; // Prevent zero or negative quantities
+
+                            // Add loading state
+                            button.addClass('loading');
+                            quantitySpan.addClass('updating');
+
+                            $.ajax({
+                                url: "@Url.Action("UpdateQuantity", "Product")",
+                                method: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({ productId: productId, productQuantity: newQty }),
+                                success: function (res) {
+                                    // Remove loading states
+                                    button.removeClass('loading');
+                                    quantitySpan.removeClass('updating');
+
+                                    if (res.success) {
+                                        // Update the displayed quantity
+                                        quantitySpan.text(res.updatedQuantity);
+
+                                        // Dynamically reload content after quantity update
+                                        $('#contact').load(location.href + ' #contact > *', function () {
+                                            rebindCartEventHandlers();
+                                        });
+
+                                        updateCartItemCount();
+                                        updateCartSummary();
+                                    } else {
+                                        // Add error animation
+                                        $card.addClass('error-animation');
+                                        setTimeout(() => {
+                                            $card.removeClass('error-animation');
+                                        }, 500);
+
+                                        showToast('error', 'خطأ', res.message || 'حدث خطأ أثناء تحديث الكمية');
+                                    }
+                                },
+                                error: function () {
+                                    // Remove loading states
+                                    button.removeClass('loading');
+                                    quantitySpan.removeClass('updating');
+
+                                    // Add error animation
+                                    $card.addClass('error-animation');
+                                    setTimeout(() => {
+                                        $card.removeClass('error-animation');
+                                    }, 500);
+
+                                    showToast('error', 'خطأ', 'حدث خطأ أثناء تحديث الكمية');
+                                }
+                            });
+                        });
+
+                        
+
+
+                        // Handle Checkout Button Click
+                        $('#checkoutBtn').on('click', function () {
+                            $.ajax({
+                                url: '@Url.Action("IsAuthenticated", "Account")', // Adjust controller if needed
+                                method: 'GET',
+                                success: function (res) {
+                                    if (res.isAuthenticated) {
+                                        // Open the modal manually
+                                        var myModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+                                        myModal.show();
+                                    } else {
+                                        // Redirect to login if not authenticated
+                                        window.location.href = '@Url.Action("Login", "Account")';
+                                    }
+                                },
+                                error: function () {
+                                    Swal.fire('خطأ', 'تعذر التحقق من حالة المستخدم. حاول لاحقاً.', 'error');
+                                }
+                            });
+                        });
+                    }
+
+
+                            $('#applyCouponBtn').on('click', function () {
+
+                                const originalTotal = parseFloat($('#originalTotal').data('raw-total')) || 0;
+                                const code = $('#couponCode').val().trim();
+                                const totalAmount = originalTotal;
+
+                                const $btn = $(this);
+                                const $spinner = $('#couponSpinner');
+                                const originalBtnHtml = $btn.html();
+
+                                if (!code) {
+                                    Swal.fire('تنبيه', 'يرجى إدخال كود الخصم أولاً', 'warning');
+                                    return;
+                                }
+
+                                const deliveryFee = parseFloat($('#deliveryFeeRaw').val()) || 0;
+
+
+                                // Show spinner, disable button
+                                $spinner.show();
+                                $btn.prop('disabled', true);
+                                $btn.html('<i class="bx bx-loader-alt bx-spin"></i> جارٍ التحقق...');
+
+                                $.ajax({
+                                    url: '@Url.Action("ApplyCoupon", "Product")',
+                                    method: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify({
+                                        couponCode: code,
+                                        TotalAmount: totalAmount
+                                    }),
+                                    success: function (res) {
+
+                                        if (res.success) {
+
+                                            // الكوبون يطبق على السلة فقط
+                                            const totalAfterDiscount = parseFloat(res.newTotal) || 0;
+
+                                            // الإجمالي النهائي = بعد الخصم + التوصيل
+                                            const finalTotal = totalAfterDiscount + deliveryFee;
+
+                                            // Format numbers using English numerals with Arabic thousand separators
+                                            const formatNumber = (num) => {
+                                                return num.toLocaleString('en-US', {
+                                                    minimumFractionDigits: 0,
+                                                    maximumFractionDigits: 0
+                                                });
+                                            };
+
+                                            const riyalSvg = '<svg class="riyal-svg currency" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124.14 1256.39" width="17" height="19.2" style="display:inline-block;vertical-align:-0.125em">' +
+                                                '<path fill="currentColor" d="M699.62,1113.02h0c-20.06,44.48-33.32,92.75-38.4,143.37l424.51-90.24c20.06-44.47,33.31-92.75,38.4-143.37l-424.51,90.24Z"></path>' +
+                                                '<path fill="currentColor" d="M1085.73,895.8c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.33v-135.2l292.27-62.11c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.27V66.13c-50.67,28.45-95.67,66.32-132.25,110.99v403.35l-132.25,28.11V0c-50.67,28.44-95.67,66.32-132.25,110.99v525.69l-295.91,62.88c-20.06,44.47-33.33,92.75-38.42,143.37l334.33-71.05v170.26l-358.3,76.14c-20.06,44.47-33.32,92.75-38.4,143.37l375.04-79.7c30.53-6.35,56.77-24.4,73.83-49.24l68.78-101.97v-.02c7.14-10.55,11.3-23.27,11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z"></path>' +
+                                                '</svg>';
+
+                                            $('#originalTotal')
+                                                .html(res.originalTotalFormatted + ' ' + riyalSvg)
+                                                .toggleClass('text-decoration-line-through text-muted', res.discountAmount > 0);
+                                            $('#cart-total-value').text(formatNumber(finalTotal));
+
+                                            // Update discount value with SVG icon
+                                            $('#disVal').html(formatNumber(res.discountAmount) +
+                                                ' <svg class="riyal-svg currency" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124.14 1256.39" width="17" height="19.2" style="display:inline-block;vertical-align:-0.125em">' +
+                                                '<path fill="currentColor" d="M699.62,1113.02h0c-20.06,44.48-33.32,92.75-38.4,143.37l424.51-90.24c20.06-44.47,33.31-92.75,38.4-143.37l-424.51,90.24Z"></path>' +
+                                                '<path fill="currentColor" d="M1085.73,895.8c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.33v-135.2l292.27-62.11c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.27V66.13c-50.67,28.45-95.67,66.32-132.25,110.99v403.35l-132.25,28.11V0c-50.67,28.44-95.67,66.32-132.25,110.99v525.69l-295.91,62.88c-20.06,44.47-33.33,92.75-38.42,143.37l334.33-71.05v170.26l-358.3,76.14c-20.06,44.47-33.32,92.75-38.4,143.37l375.04-79.7c30.53-6.35,56.77-24.4,73.83-49.24l68.78-101.97v-.02c7.14-10.55,11.3-23.27,11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z"></path>' +
+                                                '</svg>');
+
+                                            $('#deliveryFeeValue').text(formatNumber(deliveryFee));
+
+                                            $('#couponResult')
+                                                .removeClass('text-danger slide-down-animation')
+                                                .addClass('text-success')
+                                                .text('تم تطبيق الكوبون بنجاح: ' + res.discountMessage)
+                                                .show()
+                                                .addClass('slide-down-animation');
+
+                                        } else {
+                                            $('#couponResult')
+                                                .removeClass('text-success slide-down-animation')
+                                                .addClass('text-danger')
+                                                .text(res.message)
+                                                .show()
+                                                .addClass('slide-down-animation');
+                                        }
+                                    },
+                                    error: function () {
+                                        showToast('error', 'خطأ', 'حدث خطأ أثناء تطبيق الكوبون');
+                                    },
+                                    complete: function () {
+                                        // Hide spinner, restore button
+                                        $spinner.hide();
+                                        $btn.prop('disabled', false);
+                                        $btn.html(originalBtnHtml);
+                                    }
+                                });
+                            });
+
+
+
+
+
+                      $(document).on('submit', '#addressForm', function (e) {
+                        e.preventDefault();
+
+                        var formData = {
+                            city: $('#city').val(),
+                            street: $('#street').val(),
+                            neighborhood: $('#neighborhood').val(),
+                            locationLat: $('#locationLat').val(),
+                            locationLong: $('#locationLong').val()
+                        };
+
+                        $.ajax({
+                            url: '@Url.Action("Add", "Address")',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(formData),
+                            success: function (response) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'تم إرسال العنوان بنجاح',
+                                    confirmButtonText: 'موافق',
+                                    timer: 3000
+                                });
+                                $('#addressModal').modal('hide');
+                                $('#addressForm')[0].reset();
+                                  $.get('/Address/GetMyAddresses', function (data) {
+                                        let select = $('#addressId');
+                                        select.empty().append('<option value="">-- اختر العنوان --</option>');
+                                        data.forEach(addr => {
+                                            select.append(`<option value="${addr.id}">${addr.city}, ${addr.street} - الحي السكني :  ${addr.neighborhood}</option>`);
+                                        });
+                                    });
+                                // Trigger an event to notify the parent page
+                                $(document).trigger('addressAdded', [response.data]);
+                            },
+                            error: function (xhr, status, error) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'حدث خطأ أثناء الإرسال',
+                                    text: error
+                                });
+                            }
+                        });
+                    });
+                    // Event delegation for dynamically loaded remove buttons
+                    $(document).on('click', '.remove-from-cart', function (e) {
+                        e.preventDefault();
+                        var productId = $(this).data('product-id');
+                        var $card = $(this).closest('.cart-product-card');
+
+                        // Add scale-out animation
+                        $card.addClass('scale-out-animation');
+
+                        // Show loading overlay
+                        $('#cartLoadingOverlay').addClass('active');
+
+                        // Delay AJAX call to allow animation to play
+                        setTimeout(() => {
+                            $.ajax({
+                                type: "POST",
+                                url: "@Url.Action("RemoveFromCart", "Product")",
+                                data: { productId: productId },
+                                success: function (response) {
+                                    // Hide loading overlay
+                                    $('#cartLoadingOverlay').removeClass('active');
+
+                                    if (response.success) {
+                                        // Show success toast
+                                        showToast('success', 'تم الحذف', 'تم حذف المنتج من السلة بنجاح');
+
+                                        $('#contact').load(location.href + ' #contact > *', function () {
+                                            rebindCartEventHandlers();
+                                        });
+
+                                        updateCartItemCount();
+                                        updateCartSummary();
+                                    } else {
+                                        // Remove animation if failed
+                                        $card.removeClass('scale-out-animation');
+                                        showToast('error', 'خطأ', 'لم يتم حذف المنتج من السلة. حاول مرة أخرى.');
+                                    }
+                                },
+                                error: function () {
+                                    // Hide loading overlay
+                                    $('#cartLoadingOverlay').removeClass('active');
+
+                                    // Remove animation if failed
+                                    $card.removeClass('scale-out-animation');
+                                    showToast('error', 'خطأ', 'حدث خطأ أثناء الاتصال بالخادم. الرجاء المحاولة لاحقاً.');
+                                }
+                            });
+                        }, 300);
+                    });
+
+                    // Update Cart Summary after changes
+                    function updateCartSummary() {
+                        $.get('@Url.Action("GetCartSummary", "Product")', function (res) {
+                            $("#cartSummary").html(res);
+                        });
+                    }
+
+
+                    $('#checkoutForm').submit(function (e) {
+                        e.preventDefault();
+
+                        // Collect data from form
+                        const addressId = $('#addressId').val();
+                        const paymentMethod = $('#paymentMethod').val();
+                        const orderMemo = $('#orderMemo').val();
+                        const couponDisValue = parseFloat($('#disVal').text());
+                        const code = $('#couponCode').val();
+
+                        // Create the order DTO
+                        const orderDto = {
+                            AddressId: addressId,
+                            OrderMemo: orderMemo,
+                            CouponDisValue: couponDisValue,
+                            couponCode: code,
+                            PaymentMethod: paymentMethod ? parseInt(paymentMethod) : null,
+                            DeliveryFee: deliveryFee // send to server
+                        };
+
+                        console.log(orderDto);
+
+                        // Perform AJAX request to send order data to server
+                        $.ajax({
+                            url: '@Url.Action("CheckOut", "Order")', // Make sure the route and controller are correct
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(orderDto), // Send the data as JSON
+                            success: function (response) {
+                                if (response.success) {
+                                    // Handle success (e.g., show success message or redirect)
+                                    Swal.fire('تم', response.message || 'تم إرسال الطلب بنجاح', 'success');
+                                    $('#checkoutModal').modal('hide'); // Close the modal
+                                } else {
+                                    // Handle failure (e.g., show error message)
+                                    Swal.fire('خطأ', response.message || 'حدث خطأ في معالجة الطلب', 'error');
+                                }
+                            },
+                            error: function () {
+                                Swal.fire('خطأ', 'فشل الاتصال بالخادم', 'error');
+                            }
+                        });
+                    });
+                $('#addNewAddressBtn').on('click', function () {
+                    $.get('/Address/GetAddressModalPartial', function (html) {
+                        $('#addressModalContainer').html(html);
+                        $('#addressModal').modal('show');
+                        // No need for setTimeout - the modal handles initialization in the partial view
+                    });
+                });
+        });
+    </script>
+}

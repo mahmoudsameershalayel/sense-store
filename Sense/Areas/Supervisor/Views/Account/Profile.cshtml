@@ -1,0 +1,253 @@
+﻿@using Sense.Application.DTOs.AuthDTOs
+@model UserDto
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <!-- Edit Profile -->
+        <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+            <i class="ki-duotone ki-pencil fs-2 me-1"></i> تعديل الملف الشخصي
+        </button>
+
+        <!-- Title -->
+        <h2 class="fw-bold fs-2 text-center flex-grow-1 mx-4">ملفي الشخصي</h2>
+
+        <!-- Upload Profile Image -->
+        <button type="button" class="btn btn-light-success" data-bs-toggle="modal" data-bs-target="#uploadProfileImageModal">
+            <i class="ki-duotone ki-upload fs-2 me-1"></i> رفع صورة الملف الشخصي
+        </button>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="text-center mb-5">
+                @if (!string.IsNullOrEmpty(Model.ImageURL))
+                {
+                    <img src="@Model.ImageURL" class="symbol symbol-75px symbol-circle" style="width:15%;height:15%"/>
+                }
+                else
+                {
+                    <img src="~/assets/img/avatar-default.svg" class="symbol symbol-75px symbol-circle" style="width:15%;height:15%" />
+                }
+            </div>
+
+            <div class="row g-6">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">الاسم الكامل</label>
+                    <div class="form-control form-control-solid">@Model.FullName</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">اسم المستخدم</label>
+                    <div class="form-control form-control-solid">@Model.Username</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">البريد الإلكتروني</label>
+                    <div class="form-control form-control-solid">@Model.Email</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">رقم الهاتف</label>
+                    <div class="form-control form-control-solid">@Model.PhoneNumber</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">هاتف إضافي 1</label>
+                    <div class="form-control form-control-solid">@Model.Phone1</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">هاتف إضافي 2</label>
+                    <div class="form-control form-control-solid">@Model.Phone2</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">صلاحياتي</label>
+                    <div class="form-control form-control-solid">@Model.UserType</div>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold">حالة الحساب</label>
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge badge-light-success fs-6">نشط</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-light-danger fs-6">معطل</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">تعديل الملف الشخصي</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <div class="mb-3">
+                        <label for="fullName" class="form-label">الاسم الكامل</label>
+                        <input type="text" class="form-control" id="fullName" value="@Model.FullName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">اسم المستخدم</label>
+                        <input type="text" class="form-control" id="username" value="@Model.Username">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">البريد الإلكتروني</label>
+                        <input type="email" class="form-control" id="email" value="@Model.Email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phoneNumber" class="form-label">رقم الهاتف</label>
+                        <input type="text" class="form-control" id="phoneNumber" value="@Model.PhoneNumber">
+                    </div>
+                    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Upload Profile Image Modal -->
+<div class="modal fade" id="uploadProfileImageModal" tabindex="-1" aria-labelledby="uploadProfileImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">رفع صورة الملف الشخصي</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info m-3 text-right">
+                    <h5 class="alert-heading mb-2">
+                        <i class="fas fa-info-circle ml-2"></i>
+                        تعليمات رفع الصورة:
+                    </h5>
+                    <ul class="list-unstyled mb-0">
+                        <li>• يجب أن تكون الصورة بصيغة JPEG , PNG أو JPG </li>
+                        <li>• الحد الأقصى لحجم كل ملف: 5 ميجابايت (5000 كيلوبايت)</li>
+                    </ul>
+                </div>
+                <form id="uploadProfileImageForm" enctype="multipart/form-data">
+                    <input type="hidden" value="@Model.Id" id="userId">
+                    <div class="mb-3">
+                        <label for="image">صورة الملف الشخصي :</label>
+                        <input type="file" class="form-control" id="image">
+                    </div>
+                    <button type="submit" class="btn btn-primary">رفع الصورة</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts
+{
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="text/javascript">
+        // Handle the form submission
+        $('#editProfileForm').on('submit', function (e) {
+            e.preventDefault();  // Prevent the form from submitting normally
+
+            // Get the form data
+            var formData = {
+                fullName: $('#fullName').val(),
+                username: $('#username').val(),
+                email: $('#email').val(),
+                phoneNumber: $('#phoneNumber').val(),
+                phone1: "10",
+                phone2: "10"
+            };
+
+            // Send AJAX PUT request to update the profile
+            $.ajax({
+                url: "@Url.Action("UpdateProfile", "Account")",  // Replace with the actual controller action
+                type: 'PUT',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                success: function (response) {
+                    // Close the modal on success
+
+
+
+                    $('#userFullName').text(response.fullName);
+                    $('#userUsername').text(response.username);
+                    $('#userEmail').text(response.email);
+                    $('#userPhoneNumber').text(response.phoneNumber);
+
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تم تحديث الملف الشخصي بنجاح!',
+                        text: 'تم تحديث بياناتك بنجاح.',
+                        confirmButtonText: 'موافق',
+                        timer: 3000  // The alert will close after 3 seconds
+
+                    });
+                },
+                error: function (xhr, status, error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'حدث خطأ!',
+                        text: 'حدث خطأ أثناء تحديث الملف الشخصي. الرجاء المحاولة لاحقاً.',
+                        confirmButtonText: 'حسناً',
+                        timer: 3000  // The alert will close after 3 seconds
+                    });
+                }
+            });
+        });
+
+
+        // Handle form submission
+        $('#uploadProfileImageForm').on('submit', function (e) {
+            e.preventDefault();
+
+            var formData = new FormData();
+            formData.append('image', $('#image')[0].files[0]);
+            formData.append('userId', $('#userId').val());
+
+            $.ajax({
+                url: '@Url.Action("UploadProfileImage", "Account", new { area = "Supervisor" })",
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'تم رفع الصورة بنجاح!',
+                            text: 'تم رفع الصورة الشخصية بنجاح.',
+                            confirmButtonText: 'موافق',
+                            timer: 3000
+                        });
+                        $('#profileImage').attr('src', response.result); // Assuming base64 or URL is returned
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'حدث خطأ!',
+                            text: response.message || 'حدث خطأ أثناء رفع الصورة.',
+                            confirmButtonText: 'حسناً',
+                            timer: 3000
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'حدث خطأ!',
+                        text: 'حدث خطأ أثناء رفع الصورة. الرجاء المحاولة لاحقاً.',
+                        confirmButtonText: 'حسناً',
+                        timer: 3000
+                    });
+                }
+            });
+        });
+    </script>
+
+}

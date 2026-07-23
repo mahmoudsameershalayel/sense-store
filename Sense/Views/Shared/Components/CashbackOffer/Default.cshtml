@@ -1,0 +1,41 @@
+﻿@using Sense.Application.DTOs.OfferCashbackDTOs
+@model List<CashbackOfferDto>
+
+@if (Model != null && Model.Any())
+{
+    foreach (var offer in Model)
+    {
+        if (offer.IsActive == true)
+        {
+            <div class="text-center mb-2" style="color: #253F8E;background-color: #FFD700;padding:10px 0px">
+                <strong>عرض كاش باك:</strong>
+                @if (offer.CashbackType == "Percentage")
+                {
+                    <span>احصل على @offer.CashbackVal% كاش باك!</span>
+                }
+                else if (offer.CashbackType == "Fixed")
+                {
+                    <span>احصل على كاش باك بقيمة @offer.CashbackVal ريال!</span>
+                }
+                <span> ساري من @offer.StartDate إلى @offer.EndDate.</span>
+                <br />
+                <span style="font-size: 0.95em;">سيتم تطبيق العرض تلقائيًا على الفاتورة، وسيُضاف الكاش باك إلى محفظتك بعد إتمام الدفع.</span>
+            </div>
+        }
+    }
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const wrapper = document.getElementById("offerSlideWrapper");
+            const slides = wrapper.querySelectorAll(".offer-slide");
+            let currentIndex = 0;
+
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % slides.length;
+                wrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
+            }, 4000); // 4 seconds per slide
+        });
+    </script>
+}

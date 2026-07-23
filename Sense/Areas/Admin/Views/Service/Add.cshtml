@@ -1,0 +1,61 @@
+﻿@using Sense.Application.DTOs.ServiceDTOs
+@model ServiceForCreateUpdateDto
+
+
+<form asp-controller="Service" asp-action="Add" method="POST" class="form">
+    <div class="container-xxl">
+        <div class="card card-flush mb-10">
+            <div class="card-header">
+                <h3 class="card-title">املأ بيانات الخدمة</h3>
+            </div>
+            <div class="card-body pt-0">
+                <!-- Product Name and Price -->
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <label asp-for="TitleAr" class="form-label required">العنوان</label>
+                        <input type="text" asp-for="TitleAr" class="form-control" />
+                        <span asp-validation-for="TitleAr" class="text-danger fs-7"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="SubTitleAr" class="form-label required">العنوان الفرعي</label>
+                        <input type="text" asp-for="SubTitleAr" class="form-control" />
+                        <span asp-validation-for="SubTitleAr" class="text-danger fs-7"></span>
+                    </div>
+                </div>
+
+                <!-- Quantity and Category -->
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <label asp-for="SortId" class="form-label required">ترتيب الخدمة</label>
+                        <input type="number" asp-for="SortId" class="form-control" />
+                        <span asp-validation-for="SortId" class="text-danger fs-7"></span>
+                    </div>
+
+                </div>
+                <!-- Summary -->
+                <div class="mb-5">
+                    <label asp-for="SummaryAr" class="form-label">ملخص الخدمة</label>
+                    <textarea asp-for="SummaryAr" rows="4" class="form-control"></textarea>
+                </div>
+                <!-- Description -->
+                <div class="mb-5">
+                    <label asp-for="DetailsAr" class="form-label">وصف الخدمة</label>
+                    <textarea asp-for="DetailsAr" rows="4" class="form-control"></textarea>
+                </div>
+
+               
+
+                <!-- Submit & Reset Buttons -->
+                <div class="d-flex gap-3 mt-6">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ki-duotone ki-check fs-2"></i> إنشاء
+                    </button>
+                    <button type="reset" class="btn btn-light-warning">
+                        <i class="ki-duotone ki-refresh fs-2"></i> إعادة الضبط
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+

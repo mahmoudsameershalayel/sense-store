@@ -1,0 +1,60 @@
+# Build and test output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+[Aa]rtifacts/
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Published and deployment output
+[Pp]ublish/
+deploy/
+*.zip
+
+# Visual Studio, Rider, and VS Code
+.vs/
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+_ReSharper*/
+
+# .NET and NuGet local files
+packages/
+.nuget/
+*.nupkg
+*.snupkg
+*.pdb
+*.cache
+*.log
+*.tmp
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.Production.json
+**/appsettings.*.local.json
+**/secrets.json
+
+# Private provider documents and other runtime data
+**/App_Data/
+
+# Local Codex and assistant working files
+.codex-build/
+.agents/
+.claude/
+.codex/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini

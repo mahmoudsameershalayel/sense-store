@@ -1,0 +1,28 @@
+﻿@{
+    var OrderStatuses = ViewBag.items;
+}
+<form asp-controller="Order" asp-action="ChangeStatus" method="POST">
+    <div class="row mt-5 container">
+        <div class="card mb-4">
+            <h5 class="card-header">تعديل حالة الطلب</h5>
+            <div class="card-body">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="select2Basic" class="form-label">حالة الطلب</label>
+                        <select id="select2Basic" class="select2 form-select form-select-lg" data-allow-clear="true" >
+                        
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-lg-1 col-md-1 col-sm-1 col-xl-1 col-xxl-1 mb-3">
+                        <button type="submit" class="btn btn-primary btn-create">تعديل</button>
+                    </div>
+                    <div class="col-lg-1 col-md-1 col-sm-1 col-xl-1 col-xxl-1 mb-3">
+                        <input type="reset" class="btn btn-warning" value="إعادة الضبط">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

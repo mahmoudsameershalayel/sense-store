@@ -1,0 +1,10 @@
+﻿@using Sense.Domain.DBEntities
+@model List<ServiceTbl>
+@foreach (var item in Model)
+{
+    <li class="nav-item">
+        <a asp-controller="service" asp-action="getServiceDetails" asp-route-itemid="@item.Id" class="nav-link">
+            @item.TitleAr
+        </a>
+    </li>
+}

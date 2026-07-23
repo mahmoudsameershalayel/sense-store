@@ -1,0 +1,164 @@
+@using Sense.Domain.Enums
+@using Sense.Domain.DBEntities
+@model List<ProductTbl>
+@{
+    var message = TempData["Message"];
+    var errorMessage = TempData["ErrorMessage"];
+}
+
+<div class="card mb-xl-8">
+    <div class="card-header border-0 pt-5">
+        <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold fs-3 mb-1">منتجاتي</span>
+            <span class="text-muted mt-1 fw-semibold fs-7">جميع المنتجات التي قمت بإضافتها وحالتها في المراجعة.</span>
+        </h3>
+        <div class="card-toolbar" title="اضغط لإضافة منتج">
+            <a asp-area="Provider" asp-controller="Product" asp-action="Add" class="btn btn-sm btn-light btn-active-primary">
+                <i class="ki-duotone ki-plus fs-2"></i>منتج جديد
+            </a>
+        </div>
+    </div>
+    <div class="card-body pt-3">
+        <div class="alert alert-info d-flex align-items-center gap-2">
+            <i class="fas fa-info-circle"></i>
+            <span>المنتجات الجديدة تُحفظ كمسودة، ثم تُرسل للمراجعة. لا تظهر في المتجر إلا بعد موافقة إدارة المنصة ونشرها.</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+                <thead>
+                    <tr class="fw-bold text-muted bg-light">
+                        <th class="ps-4 min-w-200px rounded-start">المنتج</th>
+                        <th>الفئة</th>
+                        <th>السعر</th>
+                        <th>المخزون</th>
+                        <th>تاريخ الإضافة</th>
+                        <th>الحالة</th>
+                        <th class="text-end rounded-end">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var canEdit = item.Status == ProductStatus.Draft || item.Status == ProductStatus.Rejected;
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="symbol symbol-50px m-5">
+                                        <img src="@item.ImageURL" alt="" />
+                                    </div>
+                                    <div class="d-flex justify-content-start flex-column">
+                                        <span class="text-gray-900 fw-bold fs-6">@item.Name</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@item.Category?.Name</td>
+                            <td>@item.Price</td>
+                            <td>@item.QuantityAvaliable</td>
+                            <td>@item.CreatedAt?.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                @switch (item.Status)
+                                {
+                                    case ProductStatus.Draft:
+                                        <span class="badge badge-light-secondary">مسودة</span>
+                                        break;
+                                    case ProductStatus.PendingReview:
+                                        <span class="badge badge-light-warning">بإنتظار المراجعة</span>
+                                        break;
+                                    case ProductStatus.Approved:
+                                        <span class="badge badge-light-info">مقبول</span>
+                                        break;
+                                    case ProductStatus.Rejected:
+                                        <span class="badge badge-light-danger">مرفوض</span>
+                                        break;
+                                    case ProductStatus.Published:
+                                        <span class="badge badge-light-success">منشور</span>
+                                        break;
+                                    case ProductStatus.Unpublished:
+                                        <span class="badge badge-light-dark">غير منشور</span>
+                                        break;
+                                    case ProductStatus.Archived:
+                                        <span class="badge badge-dark">مؤرشف</span>
+                                        break;
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (canEdit)
+                                {
+                                    <button data-id="@item.Id" class="btn-submit-review btn btn-sm btn-light-success me-1" title="إرسال للمراجعة">
+                                        <i class="fas fa-paper-plane"></i> إرسال للمراجعة
+                                    </button>
+                                    <a asp-area="Provider" asp-controller="Product" asp-action="Edit" asp-route-id="@item.Id"
+                                       class="btn btn-icon btn-sm btn-light-warning me-1" title="تعديل المنتج">
+                                        <i class="ki-duotone ki-pencil fs-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                    </a>
+                                    <a asp-area="Provider" asp-controller="Product" asp-action="UploadImage" asp-route-id="@item.Id"
+                                       class="btn btn-icon btn-sm btn-light-info" title="ارفع صورة للمنتج">
+                                        <i class="ki-duotone ki-switch fs-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            toastr.options = {
+                "closeButton": true,
+                "progressBar": true,
+                "positionClass": "toast-bottom-left",
+                "timeOut": "2500"
+            };
+
+            @if (message != null)
+            {
+                <text>toastr.success('@message');</text>
+            }
+            @if (errorMessage != null)
+            {
+                <text>toastr.error('@errorMessage');</text>
+            }
+
+            $('.btn-submit-review').on('click', function (e) {
+                e.preventDefault();
+                const id = $(this).data('id');
+
+                Swal.fire({
+                    title: 'إرسال المنتج للمراجعة؟',
+                    text: 'لن تتمكن من تعديل المنتج أثناء المراجعة.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'نعم، أرسل',
+                    cancelButtonText: 'إلغاء'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.post("@Url.Action("Submit", "Product", new { area = "Provider" })", { id: id })
+                            .done(function (res) {
+                                if (res.success) {
+                                    toastr.success(res.message);
+                                    setTimeout(() => window.location.reload(), 1200);
+                                } else {
+                                    Swal.fire('خطأ', res.message || 'تعذر إرسال المنتج للمراجعة', 'error');
+                                }
+                            })
+                            .fail(function () {
+                                Swal.fire('خطأ', 'حدث خطأ أثناء إرسال المنتج', 'error');
+                            });
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,43 @@
+﻿@using Sense.Application.DTOs.ModelDTOs
+@model ModelForCreateUpdateDto
+@{
+    var brands = ViewBag.Brands;
+}
+<form asp-controller="Model" asp-action="Add" method="POST">
+    <div class="row mt-5 container">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">املأ بيانات موديل السيارة</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <div class="form-group">
+                        <label for="brandId" class="form-label required">ماركة السيارة :</label>
+                        <select id="brandId" name="brandId" class="form-select form-select-lg" data-allow-clear="true" asp-for="BrandId">
+                            <option disabled selected hidden>-- اختر الماركة --</option>
+                            @foreach (var brand in brands)
+                            {
+                                <option value="@brand.Id">@brand.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <div class="form-group">
+                        <label for="name">اسم الموديل:</label>
+                        <input type="text" class="form-control" id="name" asp-for="Name">
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-lg-1 col-md-2 col-sm-4  mb-4">
+                        <button type="submit" class="btn btn-primary btn-create">إنشاء</button>
+                    </div>
+                    <div class="col-lg-1 col-md-2 col-sm-4  mb-4">
+                        <input type="reset" class="btn btn-warning" value="إعادة الضبط">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

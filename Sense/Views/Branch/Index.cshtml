@@ -1,0 +1,133 @@
+﻿@using Sense.Application.DTOs.BranchDTOs
+@model IEnumerable<BranchDto>
+@section Styles
+{
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style type="text/css">
+        .contact-banner {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background: url('@Url.Content("~/assets/img/cashback.jpg")') no-repeat center center/cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+            .contact-banner::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1;
+            }
+
+        .contact-banner-text {
+            position: relative;
+            z-index: 2;
+        }
+
+            .contact-banner-text h1 {
+                font-size: 3rem;
+                color: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .contact-banner-text p {
+                font-size: 1.25rem;
+            }
+
+        #branchesMap {
+            width: 100%;
+            height: 500px;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+        }
+
+        .branch-card {
+            padding: 1rem;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+
+            .branch-card h5 {
+                color: #0d6efd;
+            }
+
+            .branch-card p {
+                margin: 0.25rem 0;
+            }
+    </style>
+}
+<div class="contact-banner">
+    <div class="contact-banner-text">
+        <h1>
+            فروعنا
+        </h1>
+
+    </div>
+</div>
+<section class="branches-section py-5 bg-light" id="branches">
+    <div class="container py-5" id="branches">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold">فروعنا</h2>
+            <p class="text-muted">استعرض جميع الفروع وتعرف على أماكنها بسهولة.</p>
+        </div>
+
+        <div id="branchesMap"></div>
+
+        <div class="row">
+            @foreach (var branch in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="branch-card">
+                        <h5>@branch.BranchName</h5>
+                        <p><strong>العنوان:</strong> @branch.BranchAddress</p>
+                        <p><strong>ساعات العمل:</strong> @branch.OpenAtTime - @branch.CloseAtTime</p>
+                        <p><strong>رقم الهاتف:</strong> @branch.PhoneNumber</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+@section Scripts
+{
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            // Initialize map
+            var map = L.map('branchesMap').setView([23.8859, 45.0792], 5); // Saudi Arabia center
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Parse branch data
+            var branches = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+
+            branches.forEach(function (branch) {
+                if (branch.Latitude && branch.Longitude) {
+                    // Parse coordinates as floats
+                    var lat = parseFloat(branch.Latitude);
+                    var lon = parseFloat(branch.Longitude);
+
+                    // Add marker
+                    var marker = L.marker([lat, lon]).addTo(map);
+                    marker.bindPopup(`<b>${branch.BranchName}</b><br>${branch.BranchAddress}`);
+                }
+            });
+        });
+    </script>
+}

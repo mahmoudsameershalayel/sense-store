@@ -1,0 +1,132 @@
+﻿@using Sense.Application.DTOs.FreeMaintenanceOfferDTOs
+@using Sense.Application.DTOs.FreeMaintenanceEligibilityDTOs
+@model FreeMaintenanceOfferDto
+@{
+    var isActivated = ViewBag.IsActivated;
+    var required = Model.RequiredAppointments;
+    var completed = ViewBag.CompletedAppointments;
+    var eligibilityData = ViewBag.EligibilityData as FreeMaintenanceEligibilityDto;
+    
+    int remainingDays = 0;
+    bool hasExpired = false;
+    
+    if (isActivated && eligibilityData != null && !string.IsNullOrEmpty(eligibilityData.ExpiresAtDate))
+    {
+        if (DateTime.TryParse(eligibilityData.ExpiresAtDate, out DateTime expiresAt))
+        {
+            var today = DateTime.Today;
+            remainingDays = (int)(expiresAt.Date - today).TotalDays;
+            hasExpired = remainingDays <= 0;
+            if (remainingDays < 0) remainingDays = 0;
+        }
+    }
+}
+
+<div class="col-md-6 col-lg-4">
+    <div class="card border-0 shadow-lg position-relative animate__animated animate__fadeInUp">
+
+        @if (isActivated)
+        {
+            <div class="position-absolute top-0 end-0 m-2">
+                <span class="badge bg-success rounded-circle p-3">
+                    <i class="bi bi-check2-circle fs-4 text-white"></i>
+                </span>
+            </div>
+        }
+
+        <div class="card-body text-center">
+            <h4 class="card-title fw-bold">@Model.Title</h4>
+            <p class="text-muted">@Model.Description</p>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-center gap-2">
+                    @for (int i = 0; i < required; i++)
+                    {
+                        if (i < completed)
+                        {
+                            <i class="bi bi-check-circle-fill step-icon completed"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-circle step-icon text-secondary"></i>
+                        }
+                    }
+                </div>
+
+                <!-- شريط التقدم -->
+                <div class="progress mt-3">
+                    <div class="progress-bar bg-success" role="progressbar"
+                         style="width: @(100 * completed / required)%"
+                         aria-valuenow="@completed"
+                         aria-valuemin="0"
+                         aria-valuemax="@required">
+                    </div>
+                </div>
+
+                <small class="text-muted d-block mt-1">تم إكمال @completed من @required موعد</small>
+            </div>
+
+            <div class="mb-2">
+                @if (!isActivated)
+                {
+                    <span>مدة الصيانة المجانية: <strong>@Model.FreePeriodInDays</strong> أيام</span>
+                }
+                else
+                {
+                    if (hasExpired)
+                    {
+                        <span class="text-danger fw-bold">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            انتهت صلاحية العرض
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-success fw-bold">
+                            <i class="bi bi-clock me-1"></i>
+                            متبقي: <strong>@remainingDays</strong> يوم
+                        </span>
+                    }
+                    
+                    @if (eligibilityData != null && !string.IsNullOrEmpty(eligibilityData.ExpiresAtDate))
+                    {
+                        <small class="text-muted d-block mt-1">
+                            ينتهي في: @eligibilityData.ExpiresAtDate
+                        </small>
+                    }
+                }
+            </div>
+
+            @if (!isActivated)
+            {
+                if (completed >= required)
+                {
+                    <button class="btn btn-success btn-activate-offer" data-offer-id="@Model.Id">
+                        <i class="bi bi-lightning-fill me-1"></i> تفعيل العرض
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-outline-secondary" disabled>
+                        <i class="bi bi-lock me-1"></i> أكمل @((required - completed)) موعد لتفعيل العرض
+                    </button>
+                }
+            }
+            else
+            {
+                @if (hasExpired)
+                {
+                    <span class="text-danger fw-semibold">
+                        <i class="bi bi-x-circle me-1"></i> انتهت صلاحية العرض
+                    </span>
+                }
+                else
+                {
+                    <span class="text-success fw-semibold animate__animated animate__pulse">
+                        <i class="bi bi-check2-circle me-1"></i> العرض مفعل
+                    </span>
+                }
+            }
+        </div>
+    </div>
+</div>

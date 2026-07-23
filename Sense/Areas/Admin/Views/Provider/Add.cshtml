@@ -1,0 +1,52 @@
+@using Sense.Domain.Enums
+@using Sense.Application.DTOs.AuthDTOs
+@using System.ComponentModel.DataAnnotations
+@model UserForRegisterDto
+
+
+<form asp-controller="Provider" asp-action="Add" method="POST" class="form">
+    <div class="container-xxl">
+        <div class="card card-flush mb-10">
+            <div class="card-header">
+                <h3 class="card-title">املأ بيانات المزود</h3>
+            </div>
+            <div class="card-body pt-0">
+
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <label for="providerName" class="form-label required">اسم المزود</label>
+                        <input type="text" id="providerName" name="providerName" class="form-control" required />
+                    </div>
+                </div>
+
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label required">البريد الإلكتروني</label>
+                        <input type="email" asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger fs-7"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="PhoneNumber" class="form-label">رقم الهاتف</label>
+                        <input type="text" asp-for="PhoneNumber" class="form-control" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger fs-7"></span>
+                    </div>
+                </div>
+
+                <div class="text-muted fs-7 mb-4">
+                    <i class="ki-duotone ki-information-5 fs-4"></i>
+                    سيتم إرسال كلمة مرور مؤقتة إلى بريد المزود الإلكتروني تلقائياً، ويمكنه تغييرها بعد تسجيل الدخول.
+                </div>
+
+                <!-- Submit & Reset Buttons -->
+                <div class="d-flex gap-3 mt-6">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ki-duotone ki-check fs-2"></i> إنشاء
+                    </button>
+                    <button type="reset" class="btn btn-light-warning">
+                        <i class="ki-duotone ki-refresh fs-2"></i> إعادة الضبط
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,14 @@
+﻿@{
+    var profileImage = ViewBag.ProfileImage;
+}
+<div class="cursor-pointer symbol symbol-35px" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
+   @if(profileImage == null)
+    {
+        <img src="~/assets/img/avatar-default.svg" class="rounded-3" alt="user" />
+
+    }else
+    {
+        <img src="@profileImage" class="rounded-3" alt="user" />
+
+    }
+</div>

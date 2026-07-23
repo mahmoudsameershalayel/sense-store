@@ -1,0 +1,550 @@
+@using Sense.Application.DTOs.BannerDTOs
+@using Sense.Application.DTOs.ProductDTOs
+@using Sense.Application.DTOs.OfferCashbackDTOs
+@using Sense.Application.DTOs.FreeMaintenanceOfferDTOs
+@using Sense.Application.RequestFeatures
+@using Sense.Domain.DBEntities
+@model BannerDto
+@{
+    var categories = ViewBag.Categories;
+    var products = ViewBag.Products as PagedList<ProductTbl>;
+    var heroImageUrl = Model?.ImageURL;
+    var brands = ViewBag.Brands;
+    var cashbackOffers = ViewBag.CashbackOffers as List<CashbackOfferDto>;
+    var freeMaintenanceOffers = ViewBag.FreeMaintenanceOffers as List<FreeMaintenanceOfferDto>;
+
+    var heroTitle = !string.IsNullOrWhiteSpace(Model?.TitleAr) ? Model.TitleAr : "كل ما تحتاجه في مكان واحد";
+    var heroSummary = !string.IsNullOrWhiteSpace(Model?.SummaryAr) ? Model.SummaryAr : "تسوّق تشكيلة متنوعة من المنتجات المميزة بأسعار منافسة، مع تجربة طلب سهلة وخدمة تهتم بكل التفاصيل من الطلب حتى الاستلام.";
+
+    var searchTerm = ViewBag.SearchTerm as string;
+    var productCategoryId = ViewBag.ProductCategoryId;
+    var productBrandId = ViewBag.ProductBrandId;
+    var ProductModelId = ViewBag.ProductModelId;
+
+    var isFiltered = !string.IsNullOrWhiteSpace(searchTerm) || productCategoryId != null || productBrandId != null || ProductModelId != null;
+
+    var activeCashback = cashbackOffers?.Where(c => c.IsActive).ToList() ?? new List<CashbackOfferDto>();
+    // Legacy (maintenance-center era): free-maintenance offers are no longer shown on the storefront.
+    var activeMaintenance = new List<FreeMaintenanceOfferDto>();
+}
+@section Styles
+{
+    <style type="text/css">
+        .swiper-slide {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: auto;
+        }
+
+        .swiper-button-prev,
+        .swiper-button-next {
+            color: var(--sf-navy);
+        }
+
+            .swiper-button-prev::after,
+            .swiper-button-next::after {
+                font-size: 1.2rem;
+                font-weight: 700;
+            }
+    </style>
+}
+
+<!-- الواجهة الرئيسية -->
+<section class="sf-hero @(string.IsNullOrWhiteSpace(heroImageUrl) ? "sf-hero--plain" : "")" dir="rtl">
+    @if (!string.IsNullOrWhiteSpace(heroImageUrl))
+    {
+        <div class="sf-hero__media" style="background-image:url('@heroImageUrl');"></div>
+    }
+    <div class="container">
+        <div class="sf-hero__inner">
+            <h1 class="sf-hero__title">@heroTitle</h1>
+            @if (Model?.ShowText != false)
+            {
+                <p class="sf-hero__text">@heroSummary</p>
+            }
+            <div class="sf-hero__actions">
+                <a href="/Product/Index" class="sf-btn sf-btn--light">
+                    <i class="bi bi-bag"></i>
+                    تسوّق الآن
+                </a>
+                <a href="#categories" class="sf-btn sf-btn--outline" style="color:#fff;border-color:rgba(255,255,255,.5);">
+                    <i class="bi bi-grid"></i>
+                    تصفح الفئات
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- مزايا المتجر -->
+<section class="sf-trust" dir="rtl">
+    <div class="container">
+        <div class="sf-trust__grid">
+            <div class="sf-trust__item">
+                <div class="sf-trust__icon"><i class="bi bi-patch-check"></i></div>
+                <div>
+                    <p class="sf-trust__label">منتجات أصلية</p>
+                    <p class="sf-trust__hint">مختارة من مورّدين موثوقين</p>
+                </div>
+            </div>
+            <div class="sf-trust__item">
+                <div class="sf-trust__icon"><i class="bi bi-shield-lock"></i></div>
+                <div>
+                    <p class="sf-trust__label">دفع آمن</p>
+                    <p class="sf-trust__hint">معاملات محمية وموثوقة</p>
+                </div>
+            </div>
+            <div class="sf-trust__item">
+                <div class="sf-trust__icon"><i class="bi bi-truck"></i></div>
+                <div>
+                    <p class="sf-trust__label">توصيل سريع</p>
+                    <p class="sf-trust__hint">نوصل طلبك بسرعة وعناية</p>
+                </div>
+            </div>
+            <div class="sf-trust__item">
+                <div class="sf-trust__icon"><i class="bi bi-headset"></i></div>
+                <div>
+                    <p class="sf-trust__label">دعم متواصل</p>
+                    <p class="sf-trust__hint">نرافقك من الطلب حتى الاستلام</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@await Component.InvokeAsync("Categories")
+
+@await Component.InvokeAsync("Providers")
+
+<!-- قسم المنتجات -->
+<section class="sf-section sf-section--muted" dir="rtl">
+    <div class="container">
+
+        <div class="sf-section-head">
+            <div class="sf-section-head__titles">
+                <span class="sf-kicker">المتجر</span>
+                <h2 class="sf-title">@(isFiltered ? "نتائج البحث" : "تسوّق منتجاتنا")</h2>
+                <p class="sf-subtitle">
+                    @(isFiltered
+                        ? "المنتجات المطابقة لبحثك — يمكنك تعديل كلمات البحث أو تصفح جميع المنتجات."
+                        : "تشكيلة مختارة من أحدث المنتجات، تُحدَّث باستمرار.")
+                </p>
+            </div>
+            <a href="/Product/Index" class="sf-section-head__action">
+                عرض جميع المنتجات
+                <i class="bi bi-arrow-left"></i>
+            </a>
+        </div>
+
+        @{
+            var hasNextPage = products?.MetaData?.HasNext ?? false;
+            var nextPageNumber = (products?.MetaData?.CurrentPage ?? 1) + 1;
+            var currentPageSize = products?.MetaData?.PageSize ?? 10;
+        }
+        <div class="row g-3 mt-4"
+             id="productsContainer"
+             data-next-page="@nextPageNumber"
+             data-page-size="@currentPageSize"
+             data-has-next="@hasNextPage.ToString().ToLowerInvariant()"
+             data-search-term="@ViewBag.SearchTerm"
+             data-category-id="@ViewBag.ProductCategoryId"
+             data-brand-id="@ViewBag.ProductBrandId"
+             data-model-id="@ViewBag.ProductModelId">
+            @if (products is { Count: > 0 })
+            {
+                @await Html.PartialAsync("~/Views/Shared/PartialViews/_ProductCards.cshtml", products.AsEnumerable())
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="sf-empty">
+                        <div class="sf-empty__icon"><i class="bi bi-search"></i></div>
+                        <h5 class="sf-empty__title">لا توجد منتجات مطابقة</h5>
+                        <p class="sf-empty__text">جرّب كلمات بحث مختلفة، أو تصفح جميع المنتجات المتاحة في المتجر.</p>
+                        <a href="/Home/Index" class="sf-btn sf-btn--primary">تصفح جميع المنتجات</a>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div id="productsScrollSentinel" style="height:1px;display:@(hasNextPage ? "block" : "none");"></div>
+        <div id="productsLoader" class="text-center py-4" style="display:none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">جاري التحميل...</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- العروض الحالية -->
+@if (activeCashback.Any() || activeMaintenance.Any())
+{
+    <section class="sf-section" dir="rtl">
+        <div class="container">
+            <div class="sf-section-head">
+                <div class="sf-section-head__titles">
+                    <span class="sf-kicker">وفّر أكثر</span>
+                    <h2 class="sf-title">العروض الحالية</h2>
+                    <p class="sf-subtitle">استفد من أفضل العروض والخصومات المتاحة لدينا في المتجر.</p>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                @foreach (var offer in activeCashback)
+                {
+                    <div class="col-lg-6 col-md-12">
+                        <div class="sf-offer">
+                            <div class="sf-offer__head">
+                                <div class="sf-offer__icon"><i class="fas fa-wallet"></i></div>
+                                <div>
+                                    <span class="sf-offer__tag">كاش باك</span>
+                                    <h3 class="sf-offer__title">استرجع جزءاً من قيمة مشترياتك</h3>
+                                </div>
+                            </div>
+
+                            <p class="sf-offer__desc">
+                                @if (offer.ReturnType == "Points")
+                                {
+                                    <span>اجمع نقاطاً مقابل مشترياتك واستخدمها لاحقاً للحصول على خصومات على طلباتك القادمة.</span>
+                                }
+                                else if (offer.ReturnType == "CashOnWallet")
+                                {
+                                    <span>يعود إليك مبلغ نقدي مباشرة إلى محفظتك بعد إتمام الدفع.</span>
+                                }
+                            </p>
+
+                            <div class="sf-offer__value">
+                                @if (offer.CashbackType == "Percentage")
+                                {
+                                    <span class="sf-offer__number">@offer.CashbackVal%</span>
+                                    <span class="sf-offer__unit">من قيمة الفاتورة تعود إليك</span>
+                                }
+                                else
+                                {
+                                    <span class="sf-offer__number">@offer.CashbackVal ريال</span>
+                                    <span class="sf-offer__unit">مبلغ ثابت يعود إليك</span>
+                                }
+                            </div>
+
+                            <div class="sf-offer__meta">
+                                <div class="sf-offer__meta-row">
+                                    <span class="sf-offer__meta-label">نوع الاسترجاع</span>
+                                    <span class="sf-offer__meta-value">
+                                        @if (offer.ReturnType == "Points")
+                                        {
+                                            <span><i class="fas fa-star text-warning me-1"></i>نقاط الولاء</span>
+                                        }
+                                        else if (offer.ReturnType == "CashOnWallet")
+                                        {
+                                            <span><i class="fas fa-wallet me-1" style="color:var(--sf-success);"></i>نقد في المحفظة</span>
+                                        }
+                                    </span>
+                                </div>
+                                <div class="sf-offer__meta-row">
+                                    <span class="sf-offer__meta-label">يطبق على</span>
+                                    <span class="sf-offer__chips">
+                                        @if (offer.IsApplyOnStore)
+                                        {
+                                            <span class="sf-chip"><i class="fas fa-shopping-cart"></i>المتجر</span>
+                                        }
+                                        @if (offer.IsApplyOnLaborCost)
+                                        {
+                                            <span class="sf-chip"><i class="fas fa-tools"></i>تكلفة العمل</span>
+                                        }
+                                        @if (offer.IsApplyOnSparePart)
+                                        {
+                                            <span class="sf-chip"><i class="fas fa-cog"></i>قطع الغيار</span>
+                                        }
+                                    </span>
+                                </div>
+                                <div class="sf-offer__meta-row">
+                                    <span class="sf-offer__meta-label">مدة العرض</span>
+                                    <span class="sf-offer__meta-value">من @offer.StartDate إلى @offer.EndDate</span>
+                                </div>
+                            </div>
+
+                            <div class="sf-offer__cta">
+                                <a href="/Product/Index" class="sf-btn sf-btn--primary w-100">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    استفد من العرض في المتجر
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @foreach (var offer in activeMaintenance)
+                {
+                    <div class="col-lg-6 col-md-12">
+                        <div class="sf-offer">
+                            <div class="sf-offer__head">
+                                <div class="sf-offer__icon"><i class="fas fa-tools"></i></div>
+                                <div>
+                                    <span class="sf-offer__tag">صيانة مجانية</span>
+                                    <h3 class="sf-offer__title">@offer.Title</h3>
+                                </div>
+                            </div>
+
+                            <p class="sf-offer__desc">
+                                @offer.Description
+                            </p>
+
+                            <div class="sf-offer__value">
+                                <span class="sf-offer__number">@offer.FreePeriodInDays يوم</span>
+                                <span class="sf-offer__unit">فترة صيانة مجانية</span>
+                            </div>
+
+                            <div class="sf-offer__meta">
+                                <div class="sf-offer__meta-row">
+                                    <span class="sf-offer__meta-label">المتطلبات</span>
+                                    <span class="sf-offer__meta-value">إكمال @offer.RequiredAppointments مواعيد صيانة</span>
+                                </div>
+                                <div class="sf-offer__meta-row">
+                                    <span class="sf-offer__meta-label">ماذا يشمل</span>
+                                    <span class="sf-offer__chips">
+                                        <span class="sf-chip"><i class="fas fa-wrench"></i>صيانة دورية</span>
+                                        <span class="sf-chip"><i class="fas fa-search"></i>فحص شامل</span>
+                                        <span class="sf-chip"><i class="fas fa-clipboard-check"></i>تقارير</span>
+                                    </span>
+                                </div>
+                                <div class="sf-offer__meta-row">
+                                    <span class="sf-offer__meta-label">مدة السريان</span>
+                                    <span class="sf-offer__meta-value">@offer.FreePeriodInDays يوم من تاريخ التفعيل</span>
+                                </div>
+                            </div>
+
+                            <div class="sf-offer__cta">
+                                <a href="/Account/Index" class="sf-btn sf-btn--outline w-100">
+                                    <i class="fas fa-calendar-plus"></i>
+                                    احجز موعدك الآن
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- لماذا تتسوق معنا -->
+<section class="sf-section sf-section--tight sf-section--muted" dir="rtl">
+    <div class="container">
+        <div class="sf-panel p-4 p-lg-5">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                    <span class="sf-kicker">لماذا نحن</span>
+                    <h2 class="sf-title mb-2">تجربة تسوق تهتم بالتفاصيل</h2>
+                    <p class="sf-subtitle mb-0">
+                        منتجات مختارة بعناية، أسعار واضحة، دفع آمن، وتوصيل سريع حتى باب منزلك —
+                        وفريق دعم جاهز لمساعدتك في أي وقت.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-start text-center">
+                    <a href="/Product/Index" class="sf-btn sf-btn--primary">
+                        <i class="bi bi-bag"></i>
+                        ابدأ التسوق
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+
+    <!-- Core Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
+
+    <script>
+        /*********************************
+         * 0?? HERO GOLD GLOW FOLLOWS POINTER
+         *********************************/
+        (function () {
+            var hero = document.querySelector('.sf-hero');
+            if (!hero) return;
+            if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+            hero.addEventListener('pointermove', function (e) {
+                var rect = hero.getBoundingClientRect();
+                hero.style.setProperty('--sf-glow-x', (e.clientX - rect.left) + 'px');
+                hero.style.setProperty('--sf-glow-y', (e.clientY - rect.top) + 'px');
+                hero.classList.add('sf-hero--glow-follow');
+            });
+
+            hero.addEventListener('pointerleave', function () {
+                hero.classList.remove('sf-hero--glow-follow');
+            });
+        })();
+
+        /*********************************
+         * 1?? INFINITE SCROLL PRODUCTS
+         *********************************/
+        (function () {
+            var container = document.getElementById('productsContainer');
+            var loader = document.getElementById('productsLoader');
+            var sentinel = document.getElementById('productsScrollSentinel');
+            if (!container || !loader || !sentinel) return;
+
+            var nextPage = parseInt(container.dataset.nextPage, 10) || 2;
+            var pageSize = container.dataset.pageSize || 10;
+            var hasNext = container.dataset.hasNext === 'true';
+            var isLoading = false;
+
+            if (!hasNext) {
+                loader.style.display = 'none';
+                sentinel.style.display = 'none';
+                return;
+            }
+
+            function buildUrl() {
+                var params = new URLSearchParams();
+                params.set('pageNumber', nextPage);
+                params.set('pageSize', pageSize);
+                if (container.dataset.searchTerm) params.set('searchTerm', container.dataset.searchTerm);
+                if (container.dataset.categoryId) params.set('ProductCategoryId', container.dataset.categoryId);
+                if (container.dataset.brandId) params.set('ProductBrandId', container.dataset.brandId);
+                if (container.dataset.modelId) params.set('ProductModelId', container.dataset.modelId);
+                return '@Url.Action("LoadMoreProducts", "Home")?' + params.toString();
+            }
+
+            function loadMoreProducts() {
+                if (isLoading || !hasNext) return;
+                isLoading = true;
+                loader.style.display = 'block';
+
+                fetch(buildUrl())
+                    .then(function (response) {
+                        hasNext = (response.headers.get('X-Has-Next-Page') || '').toLowerCase() === 'true';
+                        return response.text();
+                    })
+                    .then(function (html) {
+                        container.insertAdjacentHTML('beforeend', html);
+                        if (window.SenseFavorites) {
+                            window.SenseFavorites.refresh();
+                        }
+                        nextPage++;
+                        isLoading = false;
+                        loader.style.display = 'none';
+                        sentinel.style.display = hasNext ? 'block' : 'none';
+                        if (!hasNext) {
+                            observer.disconnect();
+                        }
+                    })
+                    .catch(function () {
+                        isLoading = false;
+                        loader.style.display = 'none';
+                    });
+            }
+
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        loadMoreProducts();
+                    }
+                });
+            }, { rootMargin: '300px' });
+
+            observer.observe(sentinel);
+        })();
+
+        /*********************************
+         * 2?? CATEGORY SWIPER
+         *********************************/
+        new Swiper(".categorySwiper", {
+            slidesPerView: 5,
+            spaceBetween: 16,
+            freeMode: true,
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev"
+            },
+            breakpoints: {
+                0: { slidesPerView: 3 },
+                576: { slidesPerView: 4 },
+                992: { slidesPerView: 6 }
+            }
+        });
+
+        new Swiper(".providerSwiper", {
+            slidesPerView: 5,
+            spaceBetween: 16,
+            freeMode: true,
+            navigation: {
+                nextEl: ".providerSwiper .swiper-button-next",
+                prevEl: ".providerSwiper .swiper-button-prev"
+            },
+            breakpoints: {
+                0: { slidesPerView: 3 },
+                576: { slidesPerView: 4 },
+                992: { slidesPerView: 6 }
+            }
+        });
+
+
+        /*****************************************
+         * 3?? VEHICLE BRAND ? MODEL (AJAX)
+         *****************************************/
+        $('#vehicleBrand').on('change', function () {
+            const brandId = $(this).val();
+            if (!brandId) return;
+
+            $.get("@Url.Action("GetModelsByBrandId", "Model")/" + brandId)
+                .done(function (data) {
+                    const $model = $('#vehicleModel');
+                    $model.empty()
+                          .append('<option hidden disabled selected>-- اختر الموديل --</option>');
+
+                    data.forEach(item => {
+                        $model.append(`<option value="${item.id}">${item.name}</option>`);
+                    });
+                })
+                .fail(() => {
+                    Swal.fire("خطأ", "فشل تحميل الموديلات", "error");
+                });
+        });
+
+
+        /*********************************
+         * 4?? ADD TO CART (AJAX)
+         *********************************/
+        $(document).on('click', '.add-to-cart-btn', function (e) {
+            e.preventDefault();
+
+            if ($(this).is(':disabled')) {
+                Swal.fire("غير متوفر", "المنتج غير متاح حالياً", "warning");
+                return;
+            }
+
+            const productId = $(this).data('product-id');
+
+            $.post("@Url.Action("AddToCart", "Product")", { productId })
+                .done(response => {
+                    if (response.success) {
+                        Swal.fire("تمت الإضافة", "تمت إضافة المنتج إلى السلة", "success");
+                        updateCartItemCount();
+                        updateCartSummary();
+                    } else {
+                        Swal.fire("المنتج موجود", "المنتج موجود في السلة", "info");
+                    }
+                })
+                .fail(() => {
+                    Swal.fire("خطأ", "حدث خطأ أثناء الإضافة", "error");
+                });
+        });
+
+
+        /*********************************
+         * 5?? UPDATE CART SUMMARY
+         *********************************/
+        function updateCartSummary() {
+            $.get("@Url.Action("CartDetails", "Product")")
+                .done(html => $('#cartSummary').html(html));
+        }
+
+    </script>
+}

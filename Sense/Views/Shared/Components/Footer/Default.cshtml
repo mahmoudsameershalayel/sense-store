@@ -1,0 +1,432 @@
+﻿@using Sense.Application.DTOs.CenterSettingDTOs
+@using Sense.Application.DTOs.ServiceDTOs
+@model CenterSettingDto
+
+@{
+    var setting = Model ?? new CenterSettingDto();
+    var services = ViewBag.Services as List<ServiceDto> ?? new List<ServiceDto>();
+
+    var visibleServices = services
+        .Where(service => service != null && !string.IsNullOrWhiteSpace(service.TitleAr))
+        .Take(6)
+        .ToList();
+
+    var address = setting.Address ?? string.Empty;
+    var email = setting.Email ?? string.Empty;
+    var phoneNumber = setting.PhoneNumber ?? string.Empty;
+    var centerName = !string.IsNullOrWhiteSpace(setting.CenterName) ? setting.CenterName : "سينس";
+
+    var hasTwitter = !string.IsNullOrWhiteSpace(setting.TwitterUrl) && setting.TwitterUrl != "#";
+    var hasFacebook = !string.IsNullOrWhiteSpace(setting.FacebookUrl) && setting.FacebookUrl != "#";
+    var hasInstagram = !string.IsNullOrWhiteSpace(setting.InstagramUrl) && setting.InstagramUrl != "#";
+    var hasLinkedIn = !string.IsNullOrWhiteSpace(setting.LinkedInUrl) && setting.LinkedInUrl != "#";
+}
+
+<style>
+    #footer.sense-footer {
+        --footer-navy: #061C42;
+        --footer-gold: #C2932C;
+        --footer-mint: #38B6A6;
+        --footer-text: rgba(255, 255, 255, 0.82);
+        --footer-muted: rgba(255, 255, 255, 0.62);
+        direction: rtl;
+        background-color: var(--footer-navy);
+        color: #fff;
+        position: relative;
+        margin-top: 32px;
+    }
+
+        .sense-footer a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+    .sense-footer__inner {
+        position: relative;
+        z-index: 1;
+        padding: 38px 0 18px;
+    }
+
+    .sense-footer__brand {
+        max-width: 430px;
+    }
+
+        .sense-footer__brand h3 {
+            font-size: 1.55rem;
+            font-weight: 800;
+            margin: 0 0 8px;
+            color: #fff;
+        }
+
+        .sense-footer__brand p {
+            color: var(--footer-text);
+            line-height: 1.8;
+            margin: 0;
+            font-size: 0.94rem;
+        }
+
+    .sense-footer__heading {
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 800;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        position: relative;
+    }
+
+        .sense-footer__heading::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 34px;
+            height: 3px;
+            border-radius: 999px;
+            background: var(--footer-gold);
+        }
+
+    .sense-footer__links,
+    .sense-footer__contact {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 6px;
+    }
+
+        .sense-footer__links a,
+        .sense-footer__contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--footer-text);
+            min-height: 28px;
+            font-size: 0.94rem;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+            .sense-footer__links a:hover,
+            .sense-footer__contact a:hover {
+                color: #fff;
+            }
+
+        .sense-footer__links i,
+        .sense-footer__contact i {
+            color: var(--footer-gold);
+            font-size: 1rem;
+            flex: 0 0 auto;
+        }
+
+    .sense-footer__services {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .sense-footer__service-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 30px;
+        padding: 6px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 8px;
+        color: var(--footer-text);
+        background: rgba(255, 255, 255, 0.06);
+        font-size: 0.9rem;
+        transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    }
+
+        .sense-footer__service-link:hover {
+            border-color: rgba(194, 147, 44, 0.65);
+            background: rgba(194, 147, 44, 0.14);
+            color: #fff;
+        }
+
+    .sense-footer__empty {
+        color: var(--footer-muted);
+        margin: 0;
+        line-height: 1.7;
+        font-size: 0.92rem;
+    }
+
+    .sense-footer__socials {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+    }
+
+        .sense-footer__socials a {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+            font-size: 1.05rem;
+        }
+
+            .sense-footer__socials a:hover {
+                background: var(--footer-gold);
+                border-color: var(--footer-gold);
+            }
+
+    .sense-footer__bottom {
+        position: relative;
+        z-index: 1;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 12px 0;
+        color: var(--footer-muted);
+        font-size: 0.88rem;
+    }
+
+    .sense-footer__bottom-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .sense-footer__bottom strong {
+        color: #fff;
+    }
+
+    @@media (max-width: 767.98px) {
+        .sense-footer {
+            margin-top: 24px;
+        }
+
+        .sense-footer__inner {
+            padding: 28px 0 14px;
+        }
+
+        .sense-footer__brand h3 {
+            font-size: 1.35rem;
+        }
+
+        .sense-footer__bottom-content {
+            justify-content: center;
+            text-align: center;
+        }
+    }
+
+    .sense-footer__logo {
+        height: 48px;
+        width: auto;
+        display: block;
+        margin-bottom: 14px;
+        object-fit: contain;
+    }
+</style>
+
+<footer class="sense-footer" id="footer">
+    <div class="sense-footer__inner">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="sense-footer__brand">
+
+                        @if (!string.IsNullOrWhiteSpace(setting.LogoUrl))
+                        {
+                            <img src="@setting.LogoUrl"
+                                 alt="@centerName"
+                                 class="sense-footer__logo" />
+                        }
+
+                        <h3>@centerName</h3>
+
+                        <p>
+                            متجرك الموثوق لاكتشاف منتجات مختارة بعناية، مع تجربة تسوق سهلة،
+                            وطلب سريع، وخدمة تهتم بتفاصيلك من البداية حتى الاستلام.
+                        </p>
+
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <h4 class="sense-footer__heading">روابط سريعة</h4>
+                    <ul class="sense-footer__links">
+                        <li>
+                            <a asp-controller="Home" asp-action="Index">
+                                <i class="bx bx-home-alt"></i>
+                                <span>الرئيسية</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/#categories">
+                                <i class="bx bx-category"></i>
+                                <span>الأقسام</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/Product/Index">
+                                <i class="bx bx-store"></i>
+                                <span>المنتجات</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/branch">
+                                <i class="bx bx-map"></i>
+                                <span>الفروع</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="ProviderRegistration" asp-action="Index">
+                                <i class="bx bx-store-alt"></i>
+                                <span>انضم كمزوّد</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                @*
+                    Legacy (maintenance-center era): services column.
+                    Hidden since the project became a pure e-commerce marketplace.
+
+                <div class="col-lg-3 col-md-6">
+                    <h4 class="sense-footer__heading">منتجات وخدمات</h4>
+
+                    @if (visibleServices.Any())
+                    {
+                        <div class="sense-footer__services">
+                            @foreach (var service in visibleServices)
+                            {
+                                <a class="sense-footer__service-link"
+                                   asp-controller="Service"
+                                   asp-action="Details"
+                                   asp-route-id="@service.Id">
+                                    <i class="bx bx-check"></i>
+                                    <span>@service.TitleAr</span>
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="sense-footer__empty">لا توجد عناصر متاحة حالياً.</p>
+                    }
+                </div>
+                *@
+
+                <div class="col-lg-3 col-md-6">
+                    <h4 class="sense-footer__heading">تسوّق معنا</h4>
+                    <ul class="sense-footer__links">
+                        <li>
+                            <a asp-controller="Product" asp-action="Wishlist">
+                                <i class="bx bx-heart"></i>
+                                <span>المفضلة</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Product" asp-action="CartDetails">
+                                <i class="bx bx-cart"></i>
+                                <span>سلة التسوق</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Account" asp-action="Index">
+                                <i class="bx bx-package"></i>
+                                <span>طلباتي</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Account" asp-action="Index">
+                                <i class="bx bx-user"></i>
+                                <span>حسابي</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <h4 class="sense-footer__heading">تواصل معنا</h4>
+
+                    <ul class="sense-footer__contact">
+                        @if (!string.IsNullOrWhiteSpace(address))
+                        {
+                            <li class="sense-footer__contact-item">
+                                <i class="bx bx-location-plus"></i>
+                                <span>@address</span>
+                            </li>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(phoneNumber))
+                        {
+                            <li>
+                                <a class="sense-footer__contact-item" href="tel:@phoneNumber">
+                                    <i class="bx bx-phone-call"></i>
+                                    <span>@phoneNumber</span>
+                                </a>
+                            </li>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(email))
+                        {
+                            <li>
+                                <a class="sense-footer__contact-item" href="mailto:@email">
+                                    <i class="bx bx-envelope"></i>
+                                    <span>@email</span>
+                                </a>
+                            </li>
+                        }
+
+                        <li>
+                            <a class="sense-footer__contact-item" asp-controller="Home" asp-action="Contact">
+                                <i class="bx bx-message-square-detail"></i>
+                                <span>ارسل رسالة</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    @if (hasTwitter || hasFacebook || hasInstagram || hasLinkedIn)
+                    {
+                        <div class="sense-footer__socials" aria-label="وسائل التواصل الاجتماعي">
+                            @if (hasTwitter)
+                            {
+                                <a href="@setting.TwitterUrl" aria-label="Twitter">
+                                    <i class="bx bxl-twitter"></i>
+                                </a>
+                            }
+
+                            @if (hasFacebook)
+                            {
+                                <a href="@setting.FacebookUrl" aria-label="Facebook">
+                                    <i class="bx bxl-facebook"></i>
+                                </a>
+                            }
+
+                            @if (hasInstagram)
+                            {
+                                <a href="@setting.InstagramUrl" aria-label="Instagram">
+                                    <i class="bx bxl-instagram"></i>
+                                </a>
+                            }
+
+                            @if (hasLinkedIn)
+                            {
+                                <a href="@setting.LinkedInUrl" aria-label="LinkedIn">
+                                    <i class="bx bxl-linkedin"></i>
+                                </a>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sense-footer__bottom">
+        <div class="container">
+            <div class="sense-footer__bottom-content">
+                <span>© @DateTime.Now.Year <strong>@centerName</strong> - جميع الحقوق محفوظة</span>
+                <span>نوفر تجربة تسوق حديثة وسريعة، مع منتجات متنوعة وجودة موثوقة وخدمة تهتم بكل تفاصيل طلبك.</span>
+            </div>
+        </div>
+    </div>
+</footer>

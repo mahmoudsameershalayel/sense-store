@@ -1,0 +1,239 @@
+@using Sense.Application.DTOs.CenterSettingDTOs
+@{
+    var setting = ViewBag.Setting as CenterSettingDto;
+}
+
+@section Styles
+{
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.5.2/dist/sweetalert2.min.css" rel="stylesheet">
+
+    <style type="text/css">
+        .sf-contact-form {
+            padding: 28px;
+        }
+
+        .sf-contact-label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--sf-ink);
+            margin-bottom: 6px;
+        }
+
+        .sf-contact-input {
+            width: 100%;
+            border: 1px solid var(--sf-border);
+            border-radius: var(--sf-radius-sm);
+            padding: 11px 14px;
+            font-size: 0.95rem;
+            color: var(--sf-ink);
+            background-color: var(--sf-surface);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+            .sf-contact-input:focus {
+                outline: none;
+                border-color: var(--sf-navy-soft);
+                box-shadow: 0 0 0 3px rgba(37, 63, 142, 0.12);
+            }
+
+        textarea.sf-contact-input {
+            resize: vertical;
+            min-height: 160px;
+        }
+
+        .sf-contact-info {
+            padding: 28px;
+            height: 100%;
+        }
+
+        .sf-contact-info__item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+            .sf-contact-info__item + .sf-contact-info__item {
+                margin-top: 20px;
+            }
+
+        .sf-contact-info__icon {
+            flex-shrink: 0;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background-color: var(--sf-navy);
+            color: var(--sf-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+        }
+
+        .sf-contact-info__item h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--sf-ink);
+            margin: 0 0 2px;
+        }
+
+        .sf-contact-info__item p {
+            font-size: 0.9rem;
+            color: var(--sf-muted);
+            margin: 0;
+            line-height: 1.7;
+        }
+
+    </style>
+}
+
+<!-- ترويسة الصفحة -->
+<div class="sf-page-head" dir="rtl">
+    <div class="container">
+        <ul class="sf-breadcrumb">
+            <li><a href="/">الرئيسية</a></li>
+            <li>تواصل معنا</li>
+        </ul>
+        <h1>تواصل معنا</h1>
+        <p class="sf-page-head__desc">
+            يسعدنا تواصلك معنا — أرسل استفسارك أو ملاحظتك وسيتواصل معك فريق الدعم في أقرب وقت.
+        </p>
+    </div>
+</div>
+
+<!-- Contact Section -->
+<section id="contact" class="sf-section sf-section--muted" dir="rtl">
+    <div class="container">
+        <div class="row gy-4">
+
+            <div class="col-lg-12">
+                <div class="sf-panel sf-contact-form">
+                    <form id="contactForm" method="post">
+                        <div class="row gy-3">
+                            <div class="col-md-6">
+                                <label for="name-field" class="sf-contact-label">الإسم</label>
+                                <input type="text" name="name" id="name-field" class="sf-contact-input" required placeholder="أدخل اسمك هنا">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email-field" class="sf-contact-label">الإيميل</label>
+                                <input type="email" class="sf-contact-input" name="email" id="email-field" required placeholder="أدخل بريدك الإلكتروني">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="subject-field" class="sf-contact-label">الموضوع</label>
+                                <input type="text" class="sf-contact-input" name="subject" id="subject-field" required placeholder="أدخل موضوع الرسالة">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="message-field" class="sf-contact-label">الرسالة</label>
+                                <textarea class="sf-contact-input" name="message" rows="6" id="message-field" required placeholder="أدخل رسالتك هنا"></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button class="sf-btn sf-btn--primary w-100" type="submit">
+                                <i class="bi bi-send"></i>
+                                إرسال
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+@section Scripts
+{
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.5.2/dist/sweetalert2.min.js"></script>
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            // Handle form submission via AJAX
+            $("#contactForm").submit(function (event) {
+                event.preventDefault(); // Prevent the default form submission
+
+                // Validate the form fields using JS
+                let isValid = true;
+                let name = $("#name-field").val();
+                let email = $("#email-field").val();
+                let subject = $("#subject-field").val();
+                let message = $("#message-field").val();
+
+                // Basic validation for empty fields
+                if (name.trim() === "") {
+                    isValid = false;
+                    Swal.fire({
+                        title: 'الرجاء إدخال اسمك',
+                        icon: 'warning',
+                        confirmButtonText: 'موافق'
+                    });
+                } else if (email.trim() === "") {
+                    isValid = false;
+                    Swal.fire({
+                        title: 'الرجاء إدخال بريدك الإلكتروني',
+                        icon: 'warning',
+                        confirmButtonText: 'موافق'
+                    });
+                } else if (subject.trim() === "") {
+                    isValid = false;
+                    Swal.fire({
+                        title: 'الرجاء إدخال موضوع الرسالة',
+                        icon: 'warning',
+                        confirmButtonText: 'موافق'
+                    });
+                } else if (message.trim() === "") {
+                    isValid = false;
+                    Swal.fire({
+                        title: 'الرجاء إدخال رسالتك',
+                        icon: 'warning',
+                        confirmButtonText: 'موافق'
+                    });
+                }
+
+                // If form is valid, proceed with AJAX request
+                if (isValid) {
+                    var formData = {
+                        name: name,
+                        email: email,
+                        subject: subject,
+                        message: message,
+                    };
+
+                    $.ajax({
+                        url: '@Url.Action("Add", "ContactUs")', // Your controller's action to handle the form submission
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(formData),
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    title: 'تم الإرسال بنجاح',
+                                    text: 'شكراً لتواصلك معنا. سيتم الرد عليك قريباً.',
+                                    icon: 'success',
+                                    confirmButtonText: 'موافق'
+                                });
+                                // Optionally reset the form after success
+                                $("#contactForm")[0].reset();
+                            } else {
+                                Swal.fire({
+                                    title: 'حدث خطأ',
+                                    text: 'لم يتم إرسال الرسالة. الرجاء المحاولة مرة أخرى.',
+                                    icon: 'error',
+                                    confirmButtonText: 'موافق'
+                                });
+                            }
+                        },
+                        error: function () {
+                            Swal.fire({
+                                title: 'حدث خطأ في إرسال البيانات',
+                                text: 'رجاءً حاول مرة أخرى.',
+                                icon: 'error',
+                                confirmButtonText: 'موافق'
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

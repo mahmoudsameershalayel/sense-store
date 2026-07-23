@@ -1,0 +1,144 @@
+﻿@model Sense.Application.DTOs.SupervisorDTOs.SupervisorReportDto
+@{
+    ViewData["Title"] = "تقرير نشاط المشرف";
+
+    var keys = Model.ActivityLogStats?.Keys.ToList() ?? new List<string>();
+    var values = Model.ActivityLogStats?.Values.ToList() ?? new List<int>();
+}
+@section Styles 
+{
+    <style type="text/css">
+        .card-header {
+            color: var(--bs-gray-800);
+            background-color: var(--bs-light);
+        }
+    </style>
+}
+
+<div class="container-fluid mt-4" dir="rtl" style="font-family: 'Tajawal', sans-serif;">
+    <h2 class="mb-4 text-center text-primary fw-bold">تقرير نشاط المشرف</h2>
+
+    <!-- معلومات المشرف -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h4 class="mb-3">
+                <i class="bi bi-person-badge"></i>
+                @Model.SupervisorName
+                <small class="text-muted">(الفرع: @Model.BranchName)</small>
+            </h4>
+            <div class="row text-center">
+                <div class="col-md-6 mb-3">
+                    <div class="p-3 bg-light rounded-3 shadow-sm">
+                        <h5>إجمالي سجلات الصيانة</h5>
+                        <p class="display-6 text-primary">@Model.TotalMaintenanceRecords</p>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="p-3 bg-light rounded-3 shadow-sm">
+                        <h5>إجمالي المواعيد</h5>
+                        <p class="display-6 text-success">@Model.TotalAppointments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الرسم البياني (Chart.js) -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-info mb-4">
+            <h3 class="card-title text-white">توزيع الأنشطة</h3>
+        </div>
+        <div class="card-body">
+            <canvas id="activityChart" style="max-height:350px;"></canvas>
+        </div>
+    </div>
+
+    <!-- جدول آخر الأنشطة -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-success mb-4">
+            <h3 class="card-title text-white">آخر الأنشطة</h3>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover text-center">
+                <thead class="table-light">
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>نوع النشاط</th>
+                        <th>الوصف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.RecentLogs != null && Model.RecentLogs.Any())
+                    {
+                        @foreach (var log in Model.RecentLogs)
+                        {
+                            <tr>
+                                <td>@log.Date?.ToString("yyyy/MM/dd HH:mm")</td>
+                                @{
+                                    string typeArabic = log.Type switch
+                                    {
+                                        "ApprovedMaintenance" => "الموافقة على الصيانة",
+                                        "CreatedInvoice" => "إنشاء فاتورة",
+                                        "RejectedMaintenance" => "رفض الصيانة",
+                                        "RejecteAppointment" => "رفض الإستلام",
+                                        "ReceiveAppointment" => "إستلام السيارة",
+                                        "CompleteMaintenanceRecord" => "إكمال الصيانة",
+                                        "CompleteAppointment" => "إكمال الحجز",
+                                        "UpdatedAppointment" => "تحديث الموعد",
+                                        _ => "نشاط غير معروف"
+                                    };
+                                }
+                                <td>@typeArabic</td>
+                                <td>@log.Description</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-muted">لا توجد أنشطة مسجلة</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a asp-action="Index" class="btn btn-secondary px-4">
+            <i class="bi bi-arrow-right"></i> رجوع
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('activityChart');
+          const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(keys));
+        const dataValues = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(values));
+
+        if (labels.length > 0) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'عدد الأنشطة',
+                        data: dataValues,
+                        backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#20c997']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+}

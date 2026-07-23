@@ -1,0 +1,1815 @@
+@using Sense.Application.DTOs.AddressDTOs
+
+@{
+    var addresses = ViewBag.Addresses;
+    var totalProducts = ViewBag.TotalProducts;
+    var deliveryFee = ViewBag.DeliveryFee;
+    var total = ViewBag.Total;
+}
+@section Styles
+{
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        /* ===== CSS Custom Properties ===== */
+        :root {
+            --primary-blue: #253F8E;
+            --primary-blue-dark: #1a2f6b;
+            --primary-gold: #FFD700;
+            --gold-dark: #c2932c;
+            --success-green: #48bb78;
+            --success-green-dark: #38a169;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --border-light: #e2e8f0;
+            --bg-light: #f7fafc;
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        /* ===== Smooth Scroll Behavior ===== */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        @@media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+        }
+
+        /* ===== Page Animation ===== */
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 500px;
+            }
+        }
+
+        @@keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @@keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @@keyframes markerDrop {
+            0% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @@keyframes slideInFromRight {
+            from {
+                transform: translateX(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @@keyframes slideInFromLeft {
+            from {
+                transform: translateX(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-slide-in-right {
+            animation: slideInFromRight 0.6s ease forwards;
+        }
+
+        .animate-slide-in-left {
+            animation: slideInFromLeft 0.6s ease forwards;
+        }
+
+        .stagger-animation {
+            opacity: 0;
+        }
+
+        .stagger-animation.visible {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        @@keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .bounce-in-animation {
+            animation: bounceIn 0.5s ease;
+        }
+
+        /* ===== Main Card ===== */
+        .checkout-main-card {
+            animation: fadeInUp 0.6s ease-out;
+            border-radius: 20px;
+            border: none;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* ===== Checkout Progress Indicator ===== */
+        .checkout-progress {
+            padding: 2rem;
+            background: linear-gradient(135deg, #ffffff 0%, var(--bg-light) 100%);
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 50px;
+            right: 50px;
+            height: 3px;
+            background: var(--border-light);
+            z-index: 0;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            transition: all 0.3s ease;
+            background: white;
+            border: 3px solid var(--border-light);
+            color: var(--text-secondary);
+        }
+
+        .progress-step.completed .step-circle {
+            background: linear-gradient(135deg, var(--success-green) 0%, var(--success-green-dark) 100%);
+            border-color: var(--success-green);
+            color: white;
+        }
+
+        .progress-step.active .step-circle {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            border-color: var(--primary-blue);
+            color: white;
+            box-shadow: 0 4px 16px rgba(37, 63, 142, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        .step-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .progress-step.active .step-label {
+            color: var(--primary-blue);
+            font-weight: 700;
+        }
+
+        .progress-step.completed .step-label {
+            color: var(--success-green);
+        }
+
+        /* ===== Order Summary Card ===== */
+        .checkout-summary-card {
+            background: linear-gradient(135deg, #ffffff 0%, var(--bg-light) 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+        }
+
+        .summary-header {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            position: relative;
+        }
+
+        .summary-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-gold) 0%, var(--gold-dark) 100%);
+            border-radius: 2px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .summary-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .summary-total {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            margin: 1rem -1.5rem -1.5rem;
+            padding: 1rem 1.5rem;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .summary-total .summary-label,
+        .summary-total .summary-value {
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .summary-total .summary-value {
+            font-size: 1.35rem;
+        }
+
+        .riyal-icon {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* ===== Form Section Headers ===== */
+        .section-header {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-header i {
+            color: var(--primary-blue);
+            font-size: 1.1rem;
+        }
+
+        /* ===== Address Selection ===== */
+        .address-selection-wrapper {
+            margin-bottom: 2rem;
+        }
+
+        .modern-select {
+            border-radius: 12px;
+            border: 2px solid var(--border-light);
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            color: var(--text-primary);
+            transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+            background-color: white;
+        }
+
+        .modern-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(37, 63, 142, 0.1);
+            outline: none;
+        }
+
+        .address-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .address-controls .modern-select {
+            flex: 1;
+        }
+
+        .add-address-btn {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(37, 63, 142, 0.3);
+        }
+
+        .add-address-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 63, 142, 0.4);
+        }
+
+        .add-address-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ===== Payment Method Cards ===== */
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .payment-card {
+            position: relative;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0.75rem;
+        }
+
+        .payment-card:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow-md);
+        }
+
+        .payment-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .payment-card.selected {
+            border-color: var(--primary-blue);
+            background: var(--bg-light);
+            box-shadow: 0 4px 16px rgba(37, 63, 142, 0.15);
+        }
+
+        .payment-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .payment-card.selected .payment-icon {
+            transform: scale(1.1);
+        }
+
+        .payment-card[data-method="1"] .payment-icon {
+            background: rgba(72, 187, 120, 0.1);
+            color: var(--success-green);
+        }
+
+        .payment-card[data-method="2"] .payment-icon {
+            background: rgba(255, 215, 0, 0.1);
+            color: var(--gold-dark);
+        }
+
+        .payment-card[data-method="3"] .payment-icon {
+            background: rgba(37, 63, 142, 0.1);
+            color: var(--primary-blue);
+        }
+
+        .payment-name {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .payment-description {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.3;
+        }
+
+        .payment-checkmark {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .payment-card.selected .payment-checkmark {
+            display: flex;
+        }
+
+        /* ===== Payment note ===== */
+        .payment-coming-soon {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: -1rem 0 2rem;
+        }
+
+        .payment-coming-soon i {
+            color: var(--gold-dark);
+        }
+
+        /* ===== Form Inputs ===== */
+        .modern-textarea {
+            width: 100%;
+            border-radius: 10px;
+            border: 2px solid var(--border-light);
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            color: var(--text-primary);
+            transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+            min-height: 100px;
+            resize: vertical;
+            font-family: 'Almarai', sans-serif;
+        }
+
+        .modern-textarea:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(37, 63, 142, 0.1);
+            outline: none;
+        }
+
+        .modern-textarea::placeholder {
+            color: #a0aec0;
+        }
+
+        .order-notes-wrapper {
+            margin-bottom: 2rem;
+        }
+
+        /* ===== Action Buttons ===== */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .submit-order-btn {
+            background: linear-gradient(135deg, var(--success-green) 0%, var(--success-green-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1.15rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+            box-shadow: 0 8px 24px rgba(72, 187, 120, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .submit-order-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-order-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-order-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(72, 187, 120, 0.4);
+        }
+
+        .submit-order-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-order-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .back-to-cart-btn {
+            background: transparent;
+            color: var(--primary-blue);
+            border: 2px solid var(--primary-blue);
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1.15rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .back-to-cart-btn:hover {
+            background: var(--primary-blue);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(37, 63, 142, 0.3);
+        }
+
+        /* ===== Modal Styles ===== */
+        .address-modal .modal-content {
+            border-radius: 20px;
+            border: none;
+            overflow: hidden;
+        }
+
+        .address-modal .modal-header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            color: white;
+            padding: 1.5rem;
+            border: none;
+            position: relative;
+        }
+
+        .address-modal .modal-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .address-modal .btn-close {
+            filter: brightness(0) invert(1);
+            position: absolute;
+            top: 1.25rem;
+            left: 1.25rem;
+            margin: 0;
+        }
+
+        .address-modal .modal-body {
+            padding: 2rem;
+        }
+
+        .address-modal .card {
+            border-radius: 16px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .address-modal .card-header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            font-weight: 700;
+            border-radius: 16px 16px 0 0 !important;
+        }
+
+        .address-modal .form-control,
+        .address-modal textarea {
+            border-radius: 10px;
+            border: 2px solid var(--border-light);
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .address-modal .form-control:focus,
+        .address-modal textarea:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(37, 63, 142, 0.1);
+            outline: none;
+        }
+
+        .address-modal .form-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        #map {
+            height: 350px;
+            border-radius: 12px;
+            border: 2px solid var(--border-light);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+
+        .address-modal .modal-action-buttons .btn {
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .address-modal .btn-primary {
+            background: var(--primary-blue);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(37, 63, 142, 0.3);
+        }
+
+        .address-modal .btn-primary:hover {
+            background: var(--primary-blue-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 63, 142, 0.4);
+        }
+
+        .address-modal .btn-warning {
+            background: var(--primary-gold);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .address-modal .btn-warning:hover {
+            background: var(--gold-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 215, 0, 0.4);
+        }
+
+        /* ===== Loading Overlay ===== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .loading-spinner i {
+            font-size: 3rem;
+            color: var(--primary-blue);
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-spinner p {
+            margin-top: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* ===== Responsive Styles ===== */
+        @@media (max-width: 768px) {
+            .checkout-progress {
+                padding: 1.5rem 1rem;
+            }
+
+            .progress-steps {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .progress-steps::before {
+                display: none;
+            }
+
+            .step-circle {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .step-label {
+                font-size: 0.8rem;
+            }
+
+            .checkout-summary-card {
+                padding: 1.25rem;
+            }
+
+            .checkout-main-card .card-body {
+                padding: 1.5rem;
+            }
+
+            .summary-header {
+                font-size: 1.1rem;
+            }
+
+            .address-controls {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .add-address-btn {
+                width: 100%;
+                min-height: 48px;
+            }
+
+            .payment-methods {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .payment-card {
+                flex-direction: row;
+                text-align: right;
+                padding: 1rem;
+                min-height: 64px;
+                touch-action: manipulation;
+            }
+
+                .payment-card:active {
+                    transform: scale(0.98);
+                }
+
+            .payment-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.25rem;
+            }
+
+            .modern-select,
+            .modern-textarea,
+            .submit-order-btn,
+            .back-to-cart-btn {
+                font-size: 16px; /* Prevent zoom on iOS */
+            }
+
+            .modern-select,
+            .modern-textarea {
+                min-height: 48px;
+            }
+
+            .submit-order-btn,
+            .back-to-cart-btn {
+                padding: 1rem;
+                min-height: 48px;
+                touch-action: manipulation;
+            }
+
+                .submit-order-btn:active,
+                .back-to-cart-btn:active {
+                    transform: scale(0.95);
+                    opacity: 0.9;
+                }
+
+            #map {
+                height: 250px;
+            }
+
+            .address-modal .modal-body {
+                padding: 1.5rem;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .summary-row {
+                font-size: 0.9rem;
+            }
+
+            .summary-total .summary-value {
+                font-size: 1.2rem;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .checkout-main-card .card-body {
+                padding: 1rem;
+            }
+
+            .checkout-summary-card {
+                padding: 1rem;
+            }
+
+            .modern-select,
+            .modern-textarea {
+                font-size: 16px;
+                min-height: 48px;
+                padding: 0.875rem 1rem;
+            }
+
+            .address-controls {
+                gap: 0.75rem;
+            }
+
+            .add-address-btn {
+                min-height: 48px;
+                width: 100%;
+            }
+
+            .checkout-progress {
+                padding: 1rem 0.5rem;
+            }
+
+            .step-circle {
+                width: 36px;
+                height: 36px;
+            }
+
+            .step-label {
+                font-size: 0.75rem;
+                margin-top: 0.5rem;
+            }
+
+            .summary-row {
+                margin-bottom: 0.75rem;
+            }
+        }
+
+        @@media (min-width: 481px) and (max-width: 640px) {
+            .checkout-main-card .card-body {
+                padding: 1.5rem;
+            }
+
+            .checkout-summary-card {
+                padding: 1.25rem;
+            }
+
+            .step-circle {
+                width: 42px;
+                height: 42px;
+            }
+
+            .step-label {
+                font-size: 0.85rem;
+            }
+        }
+
+        @@media (orientation: landscape) and (max-height: 600px) {
+            .checkout-progress {
+                padding: 0.75rem 1rem;
+            }
+
+            .progress-steps {
+                flex-direction: row;
+                gap: 1rem;
+            }
+
+            .step-circle {
+                width: 32px;
+                height: 32px;
+                font-size: 0.9rem;
+            }
+
+            .step-label {
+                font-size: 0.7rem;
+                margin-top: 0.25rem;
+            }
+
+            .checkout-summary-card {
+                padding: 1rem;
+            }
+
+            .checkout-main-card .card-body {
+                padding: 1rem;
+            }
+
+            .payment-methods {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.5rem;
+            }
+
+            .payment-card {
+                padding: 0.75rem;
+                min-height: auto;
+            }
+
+            .modern-textarea {
+                min-height: 80px;
+            }
+
+            .submit-order-btn,
+            .back-to-cart-btn {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+
+        /* Form States */
+        .modern-select:focus,
+        .modern-textarea:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(37, 63, 142, 0.1);
+            outline: none;
+        }
+
+        .modern-select.input-error,
+        .modern-textarea.input-error {
+            border-color: #e53e3e;
+            animation: shake 0.4s ease;
+        }
+
+        .modern-select.input-success,
+        .modern-textarea.input-success {
+            border-color: var(--success-green);
+        }
+
+        @@keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        /* Loading States */
+        .btn-loading {
+            opacity: 0.7;
+            pointer-events: none;
+            position: relative;
+        }
+
+            .btn-loading::after {
+                content: '';
+                position: absolute;
+                width: 16px;
+                height: 16px;
+                border: 2px solid transparent;
+                border-top-color: currentColor;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+                top: 50%;
+                left: 50%;
+                margin: -8px 0 0 -8px;
+            }
+
+        .skeleton-loader {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--border-light);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+            .progress-bar::before {
+                content: '';
+                display: block;
+                height: 100%;
+                background: linear-gradient(90deg, var(--primary-blue), var(--primary-gold));
+                width: 0%;
+                transition: width 0.3s ease;
+            }
+
+        .overlay-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            animation: slideDownToast 0.4s ease forwards;
+            z-index: 10000;
+        }
+
+        @@keyframes slideDownToast {
+            to {
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* ===== Utility Classes ===== */
+        .fade-in {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .highlight-new {
+            animation: pulse 0.5s ease-out;
+            background-color: rgba(72, 187, 120, 0.1);
+        }
+
+        /* ===== Custom Scrollbar ===== */
+        .address-modal .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .address-modal .modal-body::-webkit-scrollbar-track {
+            background: var(--bg-light);
+        }
+
+        .address-modal .modal-body::-webkit-scrollbar-thumb {
+            background: var(--primary-blue);
+            border-radius: 4px;
+        }
+    </style>
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card checkout-main-card">
+                <!-- Checkout Progress Indicator -->
+                <div class="checkout-progress">
+                    <div class="progress-steps">
+                        <div class="progress-step completed">
+                            <div class="step-circle">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="step-label">السلة</div>
+                        </div>
+                        <div class="progress-step active">
+                            <div class="step-circle">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="step-label">معلومات التوصيل</div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-circle">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="step-label">تأكيد الطلب</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body" style="padding: 2rem;">
+                    <!-- Order Summary Section -->
+                    <div class="checkout-summary-card">
+                        <div class="summary-header">
+                            <i class="fas fa-receipt"></i> ملخص الطلب
+                        </div>
+
+                        <div class="summary-row">
+                            <div class="summary-label">
+                                <i class="fas fa-box"></i>
+                                إجمالي المنتجات
+                            </div>
+                            <div class="summary-value">
+                                @totalProducts.ToString("N0", new System.Globalization.CultureInfo("ar-SA"))
+                                <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+                            </div>
+                        </div>
+
+                        <div class="summary-row">
+                            <div class="summary-label">
+                                <i class="fas fa-truck"></i>
+                                رسوم التوصيل
+                            </div>
+                            <div class="summary-value">
+                                @deliveryFee.ToString("N0", new System.Globalization.CultureInfo("ar-SA"))
+                                <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+                            </div>
+                        </div>
+
+                        <div class="summary-total">
+                            <div class="summary-row">
+                                <div class="summary-label">الإجمالي النهائي</div>
+                                <div class="summary-value">
+                                    @total.ToString("N0", new System.Globalization.CultureInfo("ar-SA"))
+                                    <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="checkoutForm">
+                        <!-- Address Selection -->
+                        <div class="address-selection-wrapper">
+                            <label class="section-header">
+                                <i class="fas fa-map-marker-alt"></i>
+                                اختر عنوان التوصيل
+                            </label>
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <div class="address-controls">
+                                    <select class="modern-select" id="addressId" name="AddressId" required aria-label="اختر العنوان">
+                                        <option value="">-- اختر العنوان --</option>
+                                        @if (addresses != null)
+                                        {
+                                            @foreach (var addr in addresses)
+                                            {
+                                                <option value="@addr.Id">
+                                                    @addr.City, @addr.Street@if (!string.IsNullOrWhiteSpace(addr.Neighborhood))
+                                                    {
+                                                        @($" - الحي: {addr.Neighborhood}")
+                                                    }
+                                                </option>
+                                            }
+                                        }
+                                    </select>
+
+                                    <button type="button" class="add-address-btn" data-bs-toggle="modal" data-bs-target="#addressModal">
+                                        <i class="fas fa-plus"></i> إضافة عنوان
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div id="guestAddressCard" class="alert alert-success border d-flex align-items-center justify-content-between gap-2 mb-2" style="display:none;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span id="guestAddressText"></span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="removeGuestAddressBtn" aria-label="حذف العنوان">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <div class="address-controls">
+                                    <div class="alert alert-light border d-flex align-items-center gap-2 mb-0" role="note" style="flex: 1;">
+                                        <i class="fas fa-info-circle" style="color: var(--primary-blue);"></i>
+                                        <span>أضف عنوان التوصيل الآن — سيحفظ في حسابك تلقائياً بعد تسجيل الدخول.</span>
+                                    </div>
+                                    <button type="button" class="add-address-btn" data-bs-toggle="modal" data-bs-target="#addressModal">
+                                        <i class="fas fa-plus"></i> إضافة عنوان
+                                    </button>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Contact Phone Number -->
+                        <div class="phone-wrapper mb-3">
+                            <label for="orderPhoneNumber" class="section-header">
+                                <i class="fas fa-phone"></i>
+                                رقم الهاتف للتواصل
+                            </label>
+                            <input type="tel"
+                                   class="form-control modern-select"
+                                   id="orderPhoneNumber"
+                                   name="PhoneNumber"
+                                   required
+                                   aria-label="رقم الهاتف للتواصل" />
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="payment-methods-wrapper">
+                            <label class="section-header">
+                                <i class="fas fa-credit-card"></i>
+                                اختر طريقة الدفع
+                            </label>
+                            <div class="payment-methods">
+                                <label class="payment-card selected" data-method="3">
+                                    <input type="radio" name="PaymentMethod" value="3" required checked aria-label="الدفع عند الاستلام">
+                                    <div class="payment-checkmark">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <div class="payment-icon">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </div>
+                                    <div>
+                                        <div class="payment-name">الدفع عند الاستلام</div>
+                                        <div class="payment-description">ادفع نقداً عند استلام الطلب</div>
+                                    </div>
+                                </label>
+                            </div>
+                            <p class="payment-coming-soon">
+                                <i class="fas fa-clock"></i>
+                                سنوفر طرق دفع متعددة قريباً
+                            </p>
+                        </div>
+
+                        <!-- Order Notes -->
+                        <div class="order-notes-wrapper">
+                            <label for="orderMemo" class="section-header">
+                                <i class="fas fa-sticky-note"></i>
+                                ملاحظات الطلب (اختياري)
+                            </label>
+                            <textarea
+                                class="modern-textarea"
+                                id="orderMemo"
+                                name="OrderMemo"
+                                rows="3"
+                                placeholder="أضف أي ملاحظات خاصة بطلبك (اختياري)"
+                                aria-label="ملاحظات الطلب"></textarea>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <button type="submit" class="submit-order-btn">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span class="btn-text">إرسال الطلب</span>
+                                </button>
+                            }
+                            else
+                            {
+                                <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("Confirm", "Order", new { couponCode = ViewBag.CouponCode }) })"
+                                   class="submit-order-btn"
+                                   style="text-decoration: none;">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span class="btn-text">سجّل الدخول لإتمام الطلب</span>
+                                </a>
+                            }
+                            <a href="@Url.Action("CartDetails", "Product")" class="back-to-cart-btn">
+                                <i class="fas fa-arrow-right"></i>
+                                رجوع للسلة
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Address Modal -->
+            <div class="modal fade address-modal" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addressModalLabel">
+                                <i class="fas fa-map-marked-alt"></i>
+                                إضافة عنوان جديد
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="addressForm">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="card shadow-sm mb-4">
+                                            <h5 class="card-header">املأ بيانات عنوانك</h5>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-4">
+                                                        <label for="city" class="form-label">المدينة <span style="color: red;">*</span></label>
+                                                        <input type="text" class="form-control" id="city" name="city" required aria-label="المدينة">
+                                                    </div>
+                                                    <div class="col-md-6 mb-4">
+                                                        <label for="street" class="form-label">الشارع <span style="color: red;">*</span></label>
+                                                        <input type="text" class="form-control" id="street" name="street" required aria-label="الشارع">
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-12 mb-4">
+                                                        <label for="neighborhood" class="form-label">الحي السكني</label>
+                                                        <input type="text" class="form-control" id="neighborhood" name="neighborhood" aria-label="الحي السكني">
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-12 mb-4">
+                                                        <label for="addressDetails" class="form-label">تفاصيل إضافية</label>
+                                                        <textarea class="form-control" id="addressDetails" name="address" rows="4" aria-label="تفاصيل إضافية"></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">
+                                                        <i class="fas fa-map-pin"></i> اختر الموقع على الخريطة <span style="color: red;">*</span>
+                                                    </label>
+                                                    <div id="map"></div>
+                                                    <small class="text-muted" style="display: block; margin-top: 0.5rem;">
+                                                        <i class="fas fa-info-circle"></i> انقر على الخريطة لتحديد موقعك
+                                                    </small>
+                                                </div>
+                                                <input type="hidden" id="locationLat" name="locationLat" />
+                                                <input type="hidden" id="locationLong" name="locationLong" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Submit Buttons -->
+                                <div class="d-flex gap-3 mt-4 modal-action-buttons">
+                                    <button type="submit" class="btn btn-primary btn-lg flex-fill">
+                                        <i class="fas fa-plus-circle"></i> إضافة
+                                    </button>
+                                    <input type="reset" class="btn btn-warning btn-lg flex-fill" value="إعادة الضبط">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner">
+        <i class="fas fa-spinner"></i>
+        <p>جاري معالجة طلبك...</p>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.29/dist/sweetalert2.all.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script type="text/javascript">
+        let map;
+        let marker;
+
+        // Guest checkout: address is kept locally until the user signs in
+        var isAuthenticated = @(User.Identity?.IsAuthenticated == true ? "true" : "false");
+        var PENDING_ADDRESS_KEY = 'sensePendingAddress';
+        var SELECT_ADDRESS_KEY = 'senseSelectAddressId';
+
+        function renderGuestAddress() {
+            var card = $('#guestAddressCard');
+            if (!card.length) return;
+
+            var saved = localStorage.getItem(PENDING_ADDRESS_KEY);
+            if (!saved) {
+                card.hide();
+                return;
+            }
+
+            try {
+                var a = JSON.parse(saved);
+                var text = a.city + '، ' + a.street;
+                if (a.neighborhood) text += ' - الحي: ' + a.neighborhood;
+                $('#guestAddressText').text(text);
+                card.show();
+            } catch (e) {
+                localStorage.removeItem(PENDING_ADDRESS_KEY);
+                card.hide();
+            }
+        }
+
+        $(document).on('click', '#removeGuestAddressBtn', function () {
+            localStorage.removeItem(PENDING_ADDRESS_KEY);
+            renderGuestAddress();
+        });
+
+        // Payment card selection handler
+        document.querySelectorAll('.payment-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selected class from all cards
+                document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('selected'));
+
+                // Add selected class to clicked card
+                this.classList.add('selected');
+
+                // Check the radio button
+                this.querySelector('input[type="radio"]').checked = true;
+            });
+        });
+
+        // Initialize map only when modal is fully shown
+        $('#addressModal').on('shown.bs.modal', function () {
+            setTimeout(() => {
+                if (!map) {
+                    map = L.map('map').setView([31.9522, 35.2332], 9);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(map);
+
+                    map.on('click', function (e) {
+                        const lat = e.latlng.lat;
+                        const lng = e.latlng.lng;
+                        $('#locationLat').val(lat);
+                        $('#locationLong').val(lng);
+
+                        if (marker) {
+                            marker.setLatLng([lat, lng]);
+                        } else {
+                            marker = L.marker([lat, lng]).addTo(map);
+                        }
+                    });
+                } else {
+                    map.invalidateSize();
+                }
+            }, 200);
+        });
+
+        // Client-side validation for address form
+        function validateAddressForm() {
+            const city = $('#city').val().trim();
+            const street = $('#street').val().trim();
+            const lat = $('#locationLat').val();
+            const lng = $('#locationLong').val();
+
+            if (!city) {
+                Swal.fire('تنبيه', 'يرجى إدخال المدينة', 'warning');
+                return false;
+            }
+
+            if (!street) {
+                Swal.fire('تنبيه', 'يرجى إدخال الشارع', 'warning');
+                return false;
+            }
+
+            if (!lat || !lng) {
+                Swal.fire('تنبيه', 'يرجى تحديد الموقع على الخريطة', 'warning');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Submit new address
+        $('#addressForm').submit(function (e) {
+            e.preventDefault();
+
+            if (!validateAddressForm()) {
+                return;
+            }
+
+            var formData = {
+                city: $('#city').val(),
+                street: $('#street').val(),
+                neighborhood: $('#neighborhood').val(),
+                address: $('#addressDetails').val(),
+                locationLat: $('#locationLat').val(),
+                locationLong: $('#locationLong').val()
+            };
+
+            // Guests: keep the address locally; it is saved to the account right after login
+            if (!isAuthenticated) {
+                localStorage.setItem(PENDING_ADDRESS_KEY, JSON.stringify(formData));
+
+                const modalEl = document.getElementById('addressModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modalInstance.hide();
+
+                renderGuestAddress();
+                this.reset();
+
+                Swal.fire({
+                    title: 'تم حفظ العنوان',
+                    text: 'سيُضاف العنوان إلى حسابك تلقائياً بعد تسجيل الدخول.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = $(this).find('button[type="submit"]');
+            const originalText = submitBtn.html();
+            submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> جاري الإضافة...');
+
+            $.ajax({
+                url: '@Url.Action("Add", "Address")',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function (res) {
+                   submitBtn.prop('disabled', false).html(originalText);
+
+                   if (res.success) {
+
+                       // Append the new address to the select list and select it (no page reload)
+                       var created = res.data || res.Data;
+                       if (created) {
+                           var id = created.id ?? created.Id;
+                           var city = created.city ?? created.City;
+                           var street = created.street ?? created.Street;
+                           var neighborhood = created.neighborhood ?? created.Neighborhood;
+
+                           var text = city + ', ' + street;
+                           if (neighborhood) text += ' - الحي: ' + neighborhood;
+
+                           $('#addressId')
+                               .append($('<option>', { value: id, text: text }))
+                               .val(id);
+                       }
+
+                       $('#addressForm')[0].reset();
+                       if (marker) {
+                           map.removeLayer(marker);
+                           marker = null;
+                       }
+                       $('#locationLat, #locationLong').val('');
+
+                       // Close the modal, then show the toast only after it is fully
+                       // hidden — firing Swal mid-transition leaves the backdrop stuck
+                       const modalEl = document.getElementById('addressModal');
+                       const modalInstance =
+                           bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+
+                       $(modalEl).one('hidden.bs.modal', function () {
+                           $('.modal-backdrop').remove();
+                           $('body').removeClass('modal-open').css({ overflow: '', 'padding-right': '' });
+
+                           Swal.fire({
+                               title: 'تم',
+                               text: 'تم إضافة العنوان بنجاح',
+                               icon: 'success',
+                               timer: 1500,
+                               showConfirmButton: false
+                           });
+                       });
+
+                       modalInstance.hide();
+
+                   } else {
+                       Swal.fire('خطأ', res.message || 'حدث خطأ أثناء إضافة العنوان', 'error');
+                   }
+               },
+               error: function () {
+                   submitBtn.prop('disabled', false).html(originalText);
+                   Swal.fire('خطأ', 'تعذر التواصل مع السيرفر. حاول لاحقاً.', 'error');
+               }
+            });
+        });
+
+        // Client-side validation for checkout form
+        function validateCheckoutForm() {
+            const addressId = $('#addressId').val();
+            const phoneNumber = $('#orderPhoneNumber').val().trim();
+            const paymentMethod = $('input[name="PaymentMethod"]:checked').val();
+
+            if (!addressId) {
+                Swal.fire('تنبيه', 'يرجى اختيار عنوان التوصيل', 'warning');
+                $('#addressId').focus();
+                return false;
+            }
+
+            if (!phoneNumber) {
+                Swal.fire('تنبيه', 'يرجى إدخال رقم الهاتف للتواصل', 'warning');
+                $('#orderPhoneNumber').focus();
+                return false;
+            }
+
+            if (!paymentMethod) {
+                Swal.fire('تنبيه', 'يرجى اختيار طريقة الدفع', 'warning');
+                return false;
+            }
+
+            return true;
+        }
+        var couponCodeFromServer = '@(ViewBag.CouponCode ?? "")';
+
+        // Submit checkout
+        $('#checkoutForm').submit(function (e) {
+            e.preventDefault();
+
+            if (!validateCheckoutForm()) {
+                return;
+            }
+
+            // Show loading overlay
+            $('#loadingOverlay').addClass('active');
+
+            // Disable submit button
+            const submitBtn = $('.submit-order-btn');
+            const originalText = submitBtn.html();
+            submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> جاري إرسال الطلب...');
+
+            const orderDto = {
+                AddressId: parseInt($('#addressId').val()),
+                PhoneNumber: $('#orderPhoneNumber').val().trim(),
+                PaymentMethod: parseInt($('input[name="PaymentMethod"]:checked').val()),
+                OrderMemo: $('#orderMemo').val() || null,
+                CouponCode: couponCodeFromServer || null,      // get from ViewBag
+                CouponDisValue: parseFloat($('#couponDisValue')?.val()) || null
+            };
+
+            $.ajax({
+                url: '@Url.Action("CheckOut", "Order")',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(orderDto),
+                success: function (res) {
+                    $('#loadingOverlay').removeClass('active');
+                    submitBtn.prop('disabled', false).html(originalText);
+
+                    if (res.success) {
+                        Swal.fire({
+                            title: 'تم',
+                            text: res.message || 'تم إرسال الطلب بنجاح',
+                            icon: 'success',
+                            confirmButtonText: 'عرض الطلب',
+                            confirmButtonColor: '#48bb78'
+                        }).then(() => {
+                            window.location.href = '@Url.Action("Details", "Order")/' + res.data.id;
+                        });
+                    } else {
+                        Swal.fire('خطأ', res.message || 'حدث خطأ أثناء إرسال الطلب', 'error');
+                    }
+                },
+                error: function () {
+                    $('#loadingOverlay').removeClass('active');
+                    submitBtn.prop('disabled', false).html(originalText);
+                    Swal.fire('خطأ', 'تعذر التواصل مع السيرفر. حاول لاحقاً.', 'error');
+                }
+            });
+        });
+
+        // After login: push the guest's pending address to the account, then select it
+        function syncPendingAddress() {
+            if (!isAuthenticated) {
+                renderGuestAddress();
+                return;
+            }
+
+            // An address created from the pending one is selected after the reload
+            var selectId = localStorage.getItem(SELECT_ADDRESS_KEY);
+            if (selectId) {
+                localStorage.removeItem(SELECT_ADDRESS_KEY);
+                if ($('#addressId option[value="' + selectId + '"]').length) {
+                    $('#addressId').val(selectId);
+                }
+            }
+
+            var pending = localStorage.getItem(PENDING_ADDRESS_KEY);
+            if (!pending) return;
+
+            var formData;
+            try {
+                formData = JSON.parse(pending);
+            } catch (e) {
+                localStorage.removeItem(PENDING_ADDRESS_KEY);
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("Add", "Address")',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function (res) {
+                    if (res.success) {
+                        localStorage.removeItem(PENDING_ADDRESS_KEY);
+
+                        var created = res.data || res.Data;
+                        var newId = created && (created.id || created.Id);
+                        if (newId) {
+                            localStorage.setItem(SELECT_ADDRESS_KEY, newId);
+                        }
+
+                        window.location.reload();
+                    }
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            syncPendingAddress();
+
+            // Checkout Section Entrance Animations
+            // Animate checkout card
+            $('.checkout-main-card').addClass('animate-slide-in-right');
+
+            // Stagger animate form sections
+            $('.address-selection-wrapper, .payment-methods-wrapper, .order-notes-wrapper').each(function(index) {
+                const $section = $(this);
+                setTimeout(() => {
+                    $section.addClass('stagger-animation visible');
+                }, index * 150);
+            });
+
+            // Animate payment cards
+            $('.payment-card').each(function(index) {
+                const $card = $(this);
+                setTimeout(() => {
+                    $card.addClass('bounce-in-animation');
+                }, 300 + (index * 100));
+            });
+        });
+
+        // Warn before leaving with unsaved changes
+        let formChanged = false;
+        $('#checkoutForm input, #checkoutForm textarea, #checkoutForm select').on('change', function() {
+            formChanged = true;
+        });
+
+        $(window).on('beforeunload', function(e) {
+            if (formChanged && $('#addressId').val() && $('input[name="PaymentMethod"]:checked').val()) {
+                e.preventDefault();
+                return 'لديك بيانات لم يتم إرسالها. هل أنت متأكد من المغادرة؟';
+            }
+        });
+
+        // Clear warning flag on form submit
+        $('#checkoutForm').on('submit', function() {
+            formChanged = false;
+        });
+    </script>
+}

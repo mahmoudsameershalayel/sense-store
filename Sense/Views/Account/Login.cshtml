@@ -1,0 +1,222 @@
+@using Sense.Application.DTOs.AuthDTOs
+@model UserForLoginDto
+
+@{
+    var messageKey = Context.Request.Query["msg"];
+    var returnUrl = ViewData["ReturnUrl"] as string ?? Context.Request.Query["returnUrl"].ToString();
+    string notice = messageKey == "checkout_required" ? "عليك تسجيل الدخول قبل إتمام الشراء" : null;
+
+    if (notice == null && !string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("/Order/Confirm", StringComparison.OrdinalIgnoreCase))
+    {
+        notice = "أنت على بُعد خطوة واحدة من إتمام طلبك — سجّل الدخول للمتابعة.";
+    }
+}
+
+@section Styles
+{
+    <style type="text/css">
+        .contact-banner {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background-color: #061C42;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .contact-banner-text {
+            position: relative;
+            z-index: 2;
+        }
+
+            .contact-banner-text h1 {
+                font-size: 3rem;
+                color: white;
+                margin: 0;
+                padding: 0;
+            }
+
+        .login {
+            width: 40%;
+            margin: 0 auto;
+        }
+
+        .auth-logo-only {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+            .auth-logo-only img {
+                max-height: 70px;
+                max-width: 180px;
+                object-fit: contain;
+            }
+
+        .auth-title {
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .auth-subtitle {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 24px;
+        }
+
+        @@media (max-width: 768px) {
+            .contact-banner-text h1 {
+                font-size: 2.5rem;
+            }
+
+            .login {
+                width: 80%;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .contact-banner-text h1 {
+                font-size: 2rem;
+            }
+
+            .login {
+                width: 90%;
+            }
+
+            .contact-banner {
+                height: 160px;
+            }
+        }
+    </style>
+}
+
+<div class="contact-banner">
+    <div class="contact-banner-text">
+        <h1>تسجيل الدخول</h1>
+    </div>
+</div>
+
+<section id="contact" class="contact section m-5">
+    @if (!string.IsNullOrEmpty(notice))
+    {
+        <div class="alert alert-warning text-center mb-3" role="alert">
+            @notice
+        </div>
+    }
+
+    <div class="container login">
+        <div class="authentication-wrapper authentication-basic container-p-y">
+            <div class="authentication-inner">
+                <div class="card">
+                    <div class="card-body">
+
+                        <div class="auth-logo-only">
+                            <a href="/" style="text-decoration:none;">
+                                @await Component.InvokeAsync("Branding", new { variant = "logo" })
+                            </a>
+                        </div>
+
+                        <h4 class="auth-title">مرحباً بعودتك</h4>
+
+                        <p class="auth-subtitle">
+                            سجّل الدخول للوصول إلى حسابك ومتابعة طلباتك بسهولة.
+                        </p>
+
+                        <form id="formAuthentication" class="mb-3" asp-controller="Account" asp-action="Login" method="POST">
+                            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label">البريد الإلكتروني</label>
+                                <input type="email"
+                                       class="form-control"
+                                       id="email"
+                                       name="Email"
+                                       placeholder="example@email.com"
+                                       autocomplete="off"
+                                       asp-for="Email" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3 form-password-toggle">
+                                <div class="d-flex justify-content-between">
+                                    <label class="form-label" for="password">كلمة المرور</label>
+
+                                    <a asp-controller="Auth"
+                                       asp-action="ForgotPassword"
+                                       class="text-primary"
+                                       style="text-decoration: underline; font-size: 0.9rem;">
+                                        نسيت كلمة المرور؟
+                                    </a>
+                                </div>
+
+                                <div class="input-group input-group-merge">
+                                    <input type="password"
+                                           id="password"
+                                           class="form-control"
+                                           asp-for="Password"
+                                           placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                                           aria-describedby="password" />
+                                </div>
+
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <button class="btn d-grid w-100"
+                                        style="background-color: #253F8E; color: white;"
+                                        type="submit">
+                                    تسجيل الدخول
+                                </button>
+                            </div>
+
+                            <div class="text-center">
+                                <span>ليس لديك حساب؟</span>
+                                <a asp-controller="Account"
+                                   asp-action="Register"
+                                   asp-route-returnUrl="@ViewData["ReturnUrl"]"
+                                   class="text-primary"
+                                   style="text-decoration: underline;">
+                                    سجل الآن
+                                </a>
+                            </div>
+                            <div class="text-center mt-3 pt-3 border-top">
+                                <span>هل ترغب في البيع عبر Sense Store؟</span>
+                                <a asp-controller="ProviderRegistration"
+                                   asp-action="Index"
+                                   class="text-primary"
+                                   style="text-decoration: underline;">
+                                    قدّم طلب مزوّد
+                                </a>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts
+{
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="text/javascript">
+        @if (TempData["Message"] != null)
+        {
+            <text>
+                Swal.fire({
+                icon: 'error',
+                title: 'فشل تسجيل الدخول',
+                text: '@TempData["Message"]',
+                confirmButtonText: 'حسناً'
+                });
+            </text>
+        }
+    </script>
+}

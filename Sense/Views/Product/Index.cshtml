@@ -1,0 +1,222 @@
+@using Sense.Domain.DBEntities
+@using Sense.Application.DTOs.ProductDTOs
+@using Sense.Application.RequestFeatures
+@model PagedList<ProductTbl>
+@{
+    ViewData["Title"] = "المتجر";
+    var categories = ViewBag.Categories;
+    var brands = ViewBag.Brands;
+
+    var firstItem = (Model.MetaData.CurrentPage - 1) * Model.MetaData.PageSize + 1;
+    var lastItem = Math.Min(Model.MetaData.CurrentPage * Model.MetaData.PageSize, Model.MetaData.TotalCount);
+}
+
+<!-- ترويسة الصفحة -->
+<div class="sf-page-head" dir="rtl">
+    <div class="container">
+        <ul class="sf-breadcrumb">
+            <li><a href="/">الرئيسية</a></li>
+            <li>المتجر</li>
+        </ul>
+        <h1>المتجر</h1>
+        <p class="sf-page-head__desc">
+            تصفح تشكيلتنا الكاملة من المنتجات — يمكنك البحث بالاسم أو التصفية حسب الفئة.
+        </p>
+    </div>
+</div>
+
+<section id="store" class="sf-section sf-section--muted" dir="rtl">
+    <div class="container">
+
+        <!-- شريط النتائج -->
+        <div class="sf-results-bar mt-4 mb-4" style="@(Model.MetaData.TotalCount == 0 ? "display:none;" : "")">
+            <div class="d-flex align-items-center gap-2">
+                <label for="pageSize" class="mb-0">عدد المنتجات في الصفحة:</label>
+                <select id="pageSize" class="form-select form-select-sm d-inline-block w-auto" onchange="changePageSize(this.value)">
+                    @if (Model.MetaData.PageSize == 10)
+                    {
+                        <option value="10" selected>10</option>
+                    }
+                    else
+                    {
+                        <option value="10">10</option>
+                    }
+                    @if (Model.MetaData.PageSize == 20)
+                    {
+                        <option value="20" selected>20</option>
+                    }
+                    else
+                    {
+                        <option value="20">20</option>
+                    }
+                    @if (Model.MetaData.PageSize == 50)
+                    {
+                        <option value="50" selected>50</option>
+                    }
+                    else
+                    {
+                        <option value="50">50</option>
+                    }
+                </select>
+            </div>
+            <div>
+                عرض <strong>@firstItem</strong>–<strong>@lastItem</strong> من أصل <strong>@Model.MetaData.TotalCount</strong> منتج
+            </div>
+        </div>
+
+        <!-- المنتجات -->
+        <div class="row g-3">
+            @if (Model.Any())
+            {
+                @await Html.PartialAsync("~/Views/Shared/PartialViews/_ProductCards.cshtml", Model.AsEnumerable())
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="sf-empty">
+                        <div class="sf-empty__icon"><i class="bi bi-box-seam"></i></div>
+                        <h5 class="sf-empty__title">لا توجد منتجات مطابقة</h5>
+                        <p class="sf-empty__text">لم نعثر على منتجات تطابق بحثك — جرّب كلمات أخرى أو تصفح جميع المنتجات.</p>
+                        <a href="/Product/Index" class="sf-btn sf-btn--primary">عرض جميع المنتجات</a>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- التنقل بين الصفحات -->
+        @if (Model.MetaData.TotalPages > 1)
+        {
+            <nav class="sf-pagination mt-5" aria-label="التنقل بين الصفحات">
+                @if (Model.MetaData.HasPrevious)
+                {
+                    <a href="@Url.Action("Index", new {
+                        pageNumber = Model.MetaData.CurrentPage - 1,
+                        pageSize = Model.MetaData.PageSize,
+                        searchTerm = ViewBag.SearchTerm,
+                        ProductCategoryId = ViewBag.ProductCategoryId,
+                        ProductBrandId = ViewBag.ProductBrandId,
+                        ProductModelId = ViewBag.ProductModelId
+                    })" class="sf-btn sf-btn--outline">
+                        <i class="bi bi-chevron-right"></i>
+                        الصفحة السابقة
+                    </a>
+                }
+
+                <span class="sf-page-indicator">
+                    صفحة @Model.MetaData.CurrentPage من @Model.MetaData.TotalPages
+                </span>
+
+                @if (Model.MetaData.HasNext)
+                {
+                    <a href="@Url.Action("Index", new {
+                        pageNumber = Model.MetaData.CurrentPage + 1,
+                        pageSize = Model.MetaData.PageSize,
+                        searchTerm = ViewBag.SearchTerm,
+                        ProductCategoryId = ViewBag.ProductCategoryId,
+                        ProductBrandId = ViewBag.ProductBrandId,
+                        ProductModelId = ViewBag.ProductModelId
+                    })" class="sf-btn sf-btn--primary">
+                        الصفحة التالية
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                }
+            </nav>
+        }
+    </div>
+</section>
+
+@section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="text/javascript">
+        function changePageSize(newPageSize) {
+            var url = new URL(window.location.href);
+            url.searchParams.set('pageSize', newPageSize);
+            url.searchParams.set('pageNumber', '1'); // Reset to first page
+            window.location.href = url.toString();
+        }
+
+        $('#vehicleBrand').on('change', function () {
+            var brandId = $(this).val();
+            if (brandId) {
+                $.ajax({
+                    url: "@Url.Action("GetModelsByBrandId", "Model")/" + brandId,
+                    type: 'GET',
+                    success: function (data) {
+                        var $modelSelect = $('#vehicleModel');
+                        $modelSelect.empty();
+                        $modelSelect.append('<option hidden disabled selected> -- اختر الموديل -- </option>');
+                        $.each(data, function (i, item) {
+                            $modelSelect.append('<option value="' + item.id + '">' + item.name + '</option>');
+                        });
+                    },
+                    error: function () {
+                        alert('حدث خطأ أثناء تحميل الموديلات');
+                    }
+                });
+            }
+        });
+
+        // AJAX call for Add to Cart
+        $(document).on('click', '.add-to-cart-btn', function (e) {
+            e.preventDefault();
+
+            if ($(this).is(':disabled')) {
+                Swal.fire("غير متوفر", "المنتج غير متاح حالياً", "warning");
+                return;
+            }
+
+            var productId = $(this).data('product-id');
+
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("AddToCart", "Product")",
+                data: { productId: productId },
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'تمت إضافة المنتج إلى السلة',
+                            text: 'يمكنك متابعة التسوق أو إتمام الطلب من السلة.',
+                            confirmButtonText: 'حسناً',
+                            timer: 3000
+                        });
+
+                        updateCartItemCount();
+                        updateCartSummary();
+                    } else {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'المنتج موجود في السلة',
+                            text: 'يمكنك تعديل الكمية من صفحة سلة التسوق.',
+                            confirmButtonText: 'حسناً',
+                            timer: 3000
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'حدث خطأ!',
+                        text: 'حدث خطأ أثناء إضافة المنتج. الرجاء المحاولة لاحقاً.',
+                        confirmButtonText: 'حسناً',
+                        timer: 3000
+                    });
+                }
+            });
+        });
+
+        // Refresh the header cart summary after adding a product
+        function updateCartSummary() {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("CartDetails", "Product")",
+                success: function (response) {
+                    $('#cartSummary').html(response);
+                }
+            });
+        }
+    </script>
+}

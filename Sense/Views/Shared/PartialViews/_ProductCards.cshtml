@@ -1,0 +1,81 @@
+@using Sense.Domain.DBEntities
+@model IEnumerable<ProductTbl>
+
+@foreach (var item in Model)
+{
+    var isOutOfStock = item.QuantityAvaliable <= 0;
+    <div class="col-6 col-md-4 col-lg-3 sf-product-card-col mb-3">
+        <div class="sf-card @(isOutOfStock ? "sf-card--out" : "")">
+
+            <button type="button" class="fav-btn" data-product-id="@item.Id" title="أضف إلى المفضلة" aria-label="أضف إلى المفضلة">
+                <i class="bi bi-heart"></i>
+            </button>
+
+            <a href="/Product/Details/?id=@item.Id" class="sf-card__media" tabindex="-1" aria-hidden="true">
+                <div class="sf-card__badges">
+                    @if (isOutOfStock)
+                    {
+                        <span class="sf-badge sf-badge--out">غير متوفر</span>
+                    }
+                </div>
+                <img src="@item.ImageURL" alt="@item.Name" loading="lazy">
+            </a>
+
+            <div class="sf-card__body">
+                @if (item.Category?.Name != null)
+                {
+                    <p class="sf-card__category">@item.Category.Name</p>
+                }
+
+                <a href="/Product/Details/?id=@item.Id" class="sf-card__title">@item.Name</a>
+
+                @if (item.Provider != null)
+                {
+                    <a href="/Providers/Details/@item.ProviderId" class="sf-card__provider" style="display:flex; align-items:center; gap:8px; font-size:0.8rem; color:#253F8E; text-decoration:none;">
+                        @if (!string.IsNullOrWhiteSpace(item.Provider.LogoURL))
+                        {
+                            <img src="@item.Provider.LogoURL" alt="@item.Provider.DisplayName" style="width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid #e5e8f0; background:#fff;" />
+                        }
+                        else
+                        {
+                            <span style="width:32px; height:32px; border-radius:50%; border:1px solid #e5e8f0; background:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="bi bi-shop"></i>
+                            </span>
+                        }
+                        @item.Provider.DisplayName
+                    </a>
+                }
+
+                <span class="sf-card__stock @(isOutOfStock ? "sf-card__stock--out" : "")">
+                    @(isOutOfStock ? "غير متوفر حالياً" : "متوفر في المخزون")
+                </span>
+
+                <div class="sf-card__footer">
+                    <div class="sf-price">
+                        @item.Price.ToString("N0", new System.Globalization.CultureInfo("ar-SA"))
+                        <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+                    </div>
+                    <form method="post" action="/Cart/Add" class="m-0">
+                        <input type="hidden" name="productId" value="@item.Id" />
+                        <button type="submit"
+                                data-product-id="@item.Id"
+                                class="add-to-cart-btn"
+                                @(isOutOfStock ? "disabled" : "")
+                                title="@(isOutOfStock ? "غير متوفر" : "أضف إلى السلة")"
+                                aria-label="@(isOutOfStock ? "غير متوفر" : "أضف إلى السلة")">
+                            @if (isOutOfStock)
+                            {
+                                <i class="bi bi-x-circle"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-cart-plus"></i>
+                            }
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}

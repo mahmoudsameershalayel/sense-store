@@ -1,0 +1,41 @@
+@using Sense.Application.DTOs.ProviderDTOs
+@{
+    var providers = ViewBag.Providers as List<ProviderDto> ?? new List<ProviderDto>();
+}
+
+@if (providers.Any())
+{
+    <!-- تسوق حسب المزود -->
+    <section id="providers" class="sf-section sf-section--tight bg-white border-bottom" dir="rtl">
+        <div class="container">
+            <div class="sf-section-head" style="margin-bottom:18px;">
+                <div class="sf-section-head__titles">
+                    <span class="sf-kicker">المزودون</span>
+                    <h2 class="sf-title" style="font-size:1.3rem;">تسوّق حسب المزود</h2>
+                </div>
+            </div>
+
+            <div class="swiper providerSwiper">
+                <div class="swiper-wrapper text-center">
+                    @foreach (var provider in providers)
+                    {
+                        <a href="/Providers/Details/@provider.Id" class="swiper-slide sf-category-item">
+                            @if (!string.IsNullOrWhiteSpace(provider.LogoURL))
+                            {
+                                <img src="@provider.LogoURL" alt="@provider.DisplayName" loading="lazy">
+                            }
+                            else
+                            {
+                                <span class="sf-category-item__placeholder"><i class="bi bi-shop"></i></span>
+                            }
+                            <span>@provider.DisplayName</span>
+                        </a>
+                    }
+                </div>
+
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
+        </div>
+    </section>
+}

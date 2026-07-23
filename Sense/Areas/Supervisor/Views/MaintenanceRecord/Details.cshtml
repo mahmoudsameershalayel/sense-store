@@ -1,0 +1,373 @@
+﻿@using Sense.Domain.Enums
+@using Sense.Application.DTOs.CenterSettingDTOs
+@using Sense.Application.DTOs.MaintenanceRecordDTOs
+@model MaintenanceRecordDetailDto
+@{
+    var setting = ViewBag.Setting as CenterSettingDto;
+}
+@section Styles
+{
+    <style type="text/css">
+        body {
+            font-family: 'Arial', sans-serif;
+            direction: rtl;
+            text-align: right;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+        }
+
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: auto;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+        }
+
+        .flex-col {
+            flex: 1;
+            min-width: 48%; /* Adjusts for printing width */
+            box-sizing: border-box;
+        }
+
+        .invoice-card {
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.05);
+            padding: 30px;
+        }
+
+        .company-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+            .company-header img {
+                max-height: 80px;
+                margin-bottom: 10px;
+            }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+            .section h4 {
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 5px;
+                margin-bottom: 15px;
+                color: #007bff;
+            }
+
+            .section p {
+                margin: 5px 0;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* Ensures column alignment */
+            word-wrap: break-word;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .total-section {
+            text-align: left;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .bg-success {
+            background-color: #28a745;
+        }
+
+        .bg-warning {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .bg-danger {
+            background-color: #dc3545;
+        }
+
+        .bg-secondary {
+            background-color: #6c757d;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 13px;
+            color: #777;
+        }
+
+        /* Print-specific styles */
+        @@media print {
+            .kt-header, .kt-toolbar, .app-header, .app-footer, .kt-aside, .btn {
+                display: none !important;
+            }
+
+            .a4-container {
+                width: 100%;
+                min-height: auto;
+                padding: 10mm;
+                margin: 0;
+            }
+
+            .invoice-card {
+                border: none;
+                padding: 0;
+                box-shadow: none;
+            }
+
+            .footer {
+                font-size: 12px;
+                margin-top: 20px;
+            }
+
+            table th, table td {
+                padding: 5px 10px; /* Decrease padding */
+                line-height: 1.2; /* Adjust line-height for smaller height */
+            }
+            /* If you want to specifically target only the rows with <th> */
+            table tr th {
+                padding: 5px 10px; /* Adjust padding for <th> elements */
+                font-size: 12px; /* Optional: Reduce font size for <th> */
+            }
+            /* You can also reduce the height of the <tr> directly */
+            table tr {
+                height: 30px; /* Example: Adjust the height of each row */
+            }
+        }
+    </style>
+}
+
+<a onclick="window.print()" class="btn btn-success mb-3">
+    🧾 طباعة الفاتورة
+</a>
+<div class="a4-container">
+
+    <div class="invoice-card">
+
+        <!-- Company Info -->
+        <div class="company-header">
+            <img src="~/assets/img/‫سدرا - شعار - Canva - Google Chrome‬ 28_04_2025 23_36_59.png" style="height:40px;border-radius:20px;" alt="الشعار" />
+            <h2>مركز سدرا لصيانة السيارات</h2>
+            <p>العنوان: @setting?.Address</p>
+            <p>الهاتف: @setting?.PhoneNumber | البريد الإلكتروني: @setting?.Email</p>
+        </div>
+
+        <div class="flex-row">
+            <!-- Invoice Info -->
+            <div class="section flex-col">
+                <h4>تفاصيل الفاتورة</h4>
+                <p><strong>رقم الفاتورة:</strong> #@Model.Id</p>
+                <p><strong>تاريخ البدء:</strong> @(Model.StartDate ?? "لم يتم التعيين")</p>
+                <p><strong>تاريخ الانتهاء:</strong> @(Model.EndDate ?? "لم يتم التعيين")</p>
+            </div>
+            <!-- Car & Appointment -->
+            <div class="section flex-col">
+                <h4>معلومات الحجز</h4>
+                <p><strong>موديل السيارة:</strong> @(Model.Appointment?.ModelYear ?? "لم يتم التعيين")</p>
+                <p><strong>تاريخ الحجز:</strong> @(Model.Appointment?.ScheduledDate ?? "لم يتم التعيين")</p>
+                <p><strong>الوقت:</strong> @(Model.Appointment?.ScheduledTime ?? "لم يتم التعيين")</p>
+                <p><strong>نوع الخدمة:</strong> @(Model.Appointment?.Service?.TitleAr ?? "لم يتم التعيين")</p>
+            </div>
+
+        </div>
+
+        <div class="flex-row">
+
+            <!-- Customer Info -->
+            <div class="section flex-col">
+                <h4>معلومات العميل</h4>
+                <p><strong>الاسم:</strong> @(Model.Appointment?.Customer?.FullName ?? "لم يتم التعيين")</p>
+                <p><strong>رقم الهاتف:</strong> @(Model.Appointment?.Customer?.PhoneNumber ?? "لم يتم التعيين")</p>
+                <p><strong>البريد الإلكتروني:</strong> @(Model.Appointment?.Customer?.Email ?? "لم يتم التعيين")</p>
+            </div>
+            <!-- Payment Info -->
+            <div class="section flex-col">
+                <h4>معلومات الدفع</h4>
+                <p><strong>طريقة الدفع:</strong> @(Model.PaymentMethod ?? "غير متاح")</p>
+                <p>
+                    <strong>حالة الدفع:</strong>
+                    @{
+                        var status = Model.PaymentStatus?.ToLower() ?? "";
+                        string badge = status switch
+                        {
+                            "paid" => "<span class='badge bg-success'>مدفوع</span>",
+                            "pending" => "<span class='badge bg-warning'>قيد الانتظار</span>",
+                            "failed" => "<span class='badge bg-danger'>فشل</span>",
+                            _ => "<span class='badge bg-secondary'>غير معروف</span>"
+                        };
+                    }
+                    @Html.Raw(badge)
+                </p>
+            </div>
+
+        </div>
+
+        <!-- Invoice Table -->
+        <div class="section">
+            <h4>تفاصيل الفاتورة</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>رقم الفاتورة</th>
+                        <th>مبلغ الفاتورة</th>
+                        <th>نوع الفاتورة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var invoice in Model.Invoices)
+                    {
+                        <tr>
+                            <td>@(invoice.InvoiceNo)#</td>
+                            <td>
+                                @if (!(Model.IsFreeMaintenanceOfferActive && invoice.InvoiceType == "LaborCostInvoice"))
+                                {
+                                    @invoice.InvoiceAmount.ToString("C")
+                                }
+                                else
+                                {
+                                    <del>
+                                        @invoice.InvoiceAmount.ToString("C")
+                                    </del>
+                                }
+                            </td>
+                            <td>@(invoice.InvoiceTypeAR)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+          
+            @if (Model.CashbackUsages.Any())
+            {
+                <hr />
+                <h4 class="text-primary">الكاش باك المطبق</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>نوع العرض</th>
+                            <th>قيمة الكاش باك</th>
+                            <th>نوع الإرجاع</th>
+                            <th>تاريخ التطبيق</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cashback in Model.CashbackUsages)
+                        {
+                            <tr>
+                                <td>
+                                    @if (cashback.CashbackOffer?.CashbackType == "Percentage")
+                                    {
+                                        <span>نسبة مئوية (@(cashback.CashbackOffer.CashbackVal)%)</span>
+                                    }
+                                    else
+                                    {
+                                        <span>مبلغ ثابت</span>
+                                    }
+                                </td>
+                                <td class="text-success fw-bold">@((int)(cashback?.CashbackVal ?? 0))</td>
+                                <td>
+                                    @{
+                                        string returnType = cashback.CashbackOffer?.ReturnType switch
+                                        {
+                                            "Points" => "نقاط",
+                                            "CashOnWallet" => "رصيد في المحفظة",
+                                            _ => "غير محدد"
+                                        };
+                                    }
+                                    @returnType
+                                </td>
+                                <td>@(cashback.DateUsed) @(cashback.TimeUsed)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="text-end mt-3">
+                    <h5 class="text-success text-start"><strong>إجمالي الكاش باك المستلم:</strong>@((int)Model.TotalCashbackReceived)</h5>
+                </div>
+            }
+            <hr />
+
+            @if (Model.IsFreeMaintenanceOfferActive)
+            {
+                <p class="total-section text-start">تم تطبيق الصيانة المجانية: فواتير تكلفة العمل المتعلقة بهذا السجل  = @(0.ToString("C"))</p>
+            }
+
+            @* Display points discount if exists *@
+            @if (Model.PointsTransaction != null)
+            {
+                <hr />
+                <h4 class="text-primary">خصم النقاط المطبق</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>عدد النقاط المستردة</th>
+                            <th>قيمة الخصم</th>
+                            <th>معدل التحويل</th>
+                            <th>تاريخ التطبيق</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold">@Model.PointsTransaction.PointsRedeemed نقطة</td>
+                            <td class="text-success fw-bold">-@Model.PointsTransaction.AmountDeducted.ToString("C")</td>
+                            <td>@Model.PointsTransaction.PointsToSARRate.ToString("N2") ريال/نقطة</td>
+                            <td>@Model.PointsTransaction.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            }
+
+            @{
+                decimal totalCost = Model.Invoices
+                .Where(i => !(Model.IsFreeMaintenanceOfferActive && i.InvoiceType == "LaborCostInvoice"))
+                .Sum(i => i.InvoiceAmount);
+            }
+            <p class="total-section text-start">التكلفة قبل خصم النقاط: @totalCost.ToString("C")</p>
+            @if (Model.PointsTransaction != null)
+            {
+                <p class="total-section text-start text-success">خصم النقاط: -@Model.PointsTransaction.AmountDeducted.ToString("C")</p>
+                <p class="total-section text-start"><strong>التكلفة الإجمالية النهائية: @Model.FinalTotalAfterDiscounts.ToString("C")</strong></p>
+            }
+            else
+            {
+                <p class="total-section text-start">التكلفة الإجمالية: @totalCost.ToString("C")</p>
+            }
+        </div>
+
+
+
+        <!-- Footer -->
+        <div class="footer">
+            شكراً لاختياركم خدماتنا.
+        </div>
+
+    </div>
+</div>

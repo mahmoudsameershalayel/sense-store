@@ -1,0 +1,841 @@
+@using Sense.Domain.Enums
+@using Sense.Application.DTOs.MaintenanceRecordDTOs
+@using Sense.Infrastructure.Extensions
+@model MaintenanceRecordDetailDto
+@{
+    var statusEnum = (AppointmentStatus)Enum.Parse(typeof(AppointmentStatus), Model?.Appointment?.Status);
+    var arabicStatus = statusEnum.GetDisplayName();
+}
+@section Styles
+{
+    <style type="text/css">
+        body {
+            font-family: 'Arial', sans-serif;
+            direction: rtl;
+            text-align: right;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+        }
+
+        .a4-container {
+            padding: 20mm;
+            margin: auto;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        .invoice-card {
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.05);
+            padding: 30px;
+        }
+
+        .contact-banner {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background: url('@Url.Content("~/assets/img/invoice.jpg")') no-repeat center center/cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .contact-banner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+
+        .contact-banner-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-banner-text h1 {
+            font-size: 3rem;
+            color: white;
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px 10px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .bg-success {
+            background-color: #28a745;
+        }
+
+        .bg-warning {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .bg-danger {
+            background-color: #dc3545;
+        }
+
+        .bg-secondary {
+            background-color: #6c757d;
+        }
+
+        /* Points Redemption Section Styles - Centered and Justified */
+        .points-redemption-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            padding: 0 15px;
+        }
+
+        .points-redemption-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .points-redemption-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .pulse-animation {
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .points-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .points-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .points-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .points-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .points-balance {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .points-display {
+            text-align: center;
+        }
+
+        .points-count {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 3px 6px rgba(0,0,0,0.3);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .points-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            color: #f0f8ff;
+        }
+
+        .points-icon {
+            font-size: 4rem;
+            opacity: 0.6;
+            color: #fff;
+            margin: 0 30px;
+        }
+
+        .conversion-rate {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        .points-form {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .form-row-centered {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .form-control-modern {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 10px;
+            padding: 15px 20px;
+            color: #333;
+            font-size: 1.1rem;
+            min-width: 250px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .form-control-modern:focus {
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
+            outline: none;
+            transform: translateY(-2px);
+        }
+
+        .btn-redeem {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            border-radius: 25px;
+            padding: 15px 35px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(238, 90, 36, 0.4);
+            min-width: 150px;
+            cursor: pointer;
+        }
+
+        .btn-redeem:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(238, 90, 36, 0.6);
+            color: white;
+        }
+
+        .btn-redeem:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .points-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 0.95rem;
+            opacity: 0.9;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .points-info span {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .discount-preview {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .alert-centered {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 768px) {
+            .points-balance {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .points-icon {
+                font-size: 3rem;
+                margin: 15px 0;
+            }
+
+            .form-row-centered {
+                flex-direction: column;
+            }
+
+            .form-control-modern {
+                min-width: 100%;
+            }
+
+            .points-info {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @@media print {
+            @@page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+
+            html, body {
+                width: 210mm;
+                height: 297mm;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .kt-header, .kt-toolbar, .app-header, .app-footer, .kt-aside, .btn, .points-redemption-wrapper {
+                display: none !important;
+            }
+
+            .a4-container {
+                width: 210mm;
+                min-height: 297mm;
+                padding: 20mm;
+                margin: 0;
+                background: white;
+            }
+
+            .invoice-card {
+                border: none;
+                padding: 20px;
+                box-shadow: none;
+            }
+        }
+    </style>
+}
+
+<div class="contact-banner">
+    <div class="contact-banner-text">
+        <h1>”Ã· ’Ì«‰…</h1>
+    </div>
+</div>
+
+<div class="a4-container">
+    <h2 class="text-center mb-4">”Ã· ’Ì«‰… #@Model.Id</h2>
+    
+    <!-- Points Redemption Section - Centered and Justified -->
+    <div class="points-redemption-wrapper" id="pointsRedemptionSection" style="display: none;">
+        <div class="points-redemption-card">
+            <div class="points-content">
+                <div class="points-header">
+                    <div class="points-title">«” —œ«œ «·‰ﬁ«ÿ</div>
+                    <div class="points-subtitle">«Õ’· ⁄·Ï Œ’„ ›Ê—Ì ⁄·Ï ›« Ê—… «·’Ì«‰…</div>
+                </div>
+                
+                <div class="points-balance">
+                    <div class="points-display">
+                        <div class="points-count" id="currentPoints">0</div>
+                        <div class="points-label">«·‰ﬁ«ÿ «·„ «Õ…</div>
+                    </div>
+                    <div class="points-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                </div>
+                
+                <div class="conversion-rate" id="conversionRate">
+                    „⁄œ· «· ÕÊÌ·: 1 ‰ﬁÿ… = 1.00                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+                </div>
+                
+                <div class="points-form">
+                    <form id="pointsRedemptionForm">
+                        <div class="form-row-centered">
+                            <input type="number" class="form-control form-control-modern" 
+                                   id="pointsToRedeem" placeholder="√œŒ· ⁄œœ «·‰ﬁ«ÿ «·„—«œ «” —œ«œÂ«" 
+                                   min="0" max="0">
+                            <button type="submit" class="btn btn-redeem" id="redeemBtn">
+                                <i class="fas fa-gift me-2"></i>
+                                «” —œ«œ «·‰ﬁ«ÿ
+                            </button>
+                        </div>
+                        
+                        <div class="discount-preview" id="discountPreview" style="display: none;">
+                            «·Œ’„ «·„ Êﬁ⁄: <span id="discountAmount">0.00</span>                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>
+                        </div>
+                        
+                        <div class="points-info">
+                            <span>«·Õœ «·√œ‰Ï: <span id="minPoints">100</span> ‰ﬁÿ…</span>
+                            <span>«·Õœ «·√ﬁ’Ï: <span id="maxPoints">10000</span> ‰ﬁÿ…</span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="invoice-card">
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p><strong> «—ÌŒ «·»œ¡:</strong> @(Model.StartDate ?? "·„ Ì „ «· ⁄ÌÌ‰")</p>
+                <p><strong>Êﬁ  «·»œ¡:</strong> @(Model.StartTime ?? "·„ Ì „ «· ⁄ÌÌ‰")</p>
+                <p><strong>ÿ—Ìﬁ… «·œ›⁄:</strong> @(!string.IsNullOrWhiteSpace(Model.PaymentMethod) ? Model.PaymentMethod : "€Ì— „ «Õ")</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <p><strong> «—ÌŒ «·«‰ Â«¡:</strong> @(Model.EndDate ?? "·„ Ì „ «· ⁄ÌÌ‰")</p>
+                <p><strong>Êﬁ  «·«‰ Â«¡:</strong> @(Model.EndTime ?? "·„ Ì „ «· ⁄ÌÌ‰")</p>
+                <p><strong>Õ«·… «·œ›⁄:</strong>
+                    @{
+                        var status = Model.PaymentStatus?.ToLower();
+                        string badge = status switch {
+                            "paid" => "bg-success",
+                            "pending" => "bg-warning text-dark",
+                            "failed" => "bg-danger",
+                            _ => "bg-secondary"
+                        };
+                        string label = status switch {
+                            "paid" => "„œ›Ê⁄",
+                            "pending" => "ﬁÌœ «·«‰ Ÿ«—",
+                            "failed" => "›‘· «·œ›⁄",
+                            _ => "€Ì— „⁄—Ê›"
+                        };
+                    }
+                    <span class="badge @badge">@label</span>
+                </p>
+            </div>
+        </div>
+
+        <hr />
+        <h4 class="text-primary"> ›«’Ì· «·ÕÃ“</h4>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p><strong>—ﬁ„ «·ÕÃ“:</strong> @Model.Appointment?.Id</p>
+                <p><strong>„ÊœÌ· «·”Ì«—…:</strong> @Model.Appointment?.ModelYear</p>
+                <p><strong>«·Œœ„…:</strong> @Model.Appointment?.Service?.TitleAr</p>
+            </div>
+            <div class="col-md-6 text-end">
+            
+                <p><strong> «—ÌŒ «·ÕÃ“:</strong> @Model.Appointment?.ScheduledDate</p>
+                <p><strong>«·Êﬁ :</strong> @Model.Appointment?.ScheduledTime</p>
+                @{
+                    string statusBadge = Model?.Appointment?.Status switch
+                    {
+                        "Completed" => "badge-success",
+                        "Pending" => "badge-warning",
+                        "Scheduled" => "badge-primary",
+                        "Canceled" => "badge-danger",
+                        "Rejected" => "badge-danger",
+                        "Accepted" => "badge-info",
+                        _ => "badge-info"
+                    };
+                }
+                <p><strong>«·Õ«·…:</strong><span class="badge @statusBadge">@arabicStatus</span></p>
+               
+            </div>
+        </div>
+
+        <hr />
+        <h4 class="text-primary">„⁄·Ê„«  «·⁄„Ì·</h4>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p><strong>«·«”„:</strong> @Model.Appointment?.Customer?.FullName</p>
+                <p><strong>«·»—Ìœ:</strong> @Model.Appointment?.Customer?.Email</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <p><strong>—ﬁ„ «·Â« ›:</strong> @Model.Appointment?.Customer?.PhoneNumber</p>
+            </div>
+        </div>
+
+        <hr />
+        <h4 class="text-primary">„⁄·Ê„«  «·„‘—›</h4>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p><strong>«·«”„:</strong> @Model.Appointment?.Supervisor?.FullName</p>
+                <p><strong>«·»—Ìœ:</strong> @Model.Appointment?.Supervisor?.Email</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <p><strong>—ﬁ„ «·Â« ›:</strong> @Model.Appointment?.Supervisor?.PhoneNumber</p>
+            </div>
+        </div>
+
+        <hr />
+        <h4 class="text-primary">„⁄·Ê„«  «·›—⁄</h4>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p><strong>«”„ «·›—⁄:</strong> @Model.Appointment?.Branch?.BranchName</p>
+                <p><strong>«·⁄‰Ê«‰:</strong> @Model.Appointment?.Branch?.BranchAddress</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <p><strong>—ﬁ„ «·Â« ›:</strong> @Model.Appointment?.Branch?.PhoneNumber</p>
+            </div>
+        </div>
+
+        @if (Model.Invoices.Any())
+        {
+            <hr />
+            <h4 class="text-primary">«·›Ê« Ì—</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>—ﬁ„ «·›« Ê—…</th>
+                        <th>„»·€ «·›« Ê—…</th>
+                        <th>‰Ê⁄ «·›« Ê—…</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var invoice in Model.Invoices)
+                    {
+                        <tr>
+                            <td>#@(invoice.InvoiceNo)</td>
+                            <td>
+                                @if (!(Model.IsFreeMaintenanceOfferActive && invoice.InvoiceType == "LaborCostInvoice"))
+                                {
+                                    @invoice.InvoiceAmount.ToString("C")
+                                }
+                                else
+                                {
+                                    <del>
+                                        @invoice.InvoiceAmount.ToString("C")
+                                    </del>
+                                }
+                            </td>
+                            <td>@{
+                                    var typeEnum = (InvoiceType)Enum.Parse(typeof(InvoiceType), invoice.InvoiceType);
+                                    var arabicType = typeEnum.GetDisplayName();
+                                }
+                                @(arabicType) 
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+   
+
+        @if (Model.CashbackUsages.Any())
+        {
+            <hr />
+            <h4 class="text-primary">«·ﬂ«‘ »«ﬂ «·„ÿ»ﬁ</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>‰Ê⁄ «·⁄—÷</th>
+                        <th>ﬁÌ„… «·ﬂ«‘ »«ﬂ</th>
+                        <th>‰Ê⁄ «·≈—Ã«⁄</th>
+                        <th> «—ÌŒ «· ÿ»Ìﬁ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var cashback in Model.CashbackUsages)
+                    {
+                        <tr>
+                            <td>
+                                @if (cashback.CashbackOffer?.CashbackType == "Percentage")
+                                {
+                                    <span>‰”»… „∆ÊÌ… (@(cashback.CashbackOffer.CashbackVal)%)</span>
+                                }
+                                else
+                                {
+                                    <span>„»·€ À«» </span>
+                                }
+                            </td>
+                            <td class="text-success fw-bold">@((int)(cashback?.CashbackVal ?? 0))</td>
+                            <td>
+                                @{
+                                    string returnType = cashback.CashbackOffer?.ReturnType switch
+                                    {
+                                        "Points" => "‰ﬁ«ÿ",
+                                        "CashOnWallet" => "—’Ìœ ›Ì «·„Õ›Ÿ…",
+                                        _ => "€Ì— „Õœœ"
+                                    };
+                                }
+                                @returnType
+                            </td>
+                            <td>@(cashback.DateUsed) @(cashback.TimeUsed)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            
+            <div class="text-end mt-3">
+                <h5 class="text-success text-end"><strong>≈Ã„«·Ì «·ﬂ«‘ »«ﬂ «·„” ·„:</strong>@((int)Model.TotalCashbackReceived)</h5>
+            </div>
+        }
+        <hr />
+
+        @if (Model.IsFreeMaintenanceOfferActive)
+        {
+            <div class="text-end mt-3">
+                <h5><strong> „  ÿ»Ìﬁ ⁄—÷ ’Ì«‰… „Ã«‰Ì…:</strong>  „  ﬁ·Ì·  ﬂ·›… «·⁄„· ≈·Ï 0.00</h5>
+            </div>
+        }
+        @{
+            decimal totalCost = Model.Invoices
+            .Where(i => !(Model.IsFreeMaintenanceOfferActive && i.InvoiceType == "LaborCostInvoice"))
+            .Sum(i => i.InvoiceAmount);
+        }
+        <div class="text-end mt-4">
+            <p id="pointsDiscountRow" style="display: none;"><strong>Œ’„ «·‰ﬁ«ÿ:</strong> -<span id="pointsDiscountAmount">0.00</span> —Ì«·</p>
+            <h4><strong>«· ﬂ·›… «·≈Ã„«·Ì…:</strong> <span id="finalTotal">@totalCost.ToString("C")</span></h4>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+       @{
+            decimal totalCost = Model.Invoices
+            .Where(i => !(Model.IsFreeMaintenanceOfferActive && i.InvoiceType == "LaborCostInvoice"))
+            .Sum(i => i.InvoiceAmount);
+        }
+    let pointsInfo = null;
+    let originalTotal = @totalCost;
+    
+    // Load points information when page loads
+    $(document).ready(function() {
+        loadPointsInfo();
+    });
+    
+    function loadPointsInfo() {
+        $.ajax({
+                url: '@Url.Action("InfoMaintenance", "Points")?maintenanceId=@Model.Id',
+                method: 'GET',
+                success: function(response) {
+                    if (response.result.code === 200) {
+                        pointsInfo = response.data;
+                        updatePointsUI();
+                        
+                        // If already redeemed, check for existing transaction and show discount
+                        if (pointsInfo.data.alreadyRedeemed) {
+                            loadExistingTransaction();
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    console.log('Error loading points info:', xhr.responseText);
+                }
+            });
+    }
+    
+    function loadExistingTransaction() {
+        $.ajax({
+            url: '@Url.Action("GetTransactionByMaintenance", "Points")?maintenanceId=@Model.Id',
+            method: 'GET',
+            success: function(response) {
+                if (response.result && response.result.code === 200 && response.data) {
+                    // Show the existing discount
+                    const discountAmount = response.data.amountDeducted;
+                    const newTotal = originalTotal - discountAmount;
+                    
+                    $('#pointsDiscountAmount').text(discountAmount.toFixed(2));
+                    $('#pointsDiscountRow').show();
+                    $('#finalTotal').text(newTotal.toFixed(2) + '                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>');
+                }
+            },
+            error: function(xhr) {
+                // If transaction not found, ignore the error
+                console.log('No existing transaction found');
+            }
+        });
+    }
+    
+    function updatePointsUI() {
+        if (!pointsInfo) return;
+        
+        $('#currentPoints').text(pointsInfo.data.currentPoints);
+        $('#minPoints').text(pointsInfo.data.minRedeemPoints);
+        $('#maxPoints').text(pointsInfo.data.maxRedeemPoints);
+        $('#pointsToRedeem').attr('max', Math.min(pointsInfo.data.currentPoints, pointsInfo.data.maxRedeemPoints));
+        $('#conversionRate').text(`„⁄œ· «· ÕÊÌ·: 1 ‰ﬁÿ… = ${pointsInfo.data.pointsToSARRate.toFixed(2)}                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>`);
+        
+        if (pointsInfo.data.canRedeem && !pointsInfo.data.alreadyRedeemed) {
+            $('#pointsRedemptionSection').show();
+            $('#redeemBtn').prop('disabled', false);
+        } else {
+            if (pointsInfo.data.alreadyRedeemed) {
+                showAlreadyRedeemedMessage();
+            } else {
+                $('#pointsRedemptionSection').hide();
+            }
+        }
+    }
+    
+    function showAlreadyRedeemedMessage() {
+        $('#pointsRedemptionSection').show();
+        $('.points-form').html(`
+            <div class="alert-centered">
+                <i class="fas fa-info-circle me-2"></i>
+                 „ «” —œ«œ «·‰ﬁ«ÿ „”»ﬁ« ·”Ã· «·’Ì«‰… Â–«
+            </div>
+        `);
+    }
+    
+    // Handle points input change with real-time preview
+    $('#pointsToRedeem').on('input', function() {
+        const points = parseInt($(this).val()) || 0;
+        if (points > 0 && pointsInfo && pointsInfo.data) {
+            const discountAmount = points * pointsInfo.data.pointsToSARRate;
+            $('#discountAmount').text(discountAmount.toFixed(2));
+            $('#discountPreview').show();
+        } else {
+            $('#discountPreview').hide();
+        }
+    });
+    
+    // Handle points redemption form submission
+    $('#pointsRedemptionForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const pointsToRedeem = parseInt($('#pointsToRedeem').val());
+        
+        if (!pointsToRedeem || pointsToRedeem < pointsInfo.data.minRedeemPoints) {
+            Swal.fire({
+                icon: 'warning',
+                title: ' Õ–Ì—',
+                text: `«·Õœ «·√œ‰Ï ·«” —œ«œ «·‰ﬁ«ÿ ÂÊ ${pointsInfo.data.minRedeemPoints} ‰ﬁÿ…`,
+                confirmButtonText: 'Õ”‰«'
+            });
+            return;
+        }
+        
+        if (pointsToRedeem > pointsInfo.data.maxRedeemPoints) {
+            Swal.fire({
+                icon: 'warning',
+                title: ' Õ–Ì—',
+                text: `«·Õœ «·√ﬁ’Ï ·«” —œ«œ «·‰ﬁ«ÿ ÂÊ ${pointsInfo.data.maxRedeemPoints} ‰ﬁÿ…`,
+                confirmButtonText: 'Õ”‰«'
+            });
+            return;
+        }
+        
+        if (pointsToRedeem > pointsInfo.data.currentPoints) {
+            Swal.fire({
+                icon: 'warning',
+                title: ' Õ–Ì—',
+                text: '—’Ìœ «·‰ﬁ«ÿ €Ì— ﬂ«›Ì',
+                confirmButtonText: 'Õ”‰«'
+            });
+            return;
+        }
+        
+        redeemPoints(pointsToRedeem);
+    });
+    
+    function redeemPoints(pointsToRedeem) {
+        const redeemData = {
+            pointsToRedeem: pointsToRedeem,
+            maintenanceRecordId: @Model.Id
+        };
+        
+        $('#redeemBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Ã«—Ì «·«” —œ«œ...');
+        
+         $.ajax({
+            url: '@Url.Action("Redeem", "Points")',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(redeemData),
+            success: function(response) {
+                if (response.result.code === 200) {
+                    const discountAmount = response.data.amountDeducted;
+                    const newTotal = originalTotal - discountAmount;
+
+                    // Update UI
+                    $('#pointsDiscountAmount').text(discountAmount.toFixed(2));
+                    $('#pointsDiscountRow').show();
+                    $('#finalTotal').text(newTotal.toFixed(2) + '                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg>');
+                    $('#currentPoints').text(response.data.remainingPoints);
+
+                    showAlreadyRedeemedMessage();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: ' „ «·«” —œ«œ »‰Ã«Õ!',
+                        text: ` „ Œ’„ ${discountAmount.toFixed(2)}                         <svg class="riyal-svg currency" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="15" height="15" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:-0.125em"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z" /></svg> „‰ ≈Ã„«·Ì «·›« Ê—…`,
+                        confirmButtonText: '„„ «“!'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Œÿ√',
+                        text: response.result.message || 'ÕœÀ Œÿ√ √À‰«¡ «” —œ«œ «·‰ﬁ«ÿ',
+                        confirmButtonText: 'Õ”‰«'
+                    });
+                }
+            },
+            error: function(xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Œÿ√',
+                    text: 'ÕœÀ Œÿ√ √À‰«¡ «·« ’«· »«·Œ«œ„',
+                    confirmButtonText: 'Õ”‰«'
+                });
+            },
+            complete: function() {
+                $('#redeemBtn').prop('disabled', false).html('<i class="fas fa-gift me-2"></i>«” —œ«œ «·‰ﬁ«ÿ');
+            }
+});
+    }
+</script>
+}

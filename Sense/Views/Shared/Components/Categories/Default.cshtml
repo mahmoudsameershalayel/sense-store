@@ -1,0 +1,34 @@
+@using Sense.Application.DTOs.CategoryDTOs
+@{
+    var categories = ViewBag.Categories as List<CategoryDto> ?? new List<CategoryDto>();
+}
+
+@if (categories.Any())
+{
+    <!-- تسوق حسب الفئة -->
+    <section id="categories" class="sf-section sf-section--tight bg-white border-bottom" dir="rtl">
+        <div class="container">
+            <div class="sf-section-head" style="margin-bottom:18px;">
+                <div class="sf-section-head__titles">
+                    <span class="sf-kicker">الفئات</span>
+                    <h2 class="sf-title" style="font-size:1.3rem;">تسوّق حسب الفئة</h2>
+                </div>
+            </div>
+
+            <div class="swiper categorySwiper">
+                <div class="swiper-wrapper text-center">
+                    @foreach (var category in categories)
+                    {
+                        <a asp-controller="Home" asp-action="Index" asp-route-ProductCategoryId="@category.Id" class="swiper-slide sf-category-item">
+                            <img src="@category.ImageURL" alt="@category.Name" loading="lazy">
+                            <span>@category.Name</span>
+                        </a>
+                    }
+                </div>
+
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
+        </div>
+    </section>
+}
