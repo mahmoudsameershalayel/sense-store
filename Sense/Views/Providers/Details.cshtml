@@ -1,6 +1,7 @@
 @using Sense.Domain.DBEntities
 @using Sense.Application.DTOs.ProviderDTOs
 @model ProviderDto
+@inject Ganss.Xss.IHtmlSanitizer HtmlSanitizer
 
 @{
     var products = ViewBag.Products as List<ProductTbl> ?? new List<ProductTbl>();
@@ -114,7 +115,7 @@
             <h1 class="provider-name">@Model.DisplayName</h1>
             @if (!string.IsNullOrWhiteSpace(Model.Description))
             {
-                <p class="provider-description">@Model.Description</p>
+                <div class="provider-description">@Html.Raw(HtmlSanitizer.Sanitize(Model.Description))</div>
             }
         </div>
     </div>

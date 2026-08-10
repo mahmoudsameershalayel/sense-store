@@ -22,6 +22,16 @@ namespace Sense.Application.DTOs.OrderDTOs
 
         public CustomerDto? Customer { get; set; }
         public AddressDto? Address { get; set; }
+        public List<ProviderWhatsAppOrderDto> ProviderWhatsAppOrders { get; set; } = new();
     }
 
+    public class ProviderWhatsAppOrderDto
+    {
+        public int ProviderId { get; set; }
+        public string ProviderName { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public string? WhatsAppUrl { get; set; }
+        public bool CanSend => !string.IsNullOrWhiteSpace(WhatsAppUrl);
+    }
 }

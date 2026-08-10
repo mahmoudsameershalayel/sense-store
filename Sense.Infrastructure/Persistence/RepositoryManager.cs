@@ -26,7 +26,10 @@ using Sense.Application.OrderDetailsRepositories;
 using Sense.Application.OrderRepositories;
 using Sense.Application.PhoneVerificationRepositories;
 using Sense.Application.PointsTransactionRepositories;
+using Sense.Application.PartnerInquiryRepositories;
 using Sense.Application.ProductRepositories;
+using Sense.Application.ServiceListingRepositories;
+using Sense.Application.ServiceProviderRepositories;
 using Sense.Application.ServiceRepositories;
 using Sense.Application.ShoppingCartRepositories;
 using Sense.Application.StatementRepositories;
@@ -73,6 +76,9 @@ namespace Sense.Application
         private readonly Lazy<IPointsTransactionRepository> _pointsTransaction;
         private readonly Lazy<IProductRepository> _product;
         private readonly Lazy<IProviderRepository> _provider;
+        private readonly Lazy<IServiceListingRepository> _serviceListing;
+        private readonly Lazy<IServiceProviderRepository> _serviceProvider;
+        private readonly Lazy<IPartnerInquiryRepository> _partnerInquiry;
         private readonly Lazy<IPhoneVerificationRepository> _phone;
         private readonly Lazy<ISupervisorRepository> _supervisor;
         private readonly Lazy<IStatementRepository> _statement;
@@ -114,6 +120,9 @@ namespace Sense.Application
             _pointsTransaction = new Lazy<IPointsTransactionRepository>(() => new PointsTransactionRepository(context));
             _product = new Lazy<IProductRepository>(() => new ProductRepository(context));
             _provider = new Lazy<IProviderRepository>(() => new ProviderRepositories.ProviderRepository(context));
+            _serviceListing = new Lazy<IServiceListingRepository>(() => new ServiceListingRepositories.ServiceListingRepository(context));
+            _serviceProvider = new Lazy<IServiceProviderRepository>(() => new ServiceProviderRepositories.ServiceProviderRepository(context));
+            _partnerInquiry = new Lazy<IPartnerInquiryRepository>(() => new PartnerInquiryRepositories.PartnerInquiryRepository(context));
             _phone = new Lazy<IPhoneVerificationRepository>(() => new PhoneVerificationRepository(context));
             _supervisor = new Lazy<ISupervisorRepository>(() => new SupervisorRepository(context));
             _statement = new Lazy<IStatementRepository>(() => new StatementRepository(context));
@@ -202,6 +211,15 @@ namespace Sense.Application
 
         public IProviderRepository Provider
            => _provider.Value;
+
+        public IServiceListingRepository ServiceListing
+           => _serviceListing.Value;
+
+        public IServiceProviderRepository ServiceProvider
+           => _serviceProvider.Value;
+
+        public IPartnerInquiryRepository PartnerInquiry
+           => _partnerInquiry.Value;
 
         public IPhoneVerificationRepository PhoneVerification
           => _phone.Value;

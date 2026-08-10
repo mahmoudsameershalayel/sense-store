@@ -1,0 +1,68 @@
+@{
+    ViewData["Title"] = "شروط الانضمام كمزوّد";
+}
+
+@section Styles
+{
+    <style>
+        .provider-terms-hero {
+            background: linear-gradient(135deg, #061c42 0%, #253f8e 100%);
+            color: #fff;
+            padding: 48px 0;
+        }
+
+        .provider-terms-card {
+            border: 0;
+            border-radius: 18px;
+            box-shadow: 0 16px 45px rgba(6, 28, 66, .11);
+        }
+
+        .provider-terms-list {
+            padding-right: 1.25rem;
+            line-height: 2;
+        }
+
+        .provider-terms-list li + li {
+            margin-top: .65rem;
+        }
+    </style>
+}
+
+<section class="provider-terms-hero text-center">
+    <div class="container">
+        <h1 class="text-white mb-2">شروط الانضمام كمزوّد</h1>
+        <p class="mb-0 opacity-75">يرجى قراءة الشروط التالية قبل إنشاء حساب المزود.</p>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container" style="max-width: 900px;">
+        <div class="card provider-terms-card">
+            <div class="card-body p-4 p-lg-5">
+                <h2 class="h4 mb-4" style="color:#061c42;">شروط استخدام حساب المزود</h2>
+
+                <ol class="provider-terms-list mb-4">
+                    <li>يجب تقديم بيانات صحيحة ومحدثة عن المزود والنشاط التجاري، ويتحمل المزود مسؤولية دقتها.</li>
+                    <li>لا يجوز عرض منتجات محظورة أو مقلدة أو مخالفة للأنظمة، أو منتجات لا يملك المزود حق بيعها.</li>
+                    <li>يلتزم المزود بأن تكون أوصاف المنتجات وصورها وأسعارها وكمياتها المتاحة واضحة وصحيحة.</li>
+                    <li>يتحمل المزود مسؤولية جودة المنتجات وسلامتها وتجهيز الطلبات وتسليمها ضمن المدة المتفق عليها.</li>
+                    <li>يلتزم المزود بالتعامل المهني مع العملاء واحترام سياسات الاسترجاع والاستبدال المعتمدة في المتجر.</li>
+                    <li>يجب الحفاظ على سرية بيانات الدخول وعدم مشاركة الحساب مع أشخاص غير مخولين.</li>
+                    <li>لا يجوز استخدام بيانات العملاء خارج نطاق تنفيذ الطلب أو مشاركتها مع أي طرف غير مخول.</li>
+                    <li>يحق لإدارة Sense Store إخفاء أي منتج مخالف أو تعليق حساب المزود عند إساءة الاستخدام أو مخالفة هذه الشروط.</li>
+                    <li>قد تُحدّث هذه الشروط عند الحاجة، ويُعد استمرار استخدام حساب المزود موافقة على النسخة المحدثة.</li>
+                </ol>
+
+                <div class="alert alert-info mb-4" role="note">
+                    بإنشاء حساب مزود، فإنك تؤكد قراءة هذه الشروط وفهمها والموافقة عليها.
+                </div>
+
+                <a asp-controller="ProviderRegistration"
+                   asp-action="Index"
+                   class="btn btn-primary px-4">
+                    العودة إلى تسجيل المزود
+                </a>
+            </div>
+        </div>
+    </div>
+</section>

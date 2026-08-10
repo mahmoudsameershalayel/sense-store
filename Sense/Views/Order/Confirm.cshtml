@@ -1134,6 +1134,101 @@
             background: var(--primary-blue);
             border-radius: 4px;
         }
+
+        /* ===== WhatsApp order handoff ===== */
+        .checkout-whatsapp-summary {
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .checkout-whatsapp-summary__intro {
+            margin: 0 0 16px;
+            color: #5f6b7a;
+            font-size: 0.93rem;
+            line-height: 1.8;
+        }
+
+        .checkout-whatsapp-summary__links {
+            display: grid;
+            gap: 10px;
+        }
+
+        .checkout-whatsapp-provider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            min-height: 58px;
+            padding: 11px 14px;
+            border: 1px solid rgba(37, 211, 102, 0.3);
+            border-radius: 14px;
+            color: #fff;
+            background: linear-gradient(135deg, #128c4a, #25a85a);
+            box-shadow: 0 8px 20px rgba(18, 140, 74, 0.18);
+            text-decoration: none;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .checkout-whatsapp-provider:hover,
+        .checkout-whatsapp-provider:focus-visible {
+            color: #fff;
+            box-shadow: 0 11px 24px rgba(18, 140, 74, 0.26);
+            transform: translateY(-2px);
+            outline: none;
+        }
+
+        .checkout-whatsapp-provider > .fa-whatsapp {
+            flex: 0 0 auto;
+            font-size: 1.65rem;
+        }
+
+        .checkout-whatsapp-provider__copy {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .checkout-whatsapp-provider__copy span {
+            font-size: 0.76rem;
+            opacity: 0.86;
+        }
+
+        .checkout-whatsapp-provider__copy strong {
+            overflow: hidden;
+            font-size: 0.94rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .checkout-whatsapp-provider > .fa-arrow-left {
+            flex: 0 0 auto;
+            font-size: 0.85rem;
+        }
+
+        .checkout-whatsapp-provider--unavailable {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border: 1px solid #f0d7a5;
+            border-radius: 12px;
+            color: #7a5a18;
+            background: #fff8e8;
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        .checkout-success-popup {
+            border-radius: 20px !important;
+        }
+
+        @@media (max-width: 575px) {
+            .checkout-whatsapp-provider {
+                min-height: 54px;
+            }
+        }
     </style>
 }
 
@@ -1426,7 +1521,6 @@
 
 @section Scripts
 {
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.29/dist/sweetalert2.all.min.js"></script>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script type="text/javascript">
         let map;
@@ -1666,6 +1760,61 @@
         }
         var couponCodeFromServer = '@(ViewBag.CouponCode ?? "")';
 
+        function escapeCheckoutHtml(value) {
+            const element = document.createElement('div');
+            element.textContent = value == null ? '' : String(value);
+            return element.innerHTML;
+        }
+
+        function buildWhatsAppHandoffHtml(orderData) {
+            const providerOrders = Array.isArray(orderData?.providerWhatsAppOrders)
+                ? orderData.providerWhatsAppOrders
+                : [];
+
+            if (!providerOrders.length) {
+                return `
+                    <div class="checkout-whatsapp-summary" dir="rtl">
+                        <p class="checkout-whatsapp-summary__intro">
+                            تم حفظ الطلب، لكن لا يوجد رقم واتساب متاح للمزوّد حالياً. يمكنك متابعة الطلب من صفحة التفاصيل.
+                        </p>
+                    </div>`;
+            }
+
+            const links = providerOrders.map(function (providerOrder) {
+                const providerName = escapeCheckoutHtml(providerOrder.providerName || 'المزوّد');
+                const whatsappUrl = providerOrder.whatsAppUrl;
+
+                if (providerOrder.canSend && typeof whatsappUrl === 'string' && whatsappUrl.startsWith('https://wa.me/')) {
+                    return `
+                        <a class="checkout-whatsapp-provider"
+                           href="${escapeCheckoutHtml(whatsappUrl)}"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                            <span class="checkout-whatsapp-provider__copy">
+                                <span>إرسال تفاصيل الطلب عبر واتساب إلى</span>
+                                <strong>${providerName}</strong>
+                            </span>
+                            <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                        </a>`;
+                }
+
+                return `
+                    <div class="checkout-whatsapp-provider--unavailable">
+                        <i class="fas fa-phone-slash" aria-hidden="true"></i>
+                        <span>لا يوجد رقم واتساب صالح للمزوّد <strong>${providerName}</strong>.</span>
+                    </div>`;
+            }).join('');
+
+            return `
+                <div class="checkout-whatsapp-summary" dir="rtl">
+                    <p class="checkout-whatsapp-summary__intro">
+                        تم حفظ طلبك. اضغط على الزر التالي لفتح واتساب وإرسال رسالة جاهزة بجميع تفاصيل الطلب إلى كل مزوّد.
+                    </p>
+                    <div class="checkout-whatsapp-summary__links">${links}</div>
+                </div>`;
+        }
+
         // Submit checkout
         $('#checkoutForm').submit(function (e) {
             e.preventDefault();
@@ -1701,14 +1850,20 @@
                     submitBtn.prop('disabled', false).html(originalText);
 
                     if (res.success) {
+                        const orderId = res.data.id;
                         Swal.fire({
-                            title: 'تم',
-                            text: res.message || 'تم إرسال الطلب بنجاح',
+                            title: 'تم حفظ طلبك بنجاح',
+                            html: buildWhatsAppHandoffHtml(res.data),
                             icon: 'success',
-                            confirmButtonText: 'عرض الطلب',
-                            confirmButtonColor: '#48bb78'
+                            confirmButtonText: 'عرض تفاصيل الطلب',
+                            confirmButtonColor: '#061C42',
+                            customClass: {
+                                popup: 'checkout-success-popup'
+                            },
+                            width: 620,
+                            allowOutsideClick: false
                         }).then(() => {
-                            window.location.href = '@Url.Action("Details", "Order")/' + res.data.id;
+                            window.location.href = '@Url.Action("Details", "Order")/' + orderId;
                         });
                     } else {
                         Swal.fire('خطأ', res.message || 'حدث خطأ أثناء إرسال الطلب', 'error');

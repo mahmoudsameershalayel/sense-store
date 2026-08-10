@@ -7,6 +7,7 @@ namespace Sense.Components
 {
     public class IsAuthenticateViewComponent : ViewComponent
     {
+        private static readonly object RequestCacheKey = new();
         private readonly UserManager<ApplicationUserTbl> _userManager;
 
         public IsAuthenticateViewComponent(UserManager<ApplicationUserTbl> userManager)
@@ -16,15 +17,29 @@ namespace Sense.Components
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var user = await _userManager.GetUserAsync(HttpContext.User); // Get the logged-in user
-
-            if (user != null && HttpContext.User.Identity.IsAuthenticated)
+            if (HttpContext.User.Identity?.IsAuthenticated != true)
             {
-                var profileImagePath = user.ImageURL; // Use default if null
-                return View(new IsAuthenticateDto { FullName = $"{user.FirstName} {user.LastName}" , ImageURL = profileImagePath}); // Return the username and image path to the view
+                return View(new IsAuthenticateDto { FullName = "", ImageURL = null });
             }
 
-            return View(new IsAuthenticateDto { FullName = "", ImageURL = null }); // Return default avatar if not authenticated
+            ApplicationUserTbl? user;
+            if (HttpContext.Items.TryGetValue(RequestCacheKey, out var cachedUser))
+            {
+                user = cachedUser as ApplicationUserTbl;
+            }
+            else
+            {
+                user = await _userManager.GetUserAsync(HttpContext.User);
+                HttpContext.Items[RequestCacheKey] = user;
+            }
+
+            return user == null
+                ? View(new IsAuthenticateDto { FullName = "", ImageURL = null })
+                : View(new IsAuthenticateDto
+                {
+                    FullName = $"{user.FirstName} {user.LastName}",
+                    ImageURL = user.ImageURL
+                });
         }
     }
 }

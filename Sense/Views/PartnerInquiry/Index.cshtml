@@ -1,0 +1,176 @@
+@{
+    ViewData["Title"] = "قدّم خدمتك أو منتجك";
+}
+
+@section Styles
+{
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.5.2/dist/sweetalert2.min.css" rel="stylesheet">
+
+    <style type="text/css">
+        .sf-contact-form {
+            padding: 28px;
+        }
+
+        .sf-contact-label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--sf-ink);
+            margin-bottom: 6px;
+        }
+
+        .sf-contact-input {
+            width: 100%;
+            border: 1px solid var(--sf-border);
+            border-radius: var(--sf-radius-sm);
+            padding: 11px 14px;
+            font-size: 0.95rem;
+            color: var(--sf-ink);
+            background-color: var(--sf-surface);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+            .sf-contact-input:focus {
+                outline: none;
+                border-color: var(--sf-navy-soft);
+                box-shadow: 0 0 0 3px rgba(37, 63, 142, 0.12);
+            }
+
+        textarea.sf-contact-input {
+            resize: vertical;
+            min-height: 160px;
+        }
+    </style>
+}
+
+<div class="sf-page-head" dir="rtl">
+    <div class="container">
+        <ul class="sf-breadcrumb">
+            <li><a href="/">الرئيسية</a></li>
+            <li>قدّم خدمتك أو منتجك</li>
+        </ul>
+        <h1>قدّم خدمتك أو منتجك</h1>
+        <p class="sf-page-head__desc">
+            عرّفنا بنفسك وبما ترغب في تقديمه، وسيتواصل معك فريقنا في أقرب وقت.
+        </p>
+    </div>
+</div>
+
+<section id="partner-inquiry" class="sf-section sf-section--muted" dir="rtl">
+    <div class="container">
+        <div class="row gy-4">
+            <div class="col-lg-12">
+                <div class="sf-panel sf-contact-form">
+                    <form id="partnerInquiryForm" method="post">
+                        <div class="row gy-3">
+                            <div class="col-md-6">
+                                <label for="fullName-field" class="sf-contact-label">الاسم الكامل</label>
+                                <input type="text" name="fullName" id="fullName-field" class="sf-contact-input" required placeholder="أدخل اسمك الكامل">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="brandName-field" class="sf-contact-label">اسم النشاط / العلامة</label>
+                                <input type="text" name="brandName" id="brandName-field" class="sf-contact-input" required placeholder="أدخل اسم نشاطك أو علامتك">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="phoneNumber-field" class="sf-contact-label">رقم الهاتف</label>
+                                <input type="tel" dir="ltr" name="phoneNumber" id="phoneNumber-field" class="sf-contact-input" required placeholder="05xxxxxxxx">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="offerType-field" class="sf-contact-label">هل تقدم خدمة أم منتج؟</label>
+                                <select name="offerType" id="offerType-field" class="sf-contact-input" required>
+                                    <option value="1">خدمة</option>
+                                    <option value="2">منتج</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label for="description-field" class="sf-contact-label">قدّم خدمتك أو منتجك</label>
+                                <textarea class="sf-contact-input" name="description" rows="6" id="description-field" required placeholder="أخبرنا عن الخدمة أو المنتج الذي ترغب في تقديمه"></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button class="sf-btn sf-btn--primary w-100" type="submit">
+                                <i class="bi bi-send"></i>
+                                إرسال الطلب
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            $("#partnerInquiryForm").submit(function (event) {
+                event.preventDefault();
+
+                let isValid = true;
+                let fullName = $("#fullName-field").val();
+                let brandName = $("#brandName-field").val();
+                let phoneNumber = $("#phoneNumber-field").val();
+                let offerType = $("#offerType-field").val();
+                let description = $("#description-field").val();
+
+                if (fullName.trim() === "") {
+                    isValid = false;
+                    Swal.fire({ title: 'الرجاء إدخال اسمك الكامل', icon: 'warning', confirmButtonText: 'موافق' });
+                } else if (brandName.trim() === "") {
+                    isValid = false;
+                    Swal.fire({ title: 'الرجاء إدخال اسم النشاط أو العلامة', icon: 'warning', confirmButtonText: 'موافق' });
+                } else if (phoneNumber.trim() === "") {
+                    isValid = false;
+                    Swal.fire({ title: 'الرجاء إدخال رقم الهاتف', icon: 'warning', confirmButtonText: 'موافق' });
+                } else if (description.trim() === "") {
+                    isValid = false;
+                    Swal.fire({ title: 'الرجاء تقديم خدمتك أو منتجك', icon: 'warning', confirmButtonText: 'موافق' });
+                }
+
+                if (isValid) {
+                    var formData = {
+                        fullName: fullName,
+                        brandName: brandName,
+                        phoneNumber: phoneNumber,
+                        offerType: parseInt(offerType),
+                        description: description,
+                    };
+
+                    $.ajax({
+                        url: '@Url.Action("Add", "PartnerInquiry")',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(formData),
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    title: 'تم الإرسال بنجاح',
+                                    text: 'شكراً لتواصلك معنا. سيتم الرد عليك قريباً.',
+                                    icon: 'success',
+                                    confirmButtonText: 'موافق'
+                                });
+                                $("#partnerInquiryForm")[0].reset();
+                            } else {
+                                Swal.fire({
+                                    title: 'حدث خطأ',
+                                    text: 'لم يتم إرسال الطلب. الرجاء المحاولة مرة أخرى.',
+                                    icon: 'error',
+                                    confirmButtonText: 'موافق'
+                                });
+                            }
+                        },
+                        error: function () {
+                            Swal.fire({
+                                title: 'حدث خطأ في إرسال البيانات',
+                                text: 'رجاءً حاول مرة أخرى.',
+                                icon: 'error',
+                                confirmButtonText: 'موافق'
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

@@ -1,51 +1,533 @@
-﻿@{
+@{
     ViewData["Title"] = "من نحن";
 }
-<section id="aboutUs" class="aboutUs section mt-5">
-    <div class="container py-5">
-        <div class="row align-items-center mb-5">
-            <div class="col-lg-6">
-                <h1 class="display-5 fw-bold mb-4">من نحن</h1>
-                <p class="lead text-muted">
-                    نحن مركز صيانة متكامل يهتم بكل تفاصيل سيارتك، بدءًا من الفحص الفني وحتى الصيانة الشاملة. كما نوفر متجرًا إلكترونيًا متخصصًا في بيع قطع الغيار الأصلية والمعتمدة لمختلف أنواع السيارات.
-                </p>
-                <p class="text-muted">
-                    يجمع نظامنا بين الخبرة الفنية العالية وفريق الدعم المحترف مع حلول تقنية ذكية لتقديم تجربة متكاملة وسهلة للعملاء. سواء كنت تبحث عن خدمة صيانة دورية أو تحتاج إلى قطعة غيار محددة – نحن هنا لخدمتك بكفاءة وموثوقية.
-                </p>
-            </div>
-            <div class="col-lg-6 text-center">
-                <img src="https://cdn-icons-png.flaticon.com/512/679/679922.png" class="img-fluid rounded-4 shadow" alt="About us image" style="max-height: 350px;">
-            </div>
-        </div>
 
-        <div class="row text-center">
-            <div class="col-md-4 mb-4">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body">
-                        <i class="bi bi-tools display-4 text-primary mb-3"></i>
-                        <h5 class="card-title fw-semibold">مركز صيانة متكامل</h5>
-                        <p class="text-muted">نقدم كافة خدمات الصيانة من تشخيص أعطال، تغيير زيوت، فحص كهرباء وغيرها.</p>
+@section Styles
+{
+    <style>
+        .sense-about {
+            --about-navy: #061c42;
+            --about-blue: #253f8e;
+            --about-gold: #c2932c;
+            --about-mint: #38b6a6;
+            --about-ink: #101828;
+            --about-muted: #667085;
+            --about-border: #e5eaf2;
+            direction: rtl;
+            overflow: hidden;
+            color: var(--about-ink);
+            background: #fff;
+        }
+
+        .sense-about a {
+            text-decoration: none;
+        }
+
+        .sense-about__hero {
+            position: relative;
+            isolation: isolate;
+            padding: clamp(64px, 8vw, 110px) 0;
+            color: #fff;
+            background:
+                radial-gradient(circle at 14% 16%, rgba(56, 182, 166, 0.20), transparent 34%),
+                radial-gradient(circle at 86% 82%, rgba(194, 147, 44, 0.22), transparent 32%),
+                linear-gradient(135deg, #061c42 0%, #0b2857 52%, #253f8e 100%);
+        }
+
+        .sense-about__hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            opacity: 0.12;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.18) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.18) 1px, transparent 1px);
+            background-size: 42px 42px;
+            mask-image: linear-gradient(to bottom, #000, transparent 88%);
+        }
+
+        .sense-about__kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            padding: 8px 14px;
+            border: 1px solid rgba(255,255,255,0.20);
+            border-radius: 999px;
+            color: #fff;
+            background: rgba(255,255,255,0.08);
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .sense-about__kicker-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--about-gold);
+            box-shadow: 0 0 0 5px rgba(194,147,44,0.15);
+        }
+
+        .sense-about__title {
+            max-width: 720px;
+            margin: 0 0 20px;
+            color: #fff;
+            font-size: clamp(2.2rem, 5vw, 4.7rem);
+            font-weight: 900;
+            line-height: 1.15;
+            letter-spacing: -0.035em;
+        }
+
+        .sense-about__title span {
+            color: #f2c75d;
+        }
+
+        .sense-about__lead {
+            max-width: 690px;
+            margin: 0;
+            color: rgba(255,255,255,0.78);
+            font-size: clamp(1rem, 1.7vw, 1.18rem);
+            line-height: 2;
+        }
+
+        .sense-about__hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .sense-about__hero-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            min-height: 48px;
+            padding: 0 22px;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            font-weight: 800;
+            transition: transform .2s ease, background-color .2s ease, border-color .2s ease;
+        }
+
+        .sense-about__hero-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .sense-about__hero-button--primary {
+            color: var(--about-navy);
+            background: #f2c75d;
+        }
+
+        .sense-about__hero-button--primary:hover {
+            color: var(--about-navy);
+            background: #ffd978;
+        }
+
+        .sense-about__hero-button--secondary {
+            color: #fff;
+            border-color: rgba(255,255,255,0.28);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .sense-about__hero-button--secondary:hover {
+            color: #fff;
+            border-color: rgba(255,255,255,0.48);
+            background: rgba(255,255,255,0.14);
+        }
+
+        .sense-about__brand-card {
+            width: min(100%, 360px);
+            margin-inline: auto;
+            padding: 32px;
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 30px;
+            text-align: center;
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 24px 70px rgba(0,0,0,0.25);
+            backdrop-filter: blur(14px);
+        }
+
+        .sense-about__brand-logo {
+            display: grid;
+            place-items: center;
+            width: 132px;
+            height: 132px;
+            margin: 0 auto 22px;
+            border-radius: 34px;
+            background: #fff;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.18);
+        }
+
+        .sense-about__brand-logo img {
+            max-width: 108px !important;
+            max-height: 108px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+        }
+
+        .sense-about__brand-card strong {
+            display: block;
+            color: #fff;
+            font-size: 1.35rem;
+            font-weight: 900;
+        }
+
+        .sense-about__brand-card span {
+            display: block;
+            margin-top: 6px;
+            color: rgba(255,255,255,0.66);
+            font-size: 0.9rem;
+        }
+
+        .sense-about__section {
+            padding: clamp(58px, 7vw, 92px) 0;
+        }
+
+        .sense-about__section--soft {
+            background: #f7f9fc;
+        }
+
+        .sense-about__section-head {
+            max-width: 700px;
+            margin: 0 auto 34px;
+            text-align: center;
+        }
+
+        .sense-about__eyebrow {
+            display: block;
+            margin-bottom: 9px;
+            color: var(--about-gold);
+            font-size: 0.84rem;
+            font-weight: 900;
+        }
+
+        .sense-about__section-title {
+            margin: 0;
+            color: var(--about-navy);
+            font-size: clamp(1.8rem, 3.2vw, 2.65rem);
+            font-weight: 900;
+            line-height: 1.35;
+        }
+
+        .sense-about__section-copy {
+            margin: 14px 0 0;
+            color: var(--about-muted);
+            line-height: 1.9;
+        }
+
+        .sense-about__capability {
+            height: 100%;
+            padding: 26px;
+            border: 1px solid var(--about-border);
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 12px 34px rgba(6,28,66,0.06);
+            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+        }
+
+        .sense-about__capability:hover {
+            transform: translateY(-4px);
+            border-color: rgba(37,63,142,0.25);
+            box-shadow: 0 18px 42px rgba(6,28,66,0.10);
+        }
+
+        .sense-about__capability-icon {
+            display: grid;
+            place-items: center;
+            width: 52px;
+            height: 52px;
+            margin-bottom: 18px;
+            border-radius: 16px;
+            color: var(--about-blue);
+            background: rgba(37,63,142,0.09);
+            font-size: 1.45rem;
+        }
+
+        .sense-about__capability h3 {
+            margin: 0 0 9px;
+            color: var(--about-navy);
+            font-size: 1.08rem;
+            font-weight: 900;
+        }
+
+        .sense-about__capability p {
+            margin: 0;
+            color: var(--about-muted);
+            font-size: 0.92rem;
+            line-height: 1.8;
+        }
+
+        .sense-about__links-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            max-width: 920px;
+            margin: 0 auto;
+        }
+
+        .sense-about__action {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 0;
+            padding: 18px;
+            border: 1px solid var(--about-border);
+            border-radius: 18px;
+            color: var(--about-ink);
+            background: #fff;
+            box-shadow: 0 10px 28px rgba(6,28,66,0.05);
+            transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+        }
+
+        .sense-about__action:hover {
+            transform: translateY(-3px);
+            border-color: rgba(37,63,142,0.30);
+            color: var(--about-ink);
+            box-shadow: 0 16px 38px rgba(6,28,66,0.10);
+        }
+
+        .sense-about__action-icon {
+            display: grid;
+            place-items: center;
+            flex: 0 0 48px;
+            width: 48px;
+            height: 48px;
+            border-radius: 15px;
+            color: #fff;
+            background: var(--about-blue);
+            font-size: 1.25rem;
+        }
+
+        .sense-about__action-icon--gold { background: var(--about-gold); }
+        .sense-about__action-icon--mint { background: var(--about-mint); }
+        .sense-about__action-icon--linkedin { background: #0a66c2; }
+        .sense-about__action-icon--facebook { background: #1877f2; }
+
+        .sense-about__action-copy {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .sense-about__action-copy strong {
+            display: block;
+            overflow: hidden;
+            color: var(--about-navy);
+            font-size: 1rem;
+            font-weight: 900;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sense-about__action-copy span {
+            display: block;
+            margin-top: 4px;
+            color: var(--about-muted);
+            font-size: 0.82rem;
+        }
+
+        .sense-about__action-arrow {
+            flex: 0 0 auto;
+            color: #98a2b3;
+            font-size: 1.1rem;
+            transition: transform .2s ease, color .2s ease;
+        }
+
+        .sense-about__action:hover .sense-about__action-arrow {
+            transform: translateX(-3px);
+            color: var(--about-blue);
+        }
+
+        @@media (max-width: 991.98px) {
+            .sense-about__brand-card {
+                margin-top: 38px;
+            }
+        }
+
+        @@media (max-width: 767.98px) {
+            .sense-about__hero {
+                text-align: center;
+            }
+
+            .sense-about__kicker,
+            .sense-about__hero-actions {
+                justify-content: center;
+            }
+
+            .sense-about__lead,
+            .sense-about__title {
+                margin-inline: auto;
+            }
+
+            .sense-about__links-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 420px) {
+            .sense-about__hero-actions {
+                display: grid;
+            }
+
+            .sense-about__hero-button {
+                width: 100%;
+            }
+
+            .sense-about__action {
+                padding: 15px;
+            }
+        }
+    </style>
+}
+
+<div class="sense-about">
+    <section class="sense-about__hero" aria-labelledby="about-title">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="sense-about__kicker">
+                        <span class="sense-about__kicker-dot" aria-hidden="true"></span>
+                        <span>SENSE AGENCY × SENSE STORE</span>
+                    </div>
+
+                    <h1 id="about-title" class="sense-about__title">
+                        برمجيات ذكية.<br>
+                        <span>أثر حقيقي.</span>
+                    </h1>
+
+                    <p class="sense-about__lead">
+                        نحول تحديات الأعمال إلى حلول رقمية عملية، ونبني تجربة تسوّق تجمع العملاء
+                        بالمزوّدين والمنتجات في مكان واحد؛ ببساطة، سرعة، وتقنية صُممت لتخدم الناس.
+                    </p>
+
+                    <div class="sense-about__hero-actions">
+                        <a asp-controller="Product" asp-action="Index" class="sense-about__hero-button sense-about__hero-button--primary">
+                            <i class="bi bi-bag-check" aria-hidden="true"></i>
+                            <span>تسوّق الآن</span>
+                        </a>
+                        <a href="https://wa.me/970568033662"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="sense-about__hero-button sense-about__hero-button--secondary">
+                            <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                            <span>تواصل عبر واتساب</span>
+                        </a>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body">
-                        <i class="bi bi-cart-check display-4 text-success mb-3"></i>
-                        <h5 class="card-title fw-semibold">متجر لقطع الغيار</h5>
-                        <p class="text-muted">نوفر قطع الغيار الأصلية والمعتمدة لجميع أنواع المركبات وبأسعار منافسة.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body">
-                        <i class="bi bi-phone display-4 text-warning mb-3"></i>
-                        <h5 class="card-title fw-semibold">سهولة الحجز والطلب</h5>
-                        <p class="text-muted">من خلال نظامنا، يمكنك حجز موعد صيانة أو طلب قطعة بكل سهولة عبر الموقع.</p>
+
+                <div class="col-lg-4">
+                    <div class="sense-about__brand-card">
+                        <div class="sense-about__brand-logo">
+                            @await Component.InvokeAsync("Branding", new { variant = "logo" })
+                        </div>
+                        <strong>Sense Store</strong>
+                        <span>متجر رقمي بروح تقنية</span>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
+
+    <section class="sense-about__section" aria-labelledby="about-capabilities-title">
+        <div class="container">
+            <div class="sense-about__section-head">
+                <span class="sense-about__eyebrow">ما الذي نبنيه؟</span>
+                <h2 id="about-capabilities-title" class="sense-about__section-title">منظومة رقمية تنمو مع احتياجك</h2>
+                <p class="sense-about__section-copy">
+                    يجمع فريق SENSE بين التجارة الإلكترونية والتطوير التقني لنقدّم تجارب واضحة، حديثة، وقابلة للتوسع.
+                </p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-sm-6 col-lg-3">
+                    <article class="sense-about__capability">
+                        <div class="sense-about__capability-icon"><i class="bi bi-shop" aria-hidden="true"></i></div>
+                        <h3>متجر إلكتروني</h3>
+                        <p>تجربة تسوّق سهلة تربط العملاء بالمنتجات والمزوّدين.</p>
+                    </article>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <article class="sense-about__capability">
+                        <div class="sense-about__capability-icon"><i class="bi bi-phone" aria-hidden="true"></i></div>
+                        <h3>تطبيقات موبايل</h3>
+                        <p>تطبيقات عملية تركّز على السرعة وسهولة الاستخدام.</p>
+                    </article>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <article class="sense-about__capability">
+                        <div class="sense-about__capability-icon"><i class="bi bi-window" aria-hidden="true"></i></div>
+                        <h3>أنظمة ويب</h3>
+                        <p>منصات مرنة تساعد الأعمال على التنظيم والنمو.</p>
+                    </article>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <article class="sense-about__capability">
+                        <div class="sense-about__capability-icon"><i class="bi bi-stars" aria-hidden="true"></i></div>
+                        <h3>ذكاء اصطناعي</h3>
+                        <p>حلول ذكية وروبوتات محادثة تعزّز الخدمة والكفاءة.</p>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="sense-about__section sense-about__section--soft" aria-labelledby="about-links-title">
+        <div class="container">
+            <div class="sense-about__section-head">
+                <span class="sense-about__eyebrow">روابطنا الرسمية</span>
+                <h2 id="about-links-title" class="sense-about__section-title">كل قنوات SENSE في مكان واحد</h2>
+                <p class="sense-about__section-copy">اختر القناة المناسبة للتسوّق، التواصل، أو التعرف أكثر على حلولنا التقنية.</p>
+            </div>
+
+            <div class="sense-about__links-grid">
+                <a href="https://wa.me/970568033662" target="_blank" rel="noopener noreferrer" class="sense-about__action" aria-label="التواصل مع SENSE عبر واتساب">
+                    <span class="sense-about__action-icon sense-about__action-icon--mint"><i class="bi bi-whatsapp" aria-hidden="true"></i></span>
+                    <span class="sense-about__action-copy">
+                        <strong>WhatsApp</strong>
+                        <span>تواصل مباشر مع فريقنا</span>
+                    </span>
+                    <i class="bi bi-box-arrow-up-left sense-about__action-arrow" aria-hidden="true"></i>
+                </a>
+
+                <a href="https://senseivo.com/" target="_blank" rel="noopener noreferrer" class="sense-about__action" aria-label="زيارة موقع Senseivo">
+                    <span class="sense-about__action-icon"><i class="bi bi-globe2" aria-hidden="true"></i></span>
+                    <span class="sense-about__action-copy">
+                        <strong>Senseivo</strong>
+                        <span>استوديو رقمي</span>
+                    </span>
+                    <i class="bi bi-box-arrow-up-left sense-about__action-arrow" aria-hidden="true"></i>
+                </a>
+
+                <a href="https://www.linkedin.com/company/sense-tech-solution-s" target="_blank" rel="noopener noreferrer" class="sense-about__action" aria-label="زيارة SENSE TECH على LinkedIn">
+                    <span class="sense-about__action-icon sense-about__action-icon--linkedin"><i class="bi bi-linkedin" aria-hidden="true"></i></span>
+                    <span class="sense-about__action-copy">
+                        <strong>SENSE TECH</strong>
+                        <span>تابعنا على LinkedIn</span>
+                    </span>
+                    <i class="bi bi-box-arrow-up-left sense-about__action-arrow" aria-hidden="true"></i>
+                </a>
+
+                <a href="https://www.facebook.com/sense.Engineering.Solutions" target="_blank" rel="noopener noreferrer" class="sense-about__action" aria-label="زيارة SENSE على Facebook">
+                    <span class="sense-about__action-icon sense-about__action-icon--facebook"><i class="bi bi-facebook" aria-hidden="true"></i></span>
+                    <span class="sense-about__action-copy">
+                        <strong>Facebook</strong>
+                        <span>آخر أخبار وتحديثات SENSE</span>
+                    </span>
+                    <i class="bi bi-box-arrow-up-left sense-about__action-arrow" aria-hidden="true"></i>
+                </a>
+
+                <a href="mailto:sense.techagency@gmail.com" class="sense-about__action" aria-label="مراسلة SENSE عبر البريد الإلكتروني">
+                    <span class="sense-about__action-icon"><i class="bi bi-envelope" aria-hidden="true"></i></span>
+                    <span class="sense-about__action-copy">
+                        <strong>البريد الإلكتروني</strong>
+                        <span dir="ltr">sense.techagency@gmail.com</span>
+                    </span>
+                    <i class="bi bi-arrow-left sense-about__action-arrow" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+</div>

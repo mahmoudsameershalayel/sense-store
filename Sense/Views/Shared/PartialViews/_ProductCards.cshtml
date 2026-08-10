@@ -18,7 +18,7 @@
                         <span class="sf-badge sf-badge--out">غير متوفر</span>
                     }
                 </div>
-                <img src="@item.ImageURL" alt="@item.Name" loading="lazy">
+                <img src="@item.ImageURL" alt="@item.Name" loading="lazy" decoding="async" fetchpriority="low">
             </a>
 
             <div class="sf-card__body">
@@ -34,7 +34,7 @@
                     <a href="/Providers/Details/@item.ProviderId" class="sf-card__provider" style="display:flex; align-items:center; gap:8px; font-size:0.8rem; color:#253F8E; text-decoration:none;">
                         @if (!string.IsNullOrWhiteSpace(item.Provider.LogoURL))
                         {
-                            <img src="@item.Provider.LogoURL" alt="@item.Provider.DisplayName" style="width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid #e5e8f0; background:#fff;" />
+                            <img src="@item.Provider.LogoURL" alt="@item.Provider.DisplayName" loading="lazy" decoding="async" fetchpriority="low" style="width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid #e5e8f0; background:#fff;" />
                         }
                         else
                         {

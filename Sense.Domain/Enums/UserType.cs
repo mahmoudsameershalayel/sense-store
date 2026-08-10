@@ -18,6 +18,10 @@ namespace Sense.Domain.Enums
         [Display(Name = "دعم فني")]
         TechSupport = 4,
         [Display(Name = "مزود")]
-        Provider = 5
+        Provider = 5,
+        [Display(Name = "مزود خدمة")]
+        ServiceProvider = 6,
+        [Display(Name = "مروج")]
+        Promoter = 7
     }
 }

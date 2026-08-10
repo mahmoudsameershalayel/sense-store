@@ -4,23 +4,24 @@ using Sense.Application.UseCases.Cateogry.Queries.GetAllCategoriesQuery;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Sense.Performance;
 
 namespace Sense.Components
 {
     public class CategoriesViewComponent : ViewComponent
     {
-        private readonly IMediator _mediator;
+        private readonly StorefrontDataCache _storefrontData;
 
-        public CategoriesViewComponent(IMediator mediator)
+        public CategoriesViewComponent(StorefrontDataCache storefrontData)
         {
-            _mediator = mediator;
+            _storefrontData = storefrontData;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var categories = await _mediator.Send(new GetAllCategoriesQuery());
+            var categories = await _storefrontData.GetCategoriesAsync();
 
-            ViewBag.Categories = categories.Data;
+            ViewBag.Categories = categories;
             return View();
         }
     }

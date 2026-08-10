@@ -66,6 +66,21 @@
                     <!--end:Menu item-->
                     <!--begin:Menu item-->
                     <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <a asp-area="Provider" asp-controller="Category" asp-action="Index" class="menu-link @(ViewBag.ActiveMenu == "Categories" ? "active" : "")">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-category fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                    <span class="path3"></span>
+                                    <span class="path4"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">إدارة التصنيفات</span>
+                        </a>
+                    </div>
+                    <!--end:Menu item-->
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                         <!--begin:Menu link-->
                         <a asp-area="Provider" asp-controller="Account" asp-action="ChangePassword" class="menu-link @(ViewBag.ActiveMenu == "ChangePassword" ? "active" : "")">
                             <span class="menu-icon">

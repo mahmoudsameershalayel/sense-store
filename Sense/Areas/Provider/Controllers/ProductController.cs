@@ -4,6 +4,7 @@ using Sense.Application.UseCases.Cateogry.Queries.GetAllCategoriesQuery;
 using Sense.Application.UseCases.Product.Commands.ChangeProductStatusCommand;
 using Sense.Application.UseCases.Product.Commands.CreateProductCommand;
 using Sense.Application.UseCases.Product.Commands.UpdateProductCommand;
+using Sense.Application.UseCases.Product.Commands.UpdateProviderProductPriceCommand;
 using Sense.Application.UseCases.Product.Commands.UploadProductImageCommand;
 using Sense.Application.UseCases.Product.Queries.GetProductByIdQuery;
 using Sense.Application.UseCases.Product.Queries.LoadProductsQuery;
@@ -11,6 +12,7 @@ using Sense.Application.UseCases.Provider.Queries.GetProviderByUserIdQuery;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Sense.Areas.Provider.Models;
 using System.Security.Claims;
 
 namespace Sense.Areas.Provider.Controllers
@@ -44,6 +46,34 @@ namespace Sense.Areas.Provider.Controllers
             return View(products);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdatePrice([FromBody] UpdateProductPriceRequest? request)
+        {
+            if (request is null)
+                return BadRequest(new { message = "بيانات السعر غير صالحة." });
+
+            var provider = await GetCurrentProvider();
+            if (provider is null)
+                return StatusCode(403, new { message = "لا يمكن الوصول إلى حساب المزود." });
+
+            var result = await _mediator.Send(new UpdateProviderProductPriceCommand
+            {
+                ProductId = request.ProductId,
+                ProviderId = provider.Id,
+                Price = request.Price
+            });
+
+            var message = result.Result?.Message ?? "تعذر حفظ السعر.";
+            return result.Result?.Code switch
+            {
+                ResultCodeStatus.Success => Ok(new { price = result.Data, message }),
+                ResultCodeStatus.NotFound => NotFound(new { message }),
+                ResultCodeStatus.Forbiden => StatusCode(403, new { message }),
+                _ => BadRequest(new { message })
+            };
+        }
+
         [HttpGet]
         public async Task<IActionResult> Add()
         {
@@ -66,7 +96,7 @@ namespace Sense.Areas.Provider.Controllers
                 return View(dto);
             }
 
-            // Provider submissions always start as their own Draft
+            // Keep the product private until its required image is uploaded.
             dto.ProviderId = provider.Id;
             var result = await _mediator.Send(new CreateProductCommand { Dto = dto, InitialStatus = ProductStatus.Draft });
 
@@ -75,7 +105,7 @@ namespace Sense.Areas.Provider.Controllers
                 TempData["ErrorMessage"] = result.Result.Message;
                 return RedirectToAction(nameof(Index));
             }
-            TempData["Message"] = "تم حفظ المنتج كمسودة. ارفع صورة المنتج ثم أرسله للمراجعة.";
+            TempData["Message"] = "تم حفظ بيانات المنتج. ارفع صورته لإكمال النشر مباشرة.";
             return RedirectToAction(nameof(UploadImage), new { id = result.Data.Id });
         }
 
@@ -92,9 +122,9 @@ namespace Sense.Areas.Provider.Controllers
             if (product is null || product.ProviderId != provider.Id)
                 return NotFound();
 
-            if (product.Status != ProductStatus.Draft && product.Status != ProductStatus.Rejected)
+            if (product.Status == ProductStatus.Archived)
             {
-                TempData["ErrorMessage"] = "لا يمكن تعديل المنتج إلا وهو مسودة أو مرفوض.";
+                TempData["ErrorMessage"] = "لا يمكن تعديل منتج مؤرشف.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -130,9 +160,9 @@ namespace Sense.Areas.Provider.Controllers
             if (product is null || product.ProviderId != provider.Id)
                 return NotFound();
 
-            if (product.Status != ProductStatus.Draft && product.Status != ProductStatus.Rejected)
+            if (product.Status == ProductStatus.Archived)
             {
-                TempData["ErrorMessage"] = "لا يمكن تعديل المنتج إلا وهو مسودة أو مرفوض.";
+                TempData["ErrorMessage"] = "لا يمكن تعديل منتج مؤرشف.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -166,6 +196,12 @@ namespace Sense.Areas.Provider.Controllers
             if (result.Data is null || result.Data.ProviderId != provider.Id)
                 return NotFound();
 
+            if (result.Data.Status == ProductStatus.Archived)
+            {
+                TempData["ErrorMessage"] = "لا يمكن نشر منتج مؤرشف.";
+                return RedirectToAction(nameof(Index));
+            }
+
             ViewBag.Id = id;
             return View();
         }
@@ -181,6 +217,12 @@ namespace Sense.Areas.Provider.Controllers
             if (existing.Data is null || existing.Data.ProviderId != provider.Id)
                 return NotFound();
 
+            if (existing.Data.Status == ProductStatus.Archived)
+            {
+                TempData["ErrorMessage"] = "لا يمكن نشر منتج مؤرشف.";
+                return RedirectToAction(nameof(Index));
+            }
+
             if (!ModelState.IsValid)
             {
                 ViewBag.Id = dto.Id;
@@ -193,28 +235,25 @@ namespace Sense.Areas.Provider.Controllers
                 TempData["ErrorMessage"] = result.Result.Message;
                 return RedirectToAction(nameof(Index));
             }
-            TempData["Message"] = result.Result.Message;
-            return RedirectToAction(nameof(Index));
-        }
 
-        [HttpPost]
-        public async Task<IActionResult> Submit(int id)
-        {
-            var provider = await GetCurrentProvider();
-            if (provider is null)
-                return Forbid();
-
-            var result = await _mediator.Send(new ChangeProductStatusCommand
+            if (existing.Data.Status != ProductStatus.Published)
             {
-                ProductId = id,
-                TargetStatus = ProductStatus.PendingReview,
-                ActingProviderId = provider.Id
-            });
+                var publishResult = await _mediator.Send(new ChangeProductStatusCommand
+                {
+                    ProductId = dto.Id,
+                    TargetStatus = ProductStatus.Published,
+                    ActingProviderId = provider.Id
+                });
 
-            if (result.Result.Code != ResultCodeStatus.Success)
-                return Json(new { success = false, message = result.Result.Message });
+                if (publishResult.Result.Code != ResultCodeStatus.Success)
+                {
+                    TempData["ErrorMessage"] = publishResult.Result.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+            }
 
-            return Json(new { success = true, id = id, message = "تم إرسال المنتج للمراجعة." });
+            TempData["Message"] = "تم رفع الصورة ونشر المنتج مباشرة في المتجر.";
+            return RedirectToAction(nameof(Index));
         }
     }
 }

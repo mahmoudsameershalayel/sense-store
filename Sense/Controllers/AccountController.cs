@@ -184,6 +184,16 @@ namespace Sense.Controllers
                 return LocalRedirect("/Provider/Product/Index");
             }
 
+            if (loggedInUser?.UserType == UserType.ServiceProvider)
+            {
+                return LocalRedirect("/ServiceProvider/ServiceListing/Index");
+            }
+
+            if (loggedInUser?.UserType == UserType.Promoter)
+            {
+                return LocalRedirect("/");
+            }
+
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
                 return LocalRedirect(returnUrl);
@@ -213,11 +223,23 @@ namespace Sense.Controllers
                 return View();
             }
 
-            var otpCode = await _otpService.GenerateOtpAsync();
-            await _otpService.StoreOtpAsync(dto.Email, otpCode);
-            await _emailService.SendOtpEmailAsync(dto.Email, otpCode);
+            // OTP verification after registration is temporarily disabled.
+            var registeredUser = await _userManager.FindByEmailAsync(dto.Email);
+            if (registeredUser is null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
 
-            return RedirectToAction(nameof(VerifyEmail), new { email = dto.Email, returnUrl });
+            registeredUser.EmailConfirmed = true;
+            await _userManager.UpdateAsync(registeredUser);
+            await _signInManager.SignInAsync(registeredUser, isPersistent: false);
+
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
+
+            return LocalRedirect("/Account/Index");
         }
 
         [HttpGet]
@@ -259,7 +281,18 @@ namespace Sense.Controllers
 
             user.EmailConfirmed = true;
             await _userManager.UpdateAsync(user);
+            await _otpService.RemoveOtpAsync(model.Email);
             await _signInManager.SignInAsync(user, isPersistent: false);
+
+            if (user.UserType == UserType.Provider)
+            {
+                return LocalRedirect("/Provider/Product/Index");
+            }
+
+            if (user.UserType == UserType.ServiceProvider)
+            {
+                return LocalRedirect("/ServiceProvider/ServiceListing/Index");
+            }
 
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {

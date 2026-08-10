@@ -2,23 +2,23 @@ using Sense.Application.RequestFeatures;
 using Sense.Domain.DBEntities;
 using Sense.Application.UseCases.Banner.Queries.GetAllBannersQuery;
 using Sense.Application.UseCases.Branch.Queries.GetAllBranchesQuery;
-using Sense.Application.UseCases.CashbackOffer.Queries.GetAllCashbackOffersQuery;
-using Sense.Application.UseCases.CenterSetting.Queries.GetCenterSettingQuery;
-using Sense.Application.UseCases.FreeMaintenanceOffer.Queries.GetAllFreeMaintenanceOfferQuery;
 using Sense.Application.UseCases.Product.Queries.LoadProductsQuery;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Sense.Performance;
 
 namespace Sense.Controllers
 {
     public class HomeController : Controller
     {
         private readonly IMediator _mediator;
+        private readonly StorefrontDataCache _storefrontData;
 
-        public HomeController(IMediator mediator)
+        public HomeController(IMediator mediator, StorefrontDataCache storefrontData)
         {
             _mediator = mediator;
+            _storefrontData = storefrontData;
         }
 
         private async Task<PagedList<ProductTbl>> GetPagedProductsAsync(string? searchTerm, int? ProductCategoryId, int? ProductBrandId, int? ProductModelId, int pageNumber, int pageSize)
@@ -84,17 +84,14 @@ namespace Sense.Controllers
 
         public async Task<IActionResult> Index(string? searchTerm, int? ProductCategoryId, int? ProductBrandId, int? ProductModelId, int pageSize = 10)
         {
-            var bannerResult = await _mediator.Send(new GetAllBannersQuery());
-            var banner = bannerResult?.Data?.FirstOrDefault();
+            var banner = await _storefrontData.GetBannerAsync();
 
             var pagedProducts = await GetPagedProductsAsync(searchTerm, ProductCategoryId, ProductBrandId, ProductModelId, 1, pageSize);
 
-            var cashbackOffers = await _mediator.Send(new GetAllCashbackOffersQuery());
-            var freeMaintenanceOffers = await _mediator.Send(new GetAllFreeMaintenanceOfferQuery());
+            var cashbackOffers = await _storefrontData.GetCashbackOffersAsync();
 
             ViewBag.Products = pagedProducts;
-            ViewBag.CashbackOffers = cashbackOffers.Data;
-            ViewBag.FreeMaintenanceOffers = freeMaintenanceOffers.Data;
+            ViewBag.CashbackOffers = cashbackOffers;
 
             ViewBag.SearchTerm = searchTerm;
             ViewBag.ProductCategoryId = ProductCategoryId;
@@ -137,9 +134,9 @@ namespace Sense.Controllers
         public async Task<IActionResult> Contact()
         {
             var branches = await _mediator.Send(new GetAllBranchesQuery());
-            var setting = await _mediator.Send(new GetCenterSettingQuery());
+            var setting = await _storefrontData.GetCenterSettingAsync();
             ViewBag.Branches = branches.Data;
-            ViewBag.Setting = setting.Data;
+            ViewBag.Setting = setting;
             return View();
         }
 

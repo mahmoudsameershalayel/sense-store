@@ -23,6 +23,8 @@ using Sense.Application.DTOs.PointsDTOs;
 using Sense.Application.DTOs.ProductDTOs;
 using Sense.Application.DTOs.ProviderDTOs;
 using Sense.Application.DTOs.ServiceDTOs;
+using Sense.Application.DTOs.ServiceListingDTOs;
+using Sense.Application.DTOs.ServiceProviderDTOs;
 using Sense.Application.DTOs.ShoppingCartDTOs;
 using Sense.Application.DTOs.StatementDTOs;
 using Sense.Application.DTOs.SupervisorDTOs;
@@ -197,6 +199,7 @@ namespace Sense.Infrastructure.Helpers
                                            .ForMember(x => x.OrderStatus, opt => opt.MapFrom(x => EnumExtensions.GetDisplayName(x.OrderStatus)))
                                            .ForMember(x => x.PaymentMethod, opt => opt.MapFrom(x => EnumExtensions.GetDisplayName(x.PaymentMethod)))
                                            .ForMember(x => x.PaymentStatus, opt => opt.MapFrom(x => EnumExtensions.GetDisplayName(x.PaymentStatus)))
+                                           .ForMember(x => x.ProviderWhatsAppOrders, opt => opt.Ignore())
                                            .ReverseMap();
             CreateMap<OrderTbl, OrderForCreateDto>().ReverseMap();
 
@@ -214,6 +217,18 @@ namespace Sense.Infrastructure.Helpers
 
             //Provider
             CreateMap<ProviderTbl, ProviderDto>().ForMember(x => x.Email, opt => opt.MapFrom(x => x.ApplicationUser != null ? x.ApplicationUser.Email : null))
+                                                 .ForMember(x => x.UserId, opt => opt.MapFrom(x => x.ApplicationUserId))
+                                                 .ForMember(x => x.LogoURL, opt => opt.MapFrom(x => x.LogoURL ?? (x.ApplicationUser != null ? x.ApplicationUser.ImageURL : null)))
+                                                 .ReverseMap();
+
+            //Service Listing
+            CreateMap<ServiceListingTbl, ServiceListingDto>().ForMember(x => x.ServiceProviderName, opt => opt.MapFrom(x => x.ServiceProvider != null ? x.ServiceProvider.DisplayName : null))
+                                               .ReverseMap()
+                                               .ForMember(x => x.ServiceProvider, opt => opt.Ignore());
+            CreateMap<ServiceListingTbl, ServiceListingForCreateUpdateDto>().ReverseMap();
+
+            //Service Provider
+            CreateMap<ServiceProviderTbl, ServiceProviderDto>().ForMember(x => x.Email, opt => opt.MapFrom(x => x.ApplicationUser != null ? x.ApplicationUser.Email : null))
                                                  .ForMember(x => x.UserId, opt => opt.MapFrom(x => x.ApplicationUserId))
                                                  .ForMember(x => x.LogoURL, opt => opt.MapFrom(x => x.LogoURL ?? (x.ApplicationUser != null ? x.ApplicationUser.ImageURL : null)))
                                                  .ReverseMap();

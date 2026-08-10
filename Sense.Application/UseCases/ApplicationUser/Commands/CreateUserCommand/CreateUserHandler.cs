@@ -66,6 +66,20 @@ namespace Sense.Application.UseCases.ApplicationUser.Commands.CreateUserCommand
             return provider.Id;
         }
 
+        private async Task<long> CreateServiceProvider(string UserId, string displayName, string? phoneNumber)
+        {
+            var serviceProvider = new ServiceProviderTbl()
+            {
+                ApplicationUserId = UserId,
+                DisplayName = displayName,
+                PhoneNumber = phoneNumber
+            };
+
+            _repositoryManager.ServiceProvider.CreateServiceProvider(serviceProvider);
+            await _repositoryManager.SaveAsync();
+            return serviceProvider.Id;
+        }
+
         public async Task<ResponseResult<IdentityResult>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
             var user = _mapper.Map<ApplicationUserTbl>(request.Dto);
@@ -94,6 +108,12 @@ namespace Sense.Application.UseCases.ApplicationUser.Commands.CreateUserCommand
                             ? request.ProviderName
                             : $"{request.Dto.FirstName} {request.Dto.LastName}".Trim();
                         await CreateProvider(user.Id, providerName, request.Dto.PhoneNumber);
+                        break;
+                     case UserType.ServiceProvider:
+                        var serviceProviderName = !string.IsNullOrWhiteSpace(request.ProviderName)
+                            ? request.ProviderName
+                            : $"{request.Dto.FirstName} {request.Dto.LastName}".Trim();
+                        await CreateServiceProvider(user.Id, serviceProviderName, request.Dto.PhoneNumber);
                         break;
                       default:
                         break;

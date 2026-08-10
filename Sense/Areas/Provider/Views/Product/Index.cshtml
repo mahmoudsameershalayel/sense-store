@@ -4,13 +4,121 @@
 @{
     var message = TempData["Message"];
     var errorMessage = TempData["ErrorMessage"];
+    var riyalSvg = new Microsoft.AspNetCore.Html.HtmlString("<svg class=\"riyal-svg currency\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 78.917 78.917\" width=\"15\" height=\"15\" aria-hidden=\"true\" focusable=\"false\" style=\"display:inline-block;vertical-align:-0.125em\"><path d=\"M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l0.025-55.005c0.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23C48.001,23.412,41.048,16.458,32.501,16.458z M74.417,7.458c-2.481,0-4.5,2.019-4.5,4.5l-0.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l0.024-55.005C78.917,9.478,76.898,7.458,74.417,7.458z\" /></svg>");
 }
+
+@section Styles {
+    <style>
+        .provider-price-editor {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .35rem;
+        }
+
+        .provider-price-control {
+            display: inline-flex;
+            align-items: center;
+            gap: .55rem;
+            padding: .35rem;
+            direction: ltr;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 999px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, .05);
+            transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+        }
+
+        .provider-price-control.is-saving {
+            border-color: #93c5fd;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, .14);
+        }
+
+        .provider-price-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            padding: 0;
+            border: 0;
+            border-radius: 50%;
+            font-size: 1.25rem;
+            font-weight: 700;
+            line-height: 1;
+            transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease;
+        }
+
+        .provider-price-button:hover:not(:disabled) {
+            transform: translateY(-1px) scale(1.06);
+        }
+
+        .provider-price-button:active:not(:disabled) {
+            transform: scale(.95);
+        }
+
+        .provider-price-button:focus-visible {
+            outline: 3px solid rgba(59, 130, 246, .25);
+            outline-offset: 2px;
+        }
+
+        .provider-price-button.is-minus {
+            color: #dc2626;
+            background: #fee2e2;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, .12);
+        }
+
+        .provider-price-button.is-plus {
+            color: #047857;
+            background: #d1fae5;
+            box-shadow: 0 2px 6px rgba(4, 120, 87, .12);
+        }
+
+        .provider-price-button:disabled {
+            cursor: not-allowed;
+            opacity: .4;
+        }
+
+        .provider-price-value {
+            min-width: 5.75rem;
+            color: #111827;
+            text-align: center;
+            white-space: nowrap;
+            direction: rtl;
+        }
+
+        .provider-price-status {
+            min-height: 1rem;
+            color: #64748b;
+            font-size: .72rem;
+            line-height: 1;
+            opacity: 0;
+            transition: opacity .2s ease, color .2s ease;
+        }
+
+        .provider-price-status:not(:empty) {
+            opacity: 1;
+        }
+
+        .provider-price-status.is-saved {
+            color: #047857;
+        }
+
+        .provider-price-status.is-error {
+            color: #dc2626;
+        }
+    </style>
+}
+
+<div id="provider-price-antiforgery" class="d-none">
+    @Html.AntiForgeryToken()
+</div>
 
 <div class="card mb-xl-8">
     <div class="card-header border-0 pt-5">
         <h3 class="card-title align-items-start flex-column">
             <span class="card-label fw-bold fs-3 mb-1">منتجاتي</span>
-            <span class="text-muted mt-1 fw-semibold fs-7">جميع المنتجات التي قمت بإضافتها وحالتها في المراجعة.</span>
+            <span class="text-muted mt-1 fw-semibold fs-7">إدارة المنتجات المنشورة في المتجر.</span>
         </h3>
         <div class="card-toolbar" title="اضغط لإضافة منتج">
             <a asp-area="Provider" asp-controller="Product" asp-action="Add" class="btn btn-sm btn-light btn-active-primary">
@@ -21,7 +129,7 @@
     <div class="card-body pt-3">
         <div class="alert alert-info d-flex align-items-center gap-2">
             <i class="fas fa-info-circle"></i>
-            <span>المنتجات الجديدة تُحفظ كمسودة، ثم تُرسل للمراجعة. لا تظهر في المتجر إلا بعد موافقة إدارة المنصة ونشرها.</span>
+            <span>يُنشر المنتج مباشرة بعد إضافة بياناته ورفع صورته، دون انتظار موافقة الإدارة.</span>
         </div>
 
         <div class="table-responsive">
@@ -40,7 +148,7 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        var canEdit = item.Status == ProductStatus.Draft || item.Status == ProductStatus.Rejected;
+                        var canEdit = item.Status != ProductStatus.Archived;
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
@@ -53,7 +161,38 @@
                                 </div>
                             </td>
                             <td>@item.Category?.Name</td>
-                            <td>@item.Price</td>
+                            <td>
+                                @if (canEdit)
+                                {
+                                    <div class="provider-price-editor">
+                                        <div class="provider-price-control js-price-control"
+                                             data-product-id="@item.Id"
+                                             data-price="@item.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                                            <button type="button"
+                                                    class="provider-price-button is-minus js-price-adjust"
+                                                    data-delta="-1"
+                                                    aria-label="خفض السعر">
+                                                &minus;
+                                            </button>
+                                            <span class="provider-price-value fw-bold">
+                                                <span class="js-price-value">@item.Price.ToString("N2", new System.Globalization.CultureInfo("ar-SA"))</span>
+                                                <span class="text-muted fs-8">@riyalSvg</span>
+                                            </span>
+                                            <button type="button"
+                                                    class="provider-price-button is-plus js-price-adjust"
+                                                    data-delta="1"
+                                                    aria-label="رفع السعر">
+                                                +
+                                            </button>
+                                        </div>
+                                        <span class="provider-price-status js-price-status" aria-live="polite"></span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span>@item.Price.ToString("N2", new System.Globalization.CultureInfo("ar-SA")) @riyalSvg</span>
+                                }
+                            </td>
                             <td>@item.QuantityAvaliable</td>
                             <td>@item.CreatedAt?.ToString("yyyy-MM-dd")</td>
                             <td>
@@ -63,10 +202,10 @@
                                         <span class="badge badge-light-secondary">مسودة</span>
                                         break;
                                     case ProductStatus.PendingReview:
-                                        <span class="badge badge-light-warning">بإنتظار المراجعة</span>
+                                        <span class="badge badge-light-warning">بانتظار إكمال النشر</span>
                                         break;
                                     case ProductStatus.Approved:
-                                        <span class="badge badge-light-info">مقبول</span>
+                                        <span class="badge badge-light-info">جاهز للنشر</span>
                                         break;
                                     case ProductStatus.Rejected:
                                         <span class="badge badge-light-danger">مرفوض</span>
@@ -85,9 +224,6 @@
                             <td class="text-end">
                                 @if (canEdit)
                                 {
-                                    <button data-id="@item.Id" class="btn-submit-review btn btn-sm btn-light-success me-1" title="إرسال للمراجعة">
-                                        <i class="fas fa-paper-plane"></i> إرسال للمراجعة
-                                    </button>
                                     <a asp-area="Provider" asp-controller="Product" asp-action="Edit" asp-route-id="@item.Id"
                                        class="btn btn-icon btn-sm btn-light-warning me-1" title="تعديل المنتج">
                                         <i class="ki-duotone ki-pencil fs-2">
@@ -115,6 +251,13 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
+            const updatePriceUrl = '@Url.Action("UpdatePrice", "Product", new { area = "Provider" })';
+            const antiforgeryToken = $('#provider-price-antiforgery input[name="__RequestVerificationToken"]').val();
+            const priceFormatter = new Intl.NumberFormat('ar-SA', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
             toastr.options = {
                 "closeButton": true,
                 "progressBar": true,
@@ -131,34 +274,125 @@
                 <text>toastr.error('@errorMessage');</text>
             }
 
-            $('.btn-submit-review').on('click', function (e) {
-                e.preventDefault();
-                const id = $(this).data('id');
+            $('.js-price-control').each(function () {
+                const $control = $(this);
+                const $value = $control.find('.js-price-value');
+                const $decreaseButton = $control.find('[data-delta="-1"]');
+                const $status = $control.siblings('.js-price-status');
+                const productId = Number($control.data('product-id'));
+                let desiredPrice = roundPrice(Number($control.attr('data-price')) || 0);
+                let confirmedPrice = desiredPrice;
+                let saveTimer = null;
+                let statusTimer = null;
+                let isSaving = false;
 
-                Swal.fire({
-                    title: 'إرسال المنتج للمراجعة؟',
-                    text: 'لن تتمكن من تعديل المنتج أثناء المراجعة.',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'نعم، أرسل',
-                    cancelButtonText: 'إلغاء'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.post("@Url.Action("Submit", "Product", new { area = "Provider" })", { id: id })
-                            .done(function (res) {
-                                if (res.success) {
-                                    toastr.success(res.message);
-                                    setTimeout(() => window.location.reload(), 1200);
-                                } else {
-                                    Swal.fire('خطأ', res.message || 'تعذر إرسال المنتج للمراجعة', 'error');
-                                }
-                            })
-                            .fail(function () {
-                                Swal.fire('خطأ', 'حدث خطأ أثناء إرسال المنتج', 'error');
-                            });
+                function roundPrice(price) {
+                    return Math.round((price + Number.EPSILON) * 100) / 100;
+                }
+
+                function pricesMatch(first, second) {
+                    return Math.abs(first - second) < 0.001;
+                }
+
+                function renderPrice() {
+                    $value.text(priceFormatter.format(desiredPrice));
+                    $decreaseButton.prop('disabled', desiredPrice <= 0);
+                }
+
+                function showStatus(state, text) {
+                    clearTimeout(statusTimer);
+                    $status
+                        .removeClass('is-saving is-saved is-error')
+                        .addClass('is-' + state)
+                        .text(text);
+                }
+
+                function hideStatusLater() {
+                    clearTimeout(statusTimer);
+                    statusTimer = setTimeout(function () {
+                        $status.text('').removeClass('is-saving is-saved is-error');
+                    }, 1400);
+                }
+
+                function scheduleSave() {
+                    clearTimeout(saveTimer);
+                    showStatus('saving', 'جارٍ الحفظ...');
+                    saveTimer = setTimeout(savePrice, 350);
+                }
+
+                function savePrice() {
+                    saveTimer = null;
+
+                    if (isSaving) {
+                        return;
                     }
+
+                    if (pricesMatch(desiredPrice, confirmedPrice)) {
+                        showStatus('saved', 'تم الحفظ ✓');
+                        hideStatusLater();
+                        return;
+                    }
+
+                    const submittedPrice = desiredPrice;
+                    isSaving = true;
+                    $control.addClass('is-saving');
+
+                    $.ajax({
+                        url: updatePriceUrl,
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        headers: {
+                            'RequestVerificationToken': antiforgeryToken
+                        },
+                        data: JSON.stringify({
+                            productId: productId,
+                            price: submittedPrice
+                        })
+                    })
+                    .done(function (response) {
+                        const savedPrice = Number(response.price ?? response.Price);
+                        confirmedPrice = Number.isFinite(savedPrice)
+                            ? roundPrice(savedPrice)
+                            : submittedPrice;
+
+                        if (pricesMatch(desiredPrice, submittedPrice)) {
+                            desiredPrice = confirmedPrice;
+                        }
+
+                        renderPrice();
+                        showStatus('saved', 'تم الحفظ ✓');
+                    })
+                    .fail(function (xhr) {
+                        const response = xhr.responseJSON;
+                        const error = response?.message ?? response?.Message ?? 'تعذر حفظ السعر. حاول مرة أخرى.';
+
+                        desiredPrice = confirmedPrice;
+                        renderPrice();
+                        showStatus('error', 'لم يتم الحفظ');
+                        toastr.error(error);
+                    })
+                    .always(function () {
+                        isSaving = false;
+                        $control.removeClass('is-saving');
+
+                        if (!pricesMatch(desiredPrice, confirmedPrice)) {
+                            savePrice();
+                        } else {
+                            hideStatusLater();
+                        }
+                    });
+                }
+
+                $control.on('click', '.js-price-adjust', function () {
+                    const delta = Number($(this).data('delta'));
+                    desiredPrice = Math.max(0, roundPrice(desiredPrice + delta));
+                    renderPrice();
+                    scheduleSave();
                 });
+
+                renderPrice();
             });
+
         });
     </script>
 }

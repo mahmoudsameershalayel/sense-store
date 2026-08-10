@@ -83,6 +83,13 @@ namespace Sense.Infrastructure.Migrations
                             ConcurrencyStamp = "789743f9-8ce4-42de-afbf-59f706d72cf6",
                             Name = "Provider",
                             NormalizedName = "PROVIDER"
+                        },
+                        new
+                        {
+                            Id = "9cafb58e-829a-40e1-83fb-21ea8ed29b35",
+                            ConcurrencyStamp = "9cafb58e-829a-40e1-83fb-21ea8ed29b35",
+                            Name = "ServiceProvider",
+                            NormalizedName = "SERVICEPROVIDER"
                         });
                 });
 
@@ -2012,6 +2019,50 @@ namespace Sense.Infrastructure.Migrations
                     b.ToTable("Otps");
                 });
 
+            modelBuilder.Entity("Sense.Domain.DBEntities.PartnerInquiryTbl", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BrandName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OfferType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PartnerInquiryTbls");
+                });
+
             modelBuilder.Entity("Sense.Domain.DBEntities.PhoneVerificationTbl", b =>
                 {
                     b.Property<int>("Id")
@@ -2308,6 +2359,96 @@ namespace Sense.Infrastructure.Migrations
                     b.HasIndex("ApplicationUserId");
 
                     b.ToTable("ProviderTbls");
+                });
+
+            modelBuilder.Entity("Sense.Domain.DBEntities.ServiceListingTbl", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageURL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ServiceProviderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceProviderId");
+
+                    b.ToTable("ServiceListingTbls");
+                });
+
+            modelBuilder.Entity("Sense.Domain.DBEntities.ServiceProviderTbl", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LogoURL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.ToTable("ServiceProviderTbls");
                 });
 
             modelBuilder.Entity("Sense.Domain.DBEntities.ServiceTbl", b =>
@@ -3057,6 +3198,26 @@ namespace Sense.Infrastructure.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
+            modelBuilder.Entity("Sense.Domain.DBEntities.ServiceListingTbl", b =>
+                {
+                    b.HasOne("Sense.Domain.DBEntities.ServiceProviderTbl", "ServiceProvider")
+                        .WithMany("ServiceListings")
+                        .HasForeignKey("ServiceProviderId");
+
+                    b.Navigation("ServiceProvider");
+                });
+
+            modelBuilder.Entity("Sense.Domain.DBEntities.ServiceProviderTbl", b =>
+                {
+                    b.HasOne("Sense.Domain.DBEntities.ApplicationUserTbl", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+                });
+
             modelBuilder.Entity("Sense.Domain.DBEntities.ShoppingCartTbl", b =>
                 {
                     b.HasOne("Sense.Domain.DBEntities.CustomerTbl", "Customer")
@@ -3219,6 +3380,11 @@ namespace Sense.Infrastructure.Migrations
             modelBuilder.Entity("Sense.Domain.DBEntities.ProviderTbl", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("Sense.Domain.DBEntities.ServiceProviderTbl", b =>
+                {
+                    b.Navigation("ServiceListings");
                 });
 
             modelBuilder.Entity("Sense.Domain.DBEntities.ServiceTbl", b =>

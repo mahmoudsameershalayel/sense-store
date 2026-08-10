@@ -29,6 +29,9 @@ namespace Sense.Application.Abstractions
         IPointsTransactionRepository PointsTransaction { get; }
         IProductRepository Product { get; }
         IProviderRepository Provider { get; }
+        IServiceListingRepository ServiceListing { get; }
+        IServiceProviderRepository ServiceProvider { get; }
+        IPartnerInquiryRepository PartnerInquiry { get; }
         IPhoneVerificationRepository PhoneVerification { get; }
         ISupervisorRepository Supervisor { get; }
         IStatementRepository Statement { get; }

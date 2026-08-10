@@ -1,0 +1,21 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    var measurementId = Configuration["GoogleAnalytics:MeasurementId"]?.Trim();
+    var hasValidMeasurementId = !string.IsNullOrWhiteSpace(measurementId)
+        && System.Text.RegularExpressions.Regex.IsMatch(
+            measurementId,
+            "^G-[A-Z0-9]+$",
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+}
+
+@if (hasValidMeasurementId)
+{
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=@measurementId"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', '@measurementId');
+    </script>
+}

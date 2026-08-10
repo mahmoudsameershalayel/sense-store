@@ -22,38 +22,38 @@
             <div class="text-center mb-5">
                 @if (!string.IsNullOrEmpty(Model.ImageURL))
                 {
-                    <img src="@Model.ImageURL" class="symbol symbol-75px symbol-circle" style="width:15%;height:15%"/>
+                    <img src="@Model.ImageURL" id="profileImage" class="symbol symbol-75px symbol-circle" style="width:15%;height:15%"/>
                 }
                 else
                 {
-                    <img src="~/assets/img/avatar-default.svg" class="symbol symbol-75px symbol-circle" style="width:15%;height:15%" />
+                    <img src="~/assets/img/avatar-default.svg" id="profileImage" class="symbol symbol-75px symbol-circle" style="width:15%;height:15%" />
                 }
             </div>
 
             <div class="row g-6">
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">الاسم الكامل</label>
-                    <div class="form-control form-control-solid">@Model.FullName</div>
+                    <div class="form-control form-control-solid" id="fullNameDisplay">@Model.FullName</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">اسم المستخدم</label>
-                    <div class="form-control form-control-solid">@Model.Username</div>
+                    <div class="form-control form-control-solid" id="usernameDisplay">@Model.Username</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">البريد الإلكتروني</label>
-                    <div class="form-control form-control-solid">@Model.Email</div>
+                    <div class="form-control form-control-solid" id="emailDisplay">@Model.Email</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">رقم الهاتف</label>
-                    <div class="form-control form-control-solid">@Model.PhoneNumber</div>
+                    <div class="form-control form-control-solid" id="phoneNumberDisplay">@Model.PhoneNumber</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">هاتف إضافي 1</label>
-                    <div class="form-control form-control-solid">@Model.Phone1</div>
+                    <div class="form-control form-control-solid" id="phone1Display">@Model.Phone1</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">هاتف إضافي 2</label>
-                    <div class="form-control form-control-solid">@Model.Phone2</div>
+                    <div class="form-control form-control-solid" id="phone2Display">@Model.Phone2</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">صلاحياتي</label>
@@ -103,6 +103,14 @@
                         <label for="phoneNumber" class="form-label">رقم الهاتف</label>
                         <input type="text" class="form-control" id="phoneNumber" value="@Model.PhoneNumber">
                     </div>
+                    <div class="mb-3">
+                        <label for="phone1" class="form-label">هاتف إضافي 1</label>
+                        <input type="text" class="form-control" id="phone1" value="@Model.Phone1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone2" class="form-label">هاتف إضافي 2</label>
+                        <input type="text" class="form-control" id="phone2" value="@Model.Phone2">
+                    </div>
                     <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
                 </form>
             </div>
@@ -145,10 +153,6 @@
 </div>
 @section Scripts
 {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script type="text/javascript">
         // Handle the form submission
         $('#editProfileForm').on('submit', function (e) {
@@ -160,26 +164,25 @@
                 username: $('#username').val(),
                 email: $('#email').val(),
                 phoneNumber: $('#phoneNumber').val(),
-                phone1: "10",
-                phone2: "10"
+                phone1: $('#phone1').val(),
+                phone2: $('#phone2').val()
             };
 
             // Send AJAX PUT request to update the profile
             $.ajax({
-                url: "@Url.Action("UpdateProfile", "Account")",  // Replace with the actual controller action
+                url: "@Url.Action("UpdateProfile", "Account", new { area = "" })",
                 type: 'PUT',
                 data: JSON.stringify(formData),
                 contentType: 'application/json',
                 success: function (response) {
-                    // Close the modal on success
-
-
-
-                    $('#userFullName').text(response.fullName);
-                    $('#userUsername').text(response.username);
-                    $('#userEmail').text(response.email);
-                    $('#userPhoneNumber').text(response.phoneNumber);
-
+                    // Update the displayed values and close the modal on success
+                    $('#fullNameDisplay').text(response.fullName);
+                    $('#usernameDisplay').text(response.username);
+                    $('#emailDisplay').text(response.email);
+                    $('#phoneNumberDisplay').text(response.phoneNumber);
+                    $('#phone1Display').text(response.phone1);
+                    $('#phone2Display').text(response.phone2);
+                    $('#editProfileModal').modal('hide');
 
                     Swal.fire({
                         icon: 'success',
@@ -212,7 +215,7 @@
             formData.append('userId', $('#userId').val());
 
             $.ajax({
-                url: '@Url.Action("UploadProfileImage", "Account", new { area = "Supervisor" })",
+                url: '@Url.Action("UploadProfileImage", "Account", new { area = "" })',
                 type: 'POST',
                 data: formData,
                 contentType: false,
@@ -227,6 +230,7 @@
                             timer: 3000
                         });
                         $('#profileImage').attr('src', response.result); // Assuming base64 or URL is returned
+                        setTimeout(function () { location.reload(); }, 1800);
                     } else {
                         Swal.fire({
                             icon: 'error',

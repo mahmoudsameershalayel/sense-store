@@ -1,0 +1,220 @@
+@using Sense.Areas.Admin.Models
+@model PromoterViewModel
+@{
+    var promoters = ViewBag.Promoters as List<Sense.Domain.DBEntities.ApplicationUserTbl> ?? new List<Sense.Domain.DBEntities.ApplicationUserTbl>();
+    var message = TempData["Message"];
+    var errorMessage = TempData["ErrorMessage"];
+}
+
+<div class="card mb-xl-8">
+    <!--begin::Header-->
+    <div class="card-header border-0 pt-5">
+        <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold fs-3 mb-1">المروجون</span>
+            <span class="text-muted mt-1 fw-semibold fs-7">يحتوي هذا الجدول على جميع بيانات المروجين، يمكنك إنشاء مروج جديد وسيتم فتح واتساب لإرسال بيانات الدخول.</span>
+        </h3>
+        <div class="card-toolbar">
+            <button type="button" class="btn btn-sm btn-light btn-active-primary" data-bs-toggle="modal" data-bs-target="#addPromoterModal">
+                <i class="ki-duotone ki-plus fs-2"></i>مروج جديد
+            </button>
+        </div>
+    </div>
+    <!--end::Header-->
+    <!--begin::Body-->
+    <div class="card-body pt-3">
+        @if (message != null)
+        {
+            <div class="alert alert-success d-flex align-items-center gap-2">
+                <i class="fas fa-check-circle"></i>
+                <span>@message</span>
+            </div>
+        }
+        @if (errorMessage != null)
+        {
+            <div class="alert alert-danger d-flex align-items-center gap-2">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>@errorMessage</span>
+            </div>
+        }
+
+        <!--begin::Table container-->
+        <div class="table-responsive">
+            <!--begin::Table-->
+            <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+                <!--begin::Table head-->
+                <thead>
+                    <tr class="fw-bold text-muted bg-light">
+                        <th class="ps-4 min-w-200px rounded-start">الاسم</th>
+                        <th class="min-w-150px">رقم الهاتف</th>
+                        <th class="min-w-200px">البريد الإلكتروني</th>
+                        <th class="min-w-100px">الحالة</th>
+                        <th class="min-w-100px text-end rounded-end"></th>
+                    </tr>
+                </thead>
+                <!--end::Table head-->
+                <!--begin::Table body-->
+                <tbody>
+                    @if (promoters.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-6">لا يوجد مروجون حتى الآن.</td>
+                        </tr>
+                    }
+                    @foreach (var item in promoters)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="d-flex justify-content-start flex-column">
+                                        <a href="#" class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">@item.FirstName</a>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="#" class="text-gray-900 fw-bold text-hover-primary d-block mb-1 fs-6">@item.PhoneNumber</a>
+                            </td>
+                            <td>
+                                <span class="text-gray-900 fw-semibold d-block mb-1 fs-6">@item.Email</span>
+                            </td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge badge-light-success fs-7 fw-bold">نشط</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-light-danger fs-7 fw-bold">معطل</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a href="https://wa.me/@item.PhoneNumber" target="_blank" class="btn btn-sm btn-icon btn-active-light-success" title="فتح واتساب">
+                                    <i class="fab fa-whatsapp fs-2 text-success"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <!--end::Table body-->
+            </table>
+            <!--end::Table-->
+        </div>
+        <!--end::Table container-->
+    </div>
+    <!--end::Body-->
+</div>
+
+<!-- Add Promoter Modal -->
+<div class="modal fade" id="addPromoterModal" tabindex="-1" aria-labelledby="addPromoterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPromoterModalLabel">إنشاء مروج جديد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPromoterForm">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label required">اسم المروج</label>
+                        <input asp-for="FullName" class="form-control" placeholder="الاسم الكامل للمروج" />
+                        <span asp-validation-for="FullName" class="text-danger fs-7"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">رقم الهاتف (واتساب)</label>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="059XXXXXXXX" />
+                            </div>
+                            <div class="col-md-4">
+                                <select asp-for="CountryCode" class="form-select">
+                                    <option value="970">+970 🇵🇸</option>
+                                    <option value="972">+972 🇵🇸</option>
+                                </select>
+                            </div>
+                        </div>
+                        <span asp-validation-for="PhoneNumber" class="text-danger fs-7"></span>
+                    </div>
+                    <div class="alert alert-info m-0">
+                        <i class="fas fa-info-circle"></i>
+                        سيتم إنشاء حساب (بريد إلكتروني وكلمة مرور) للمروج تلقائياً، ثم يفتح واتساب برسالة جاهزة تحتوي بيانات الدخول لإرسالها للمروج.
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-4 w-100" id="createPromoterBtn">
+                        <span class="indicator-label">إنشاء المروج</span>
+                        <span class="indicator-progress d-none">
+                            <span class="spinner-border spinner-border-sm align-middle"></span> جاري الإنشاء...
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script type="text/javascript">
+        $(function () {
+            $('#addPromoterForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var form = $(this);
+                var win = window.open('', '_blank');
+
+                var btn = $('#createPromoterBtn');
+                btn.prop('disabled', true);
+                btn.find('.indicator-label').addClass('d-none');
+                btn.find('.indicator-progress').removeClass('d-none');
+
+                $.ajax({
+                    url: '@Url.Action("Create", "Promoter", new { area = "Admin" })',
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function (response) {
+                        btn.find('.indicator-label').removeClass('d-none');
+                        btn.find('.indicator-progress').addClass('d-none');
+                        btn.prop('disabled', false);
+
+                        if (response.success) {
+                            $('#addPromoterModal').modal('hide');
+                            form[0].reset();
+
+                            if (win && typeof win.location === 'object') {
+                                win.location.href = response.whatsappUrl;
+                            } else {
+                                window.open(response.whatsappUrl, '_blank');
+                            }
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'تم إنشاء حساب المروج بنجاح!',
+                                html: 'تم فتح واتساب لإرسال بيانات الدخول.',
+                                confirmButtonText: 'موافق'
+                            }).then(function () {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'حدث خطأ!',
+                                text: response.message || 'حدث خطأ أثناء إنشاء المروج.',
+                                confirmButtonText: 'حسناً'
+                            });
+                        }
+                    },
+                    error: function () {
+                        btn.find('.indicator-label').removeClass('d-none');
+                        btn.find('.indicator-progress').addClass('d-none');
+                        btn.prop('disabled', false);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'حدث خطأ!',
+                            text: 'حدث خطأ أثناء إنشاء المروج. الرجاء المحاولة لاحقاً.',
+                            confirmButtonText: 'حسناً'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

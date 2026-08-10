@@ -1,29 +1,24 @@
 using Sense.Application.DTOs.CenterSettingDTOs;
-using Sense.Application.DTOs.ServiceDTOs;
-using Sense.Application.UseCases.CenterSetting.Queries.GetCenterSettingQuery;
-using Sense.Application.UseCases.Service.Queries.GetAllServicesQuery;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Sense.Performance;
 
 namespace SenseWeb.Components
 {
     public class FooterViewComponent : ViewComponent
     {
-        private readonly IMediator _mediator;
+        private readonly StorefrontDataCache _storefrontData;
 
-        public FooterViewComponent(IMediator mediator)
+        public FooterViewComponent(StorefrontDataCache storefrontData)
         {
-            _mediator = mediator;
+            _storefrontData = storefrontData;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var setting = await _mediator.Send(new GetCenterSettingQuery());
-            var services = await _mediator.Send(new GetAllServicesQuery());
+            var setting = await _storefrontData.GetCenterSettingAsync();
 
-            ViewBag.Services = services.Data?.ToList() ?? new List<ServiceDto>();
-
-            return View(setting.Data ?? new CenterSettingDto
+            return View(setting ?? new CenterSettingDto
             {
                 CenterName = "مركز سدرا",
                 LogoUrl = "/assets/img/logo-default.png",

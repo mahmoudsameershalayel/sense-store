@@ -65,9 +65,9 @@ namespace Sense.Controllers
             var centerSetting = await _mediator.Send(new GetCenterSettingQuery { });
             dto.DeliveryFee = centerSetting.Data.DeliveryFee;
             var result = await _mediator.Send(new CreateOrderCommand { CurrentUserId = userId, ShoppingCart = cart, Dto = dto });
-            ClearAllItemsFromShoppingCart();
-            if (result.Result.Code != ResultCodeStatus.BadRequest)
+            if (result.Result.Code == ResultCodeStatus.Created)
             {
+                ClearAllItemsFromShoppingCart();
                 return Json(new { success = true, message = result.Result.Message, result.Data });
             }
             else

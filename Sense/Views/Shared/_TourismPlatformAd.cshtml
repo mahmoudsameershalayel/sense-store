@@ -1,0 +1,55 @@
+<div class="tourism-ad" id="tourismPlatformAd" hidden aria-hidden="true">
+    <button class="tourism-ad__backdrop"
+            type="button"
+            data-tourism-ad-close
+            tabindex="-1"
+            aria-label="إغلاق الإعلان"></button>
+
+    <section class="tourism-ad__dialog"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="tourismPlatformAdTitle"
+             aria-describedby="tourismPlatformAdDescription"
+             tabindex="-1"
+             dir="rtl">
+        <button class="tourism-ad__close"
+                type="button"
+                data-tourism-ad-close
+                aria-label="إغلاق الإعلان">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+
+        <div class="tourism-ad__visual">
+            <img src="~/assets/img/tourism-platform-ad.jpeg"
+                 asp-append-version="true"
+                 width="739"
+                 height="415"
+                 loading="eager"
+                 decoding="async"
+                 fetchpriority="high"
+                 alt="مسافرون من ذوي الاحتياجات الخاصة ضمن تجربة سياحية شاملة" />
+        </div>
+
+        <div class="tourism-ad__content">
+            <span class="tourism-ad__label">
+                <i class="bi bi-stars" aria-hidden="true"></i>
+                فرصة للشراكة
+            </span>
+
+            <h2 id="tourismPlatformAdTitle">أول منصة سياحية لذوي الاحتياجات الخاصة</h2>
+
+            <p id="tourismPlatformAdDescription">
+                نعمل على تجربة سياحية أكثر سهولة وشمولاً، ونبحث عن مقدّمي خدمات يشاركوننا هذه الرؤية.
+            </p>
+
+            <a class="tourism-ad__cta" asp-controller="PartnerInquiry" asp-action="Index">
+                <span>هل تقدم خدمة مناسبة لهم؟ اضغط هنا</span>
+                <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            </a>
+
+            <button class="tourism-ad__later" type="button" data-tourism-ad-close>
+                ربما لاحقاً
+            </button>
+        </div>
+    </section>
+</div>

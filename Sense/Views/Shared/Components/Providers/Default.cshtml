@@ -19,10 +19,10 @@
                 <div class="swiper-wrapper text-center">
                     @foreach (var provider in providers)
                     {
-                        <a href="/Providers/Details/@provider.Id" class="swiper-slide sf-category-item">
+                        <a href="/Providers/Details/@provider.Id" class="swiper-slide sf-category-item sf-provider-item">
                             @if (!string.IsNullOrWhiteSpace(provider.LogoURL))
                             {
-                                <img src="@provider.LogoURL" alt="@provider.DisplayName" loading="lazy">
+                                <img src="@provider.LogoURL" alt="@provider.DisplayName" loading="lazy" decoding="async" fetchpriority="low">
                             }
                             else
                             {

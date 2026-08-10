@@ -27,29 +27,29 @@ namespace Sense.Models.ProviderRegistration
         [Display(Name = "رقم الهاتف")]
         public string PhoneNumber { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "كلمة المرور مطلوبة.")]
+        [DataType(DataType.Password)]
+        [Display(Name = "كلمة المرور")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "تأكيد كلمة المرور مطلوب.")]
+        [DataType(DataType.Password)]
+        [Compare(nameof(Password), ErrorMessage = "كلمتا المرور غير متطابقتين.")]
+        [Display(Name = "تأكيد كلمة المرور")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
         [Required(ErrorMessage = "وصف النشاط التجاري مطلوب.")]
         [StringLength(3000, MinimumLength = 20, ErrorMessage = "يجب أن يتراوح الوصف بين 20 و3000 حرف.")]
         [Display(Name = "وصف النشاط التجاري")]
         public string BusinessDescription { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "يرجى إرفاق الهوية أو السجل/الرخصة التجارية.")]
-        [Display(Name = "وثيقة التحقق")]
-        public IFormFile? Document { get; set; }
+        [Required(ErrorMessage = "صورة الملف الشخصي مطلوبة.")]
+        [Display(Name = "صورة الملف الشخصي")]
+        public IFormFile? ProfileImage { get; set; }
 
         [MustBeTrue(ErrorMessage = "يجب الموافقة على الشروط وصحة البيانات.")]
         [Display(Name = "الموافقة على الشروط")]
         public bool AcceptedTerms { get; set; }
-    }
-
-    public class ProviderRequestReviewViewModel
-    {
-        public int Id { get; set; }
-
-        [StringLength(3000, ErrorMessage = "الملاحظة الداخلية لا يمكن أن تتجاوز 3000 حرف.")]
-        public string? InternalNote { get; set; }
-
-        [StringLength(2000, ErrorMessage = "سبب الرفض لا يمكن أن يتجاوز 2000 حرف.")]
-        public string? RejectionReason { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]

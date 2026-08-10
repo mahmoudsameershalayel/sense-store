@@ -193,6 +193,15 @@
                                     قدّم طلب مزوّد
                                 </a>
                             </div>
+                            <div class="text-center mt-2">
+                                <span>هل ترغب بتقديم خدماتك؟</span>
+                                <a asp-controller="ServiceProviderRegistration"
+                                   asp-action="Index"
+                                   class="text-primary"
+                                   style="text-decoration: underline;">
+                                    قدّم طلب مزوّد خدمة
+                                </a>
+                            </div>
                         </form>
 
                     </div>
@@ -204,7 +213,6 @@
 
 @section Scripts
 {
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script type="text/javascript">
         @if (TempData["Message"] != null)

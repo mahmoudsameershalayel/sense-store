@@ -3,6 +3,42 @@
 @inject MediatR.IMediator Mediator
 @{
     var role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+    var userName = User.Identity?.Name ?? "المستخدم";
+    var roleDisplayName = role switch
+    {
+        "Administrator" => "مدير النظام",
+        "Admin" => "مدير النظام",
+        "Provider" => "مزود",
+        "ServiceProvider" => "مزود خدمة",
+        _ => role ?? string.Empty
+    };
+    var showNavbarIdentity = role is "Administrator" or "Admin" or "Provider" or "ServiceProvider";
+    var currentArea = ViewContext.RouteData.Values["area"]?.ToString();
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var adminDataTableControllers = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "Appointment",
+        "CashbackOffer",
+        "FreeMaintenanceOffer",
+        "Invoice",
+        "MaintenanceRecord",
+        "Order",
+        "Product",
+        "ServiceListing"
+    };
+    var supervisorDataTableControllers = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "Appointment",
+        "MaintenanceRecord"
+    };
+    var usesDataTables = string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase)
+        && ((string.Equals(currentArea, "Admin", StringComparison.OrdinalIgnoreCase)
+             && currentController is not null
+             && adminDataTableControllers.Contains(currentController))
+            || (string.Equals(currentArea, "Supervisor", StringComparison.OrdinalIgnoreCase)
+                && currentController is not null
+                && supervisorDataTableControllers.Contains(currentController)));
     var centerSettingResult = await Mediator.Send(new GetCenterSettingQuery());
     var centerSetting = centerSettingResult.Data;
     var siteName = string.IsNullOrWhiteSpace(centerSetting?.CenterName) ? "مركز سدرا" : centerSetting.CenterName;
@@ -14,6 +50,8 @@
 <html lang="ar" dir="rtl">
 <!--begin::Head-->
 <head>
+    <partial name="_GoogleAnalytics" />
+
     <title>لوحة التحكم - @siteName</title>
     <meta charset="utf-8" />
     <meta name="description" content="..." />
@@ -30,23 +68,13 @@
 
 
     <!--begin::Fonts-->
-    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&family=Cairo:wght@300;400;700&family=Tajawal:wght@300;400;700&display=swap" rel="stylesheet">
     <!--end::Fonts-->
-    <!--begin::Vendor Stylesheets-->
-    <link href="~/assets/plugins/custom/fullcalendar/fullcalendar.bundle.css" rel="stylesheet" type="text/css" />
-    <link href="~/assets/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
-    <!--end::Vendor Stylesheets-->
     <!--begin::Global Stylesheets Bundle-->
-    <link href="~/assets/plugins/global/plugins.bundle.rtl.css" rel="stylesheet" type="text/css" />
-    <link href="~/assets/css/style.bundle.rtl.css" rel="stylesheet" type="text/css" />
+    <link href="~/assets/plugins/global/plugins.bundle.rtl.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+    <link href="~/assets/css/style.bundle.rtl.css" rel="stylesheet" type="text/css" asp-append-version="true" />
     <!--end::Global Stylesheets Bundle-->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@eonasdan/tempus-dominus@6.7.12/dist/css/tempus-dominus.min.css" />
 
     <script>
         // Frame-busting to prevent site from being loaded within a frame without permission (click-jacking)
@@ -62,7 +90,12 @@
             white-space: nowrap;
         }
     </style>
-    @RenderSection("Styles", false)
+    @if (usesDataTables)
+    {
+        <link href="~/assets/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" asp-append-version="true" />
+    }
+    @RenderSection("VendorStyles", required: false)
+    @RenderSection("Styles", required: false)
 
 </head>
 <!--end::Head-->
@@ -115,14 +148,36 @@
                         <div class="app-navbar flex-shrink-0">
 
                             <!--begin::User menu-->
-                            <div class="app-navbar-item ms-1 ms-md-4" id="kt_header_user_menu_toggle">
-                                @await Component.InvokeAsync("ProfileImage")
+                            <div class="app-navbar-item ms-1 ms-md-4"
+                                 id="kt_header_user_menu_toggle"
+                                 title="@(showNavbarIdentity ? $"{userName} - {roleDisplayName}" : null)">
+                                <div class="d-flex align-items-center gap-3 cursor-pointer py-1"
+                                     data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
+                                     data-kt-menu-attach="parent"
+                                     data-kt-menu-placement="bottom-end">
+                                    @await Component.InvokeAsync("ProfileImage")
+                                    @if (showNavbarIdentity)
+                                    {
+                                        <div class="d-none d-sm-flex flex-column align-items-start lh-1">
+                                            <span class="fw-bold text-gray-900 text-truncate" dir="ltr" style="max-width:150px">@userName</span>
+                                            <span class="text-muted fs-8 mt-1">@roleDisplayName</span>
+                                        </div>
+                                    }
+                                </div>
                                 <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-275px" data-kt-menu="true">
                                     <!--begin::Menu item-->
                                     <div class="menu-item px-3">
-                                        <div class="menu-content d-flex align-items-center px-3">
+                                        <div class="menu-content d-flex align-items-center gap-4 px-3">
                                             @await Component.InvokeAsync("ProfileImage")
                                             <!--end::Avatar-->
+
+                                            @if (showNavbarIdentity)
+                                            {
+                                                <div class="d-flex flex-column overflow-hidden">
+                                                    <span class="fw-bold text-gray-900 text-truncate" dir="ltr">@userName</span>
+                                                    <span class="text-muted fs-7">@roleDisplayName</span>
+                                                </div>
+                                            }
 
                                         </div>
                                     </div>
@@ -134,6 +189,15 @@
                                     <div class="menu-item px-5">
                                         <a asp-controller="Account" asp-action="Profile" class="menu-link px-5">ملفي الشخصي</a>
                                     </div>
+                                    <!--end::Menu item-->
+                                    @if (role is "Administrator" or "Admin")
+                                    {
+                                        <!--begin::Menu item-->
+                                        <div class="menu-item px-5">
+                                            <a asp-area="Admin" asp-controller="Account" asp-action="ChangePassword" class="menu-link px-5">تغيير كلمة المرور</a>
+                                        </div>
+                                        <!--end::Menu item-->
+                                    }
                                     <!--end::Menu item-->
                                     <!--begin::Menu item-->
                                     <div class="menu-item px-5">
@@ -180,6 +244,10 @@
                     else if (User.IsInRole("Provider"))
                     {
                         <partial name="~/Views/Shared/PartialViews/_ProviderNavbar.cshtml" />
+                    }
+                    else if (User.IsInRole("ServiceProvider"))
+                    {
+                        <partial name="~/Views/Shared/PartialViews/_ServiceProviderNavbar.cshtml" />
                     }
                 }
 
@@ -4131,52 +4199,22 @@
     <!--begin::Javascript-->
     <script>var hostUrl = "assets/";</script>
     <!--begin::Global Javascript Bundle(mandatory for all pages)-->
-    <!-- Load jQuery FIRST -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/assets/plugins/global/plugins.bundle.js" asp-append-version="true"></script>
+    <script src="~/assets/js/scripts.bundle.js" asp-append-version="true"></script>
+    <!--end::Global Javascript Bundle-->
 
-    <!-- Load Bootstrap (optional if not already included) -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.bundle.min.js"></script>
+    @if (usesDataTables)
+    {
+        <script src="~/assets/plugins/custom/datatables/datatables.bundle.js" asp-append-version="true"></script>
+    }
+    @RenderSection("VendorScripts", required: false)
 
-    <!-- Load DataTables -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.29/dist/sweetalert2.all.min.js"></script>
-
-    <!-- Toastr -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-
-    <!-- FullCalendar (if used) -->
-    <script src="~/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
-
-    <!-- AmCharts -->
-    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/radar.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/map.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/geodata/worldLow.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/geodata/continentsLow.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/geodata/usaLow.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/geodata/worldTimeZonesLow.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/geodata/worldTimeZoneAreasLow.js"></script>
-
-    <!-- Custom scripts and bundles -->
-    <script src="~/assets/plugins/global/plugins.bundle.js"></script>
-    <script src="~/assets/js/scripts.bundle.js"></script>
-    <script src="~/assets/plugins/custom/datatables/datatables.bundle.js"></script>
-    <script src="~/assets/js/widgets.bundle.js"></script>
-    <script src="~/assets/js/custom/widgets.js"></script>
-    <script src="~/assets/js/custom/apps/chat/chat.js"></script>
-    <script src="~/assets/js/custom/utilities/modals/upgrade-plan.js"></script>
-    <script src="~/assets/js/custom/utilities/modals/create-app.js"></script>
-    <script src="~/assets/js/custom/utilities/modals/new-target.js"></script>
-    <script src="~/assets/js/custom/utilities/modals/users-search.js"></script>
-
-    <!-- Tempus Dominus (if used) -->
-    <script src="https://cdn.jsdelivr.net/npm/@@eonasdan/tempus-dominus@6.7.12/dist/js/tempus-dominus.min.js"></script>
+    <!-- Custom scripts used by the shared dashboard modals -->
+    <script src="~/assets/js/custom/apps/chat/chat.js" asp-append-version="true"></script>
+    <script src="~/assets/js/custom/utilities/modals/upgrade-plan.js" asp-append-version="true"></script>
+    <script src="~/assets/js/custom/utilities/modals/create-app.js" asp-append-version="true"></script>
+    <script src="~/assets/js/custom/utilities/modals/new-target.js" asp-append-version="true"></script>
+    <script src="~/assets/js/custom/utilities/modals/users-search.js" asp-append-version="true"></script>
 
     <!-- Razor Section for custom page scripts -->
     @RenderSection("scripts", required: false)

@@ -20,7 +20,7 @@
                     @foreach (var category in categories)
                     {
                         <a asp-controller="Home" asp-action="Index" asp-route-ProductCategoryId="@category.Id" class="swiper-slide sf-category-item">
-                            <img src="@category.ImageURL" alt="@category.Name" loading="lazy">
+                            <img src="@category.ImageURL" alt="@category.Name" loading="lazy" decoding="async" fetchpriority="low">
                             <span>@category.Name</span>
                         </a>
                     }

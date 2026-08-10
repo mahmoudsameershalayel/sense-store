@@ -7,6 +7,7 @@ namespace Sense.Components
 {
     public class ProfileImageViewComponent : ViewComponent
     {
+        private static readonly object RequestCacheKey = new();
         private readonly UserManager<ApplicationUserTbl> _userManager;
 
         public ProfileImageViewComponent(UserManager<ApplicationUserTbl> userManager)
@@ -16,9 +17,18 @@ namespace Sense.Components
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var user = await _userManager.GetUserAsync(HttpContext.User); // Get the logged-in user
+            ApplicationUserTbl? user;
+            if (HttpContext.Items.TryGetValue(RequestCacheKey, out var cachedUser))
+            {
+                user = cachedUser as ApplicationUserTbl;
+            }
+            else
+            {
+                user = await _userManager.GetUserAsync(HttpContext.User);
+                HttpContext.Items[RequestCacheKey] = user;
+            }
 
-            if (user != null && HttpContext.User.Identity.IsAuthenticated && user.ImageURL != null)
+            if (user != null && HttpContext.User.Identity?.IsAuthenticated == true && user.ImageURL != null)
             {
                 var profileImagePath = user.ImageURL;
                 ViewBag.ProfileImage = profileImagePath;

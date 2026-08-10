@@ -1,0 +1,68 @@
+@{
+    ViewData["Title"] = "شروط الانضمام كمزوّد خدمة";
+}
+
+@section Styles
+{
+    <style>
+        .service-provider-terms-hero {
+            background: linear-gradient(135deg, #061c42 0%, #253f8e 100%);
+            color: #fff;
+            padding: 48px 0;
+        }
+
+        .service-provider-terms-card {
+            border: 0;
+            border-radius: 18px;
+            box-shadow: 0 16px 45px rgba(6, 28, 66, .11);
+        }
+
+        .service-provider-terms-list {
+            padding-right: 1.25rem;
+            line-height: 2;
+        }
+
+        .service-provider-terms-list li + li {
+            margin-top: .65rem;
+        }
+    </style>
+}
+
+<section class="service-provider-terms-hero text-center">
+    <div class="container">
+        <h1 class="text-white mb-2">شروط الانضمام كمزوّد خدمة</h1>
+        <p class="mb-0 opacity-75">يرجى قراءة الشروط التالية قبل إنشاء حساب مزود الخدمة.</p>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container" style="max-width: 900px;">
+        <div class="card service-provider-terms-card">
+            <div class="card-body p-4 p-lg-5">
+                <h2 class="h4 mb-4" style="color:#061c42;">شروط استخدام حساب مزود الخدمة</h2>
+
+                <ol class="service-provider-terms-list mb-4">
+                    <li>يجب تقديم بيانات صحيحة ومحدثة عن مزود الخدمة ونشاطه، ويتحمل مزود الخدمة مسؤولية دقتها.</li>
+                    <li>لا يجوز عرض خدمات محظورة أو مخالفة للأنظمة، أو خدمات لا يملك مزود الخدمة حق تقديمها.</li>
+                    <li>يلتزم مزود الخدمة بأن تكون أوصاف الخدمات وصورها وأسعارها واضحة وصحيحة.</li>
+                    <li>يتحمل مزود الخدمة مسؤولية جودة الخدمات المقدمة وتنفيذها ضمن المدة المتفق عليها.</li>
+                    <li>يلتزم مزود الخدمة بالتعامل المهني مع العملاء واحترام سياسات المتجر المعتمدة.</li>
+                    <li>يجب الحفاظ على سرية بيانات الدخول وعدم مشاركة الحساب مع أشخاص غير مخولين.</li>
+                    <li>لا يجوز استخدام بيانات العملاء خارج نطاق تنفيذ الخدمة أو مشاركتها مع أي طرف غير مخول.</li>
+                    <li>يحق لإدارة Sense Store إخفاء أي خدمة مخالفة أو تعليق حساب مزود الخدمة عند إساءة الاستخدام أو مخالفة هذه الشروط.</li>
+                    <li>قد تُحدّث هذه الشروط عند الحاجة، ويُعد استمرار استخدام حساب مزود الخدمة موافقة على النسخة المحدثة.</li>
+                </ol>
+
+                <div class="alert alert-info mb-4" role="note">
+                    بإنشاء حساب مزود خدمة، فإنك تؤكد قراءة هذه الشروط وفهمها والموافقة عليها.
+                </div>
+
+                <a asp-controller="ServiceProviderRegistration"
+                   asp-action="Index"
+                   class="btn btn-primary px-4">
+                    العودة إلى تسجيل مزود الخدمة
+                </a>
+            </div>
+        </div>
+    </div>
+</section>

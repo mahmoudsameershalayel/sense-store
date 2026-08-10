@@ -1,0 +1,109 @@
+@using Sense.Application.DTOs.CategoryDTOs
+@model IEnumerable<CategoryDto>
+
+@if (TempData["Message"] is string message)
+{
+    <div class="alert alert-success">@message</div>
+}
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<div class="card mb-8">
+    <div class="card-header border-0 pt-5">
+        <div class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold fs-3 mb-1">إدارة التصنيفات</span>
+            <span class="text-muted mt-1 fw-semibold fs-7">أضف التصنيفات التي تحتاجها منتجات المتجر وعدّل بياناتها.</span>
+        </div>
+    </div>
+
+    <div class="card-body pt-3">
+        <form asp-area="Provider" asp-controller="Category" asp-action="Create" method="post" class="row g-3 align-items-end">
+            <div class="col-md-8">
+                <label for="new-category-name" class="form-label required">اسم التصنيف الجديد</label>
+                <input id="new-category-name" name="Name" class="form-control" maxlength="200" required />
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="ki-duotone ki-plus fs-2"></i>
+                    إضافة تصنيف
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mb-xl-8">
+    <div class="card-header border-0 pt-5">
+        <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold fs-3 mb-1">التصنيفات الحالية</span>
+            <span class="text-muted mt-1 fw-semibold fs-7">لا يمكن حذف تصنيف مرتبط بمنتجات.</span>
+        </h3>
+    </div>
+
+    <div class="card-body pt-3">
+        <div class="table-responsive">
+            <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+                <thead>
+                    <tr class="fw-bold text-muted bg-light">
+                        <th class="ps-4 min-w-100px rounded-start">الصورة</th>
+                        <th class="min-w-300px">اسم التصنيف</th>
+                        <th class="min-w-180px text-end rounded-end">العمليات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var category in Model)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                @if (!string.IsNullOrWhiteSpace(category.ImageURL))
+                                {
+                                    <img src="@category.ImageURL" alt="@category.Name" style="width:52px;height:52px;object-fit:cover;border-radius:10px;" />
+                                }
+                                else
+                                {
+                                    <div class="symbol symbol-50px bg-light d-flex align-items-center justify-content-center rounded">
+                                        <i class="fas fa-image fs-2 text-muted" aria-hidden="true"></i>
+                                    </div>
+                                }
+                            </td>
+                            <td>
+                                <form asp-area="Provider" asp-controller="Category" asp-action="Edit" method="post" class="d-flex gap-2">
+                                    <input type="hidden" name="Id" value="@category.Id" />
+                                    <input name="Name" value="@category.Name" class="form-control" maxlength="200" required />
+                                    <button type="submit" class="btn btn-sm btn-light-warning" title="حفظ الاسم">
+                                        <i class="ki-duotone ki-check fs-2"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            <td class="text-end">
+                                <a asp-area="Provider"
+                                   asp-controller="Category"
+                                   asp-action="UploadImage"
+                                   asp-route-id="@category.Id"
+                                   class="btn btn-icon btn-sm btn-light-info"
+                                   title="تغيير الصورة">
+                                    <i class="fas fa-image fs-4" aria-hidden="true"></i>
+                                </a>
+
+                                <form asp-area="Provider"
+                                      asp-controller="Category"
+                                      asp-action="Delete"
+                                      method="post"
+                                      class="d-inline"
+                                      onsubmit="return confirm('هل تريد حذف هذا التصنيف؟ لا يمكن حذف التصنيفات المرتبطة بمنتجات.');">
+                                    <input type="hidden" name="id" value="@category.Id" />
+                                    <button type="submit" class="btn btn-icon btn-sm btn-light-danger" title="حذف">
+                                        <i class="fas fa-trash-alt fs-4" aria-hidden="true"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

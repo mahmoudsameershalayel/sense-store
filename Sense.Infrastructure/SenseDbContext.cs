@@ -62,6 +62,7 @@ namespace Sense.Infrastructure
             string CUSTOMER_ROLE_ID = "341743f0-8ce4-42de-afbf-59f706d72cf6";
             string Technical_Support_ROLE_ID = "456743f7-8ce4-42tg-afbf-59f706d72cf6";
             string PROVIDER_ROLE_ID = "789743f9-8ce4-42de-afbf-59f706d72cf6";
+            string SERVICE_PROVIDER_ROLE_ID = "9cafb58e-829a-40e1-83fb-21ea8ed29b35";
             static DateTime SeedCreatedAt(long ticks) => new DateTime(2026, 1, 1, 11, 54, 20, 608, DateTimeKind.Utc).AddTicks(ticks);
 
             modelBuilder.Entity<IdentityRole>().HasData(
@@ -97,6 +98,13 @@ namespace Sense.Infrastructure
                      NormalizedName = "PROVIDER",
                      Id = PROVIDER_ROLE_ID,
                      ConcurrencyStamp = PROVIDER_ROLE_ID
+                 }
+                 , new IdentityRole
+                 {
+                     Name = "ServiceProvider",
+                     NormalizedName = "SERVICEPROVIDER",
+                     Id = SERVICE_PROVIDER_ROLE_ID,
+                     ConcurrencyStamp = SERVICE_PROVIDER_ROLE_ID
                  }
            );
 
@@ -275,6 +283,9 @@ namespace Sense.Infrastructure
         public DbSet<ProductTbl> ProductTbls { get; set; }
         public DbSet<ProviderTbl> ProviderTbls { get; set; }
         public DbSet<ProviderRequestTbl> ProviderRequestTbls { get; set; }
+        public DbSet<ServiceListingTbl> ServiceListingTbls { get; set; }
+        public DbSet<ServiceProviderTbl> ServiceProviderTbls { get; set; }
+        public DbSet<PartnerInquiryTbl> PartnerInquiryTbls { get; set; }
         public DbSet<PhoneVerificationTbl> PhoneVerificationTbls { get; set; }
         public DbSet<ShoppingCartTbl> ShoppingCartTbls { get; set; }
         public DbSet<ServiceTbl> ServiceTbls { get; set; }

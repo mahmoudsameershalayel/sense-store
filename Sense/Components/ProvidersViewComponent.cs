@@ -1,23 +1,24 @@
 using Sense.Application.UseCases.Provider.Queries.GetAllProvidersQuery;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Sense.Performance;
 
 namespace Sense.Components
 {
     public class ProvidersViewComponent : ViewComponent
     {
-        private readonly IMediator _mediator;
+        private readonly StorefrontDataCache _storefrontData;
 
-        public ProvidersViewComponent(IMediator mediator)
+        public ProvidersViewComponent(StorefrontDataCache storefrontData)
         {
-            _mediator = mediator;
+            _storefrontData = storefrontData;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var providers = await _mediator.Send(new GetAllProvidersQuery());
+            var providers = await _storefrontData.GetProvidersAsync();
 
-            ViewBag.Providers = providers.Data;
+            ViewBag.Providers = providers;
             return View();
         }
     }

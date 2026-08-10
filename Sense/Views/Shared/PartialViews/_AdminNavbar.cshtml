@@ -104,19 +104,37 @@
                             <!--end:Menu item-->
                             <!--begin:Menu item-->
                             <div class="menu-item">
-                                <a class="menu-link @(ViewBag.ActiveMenu == "ProviderRequests" ? "active" : "")"
+                                <a class="menu-link @(ViewBag.ActiveMenu == "ServiceProviders" ? "active" : "")"
                                    asp-area="admin"
-                                   asp-controller="ProviderRequests"
+                                   asp-controller="ServiceProvider"
                                    asp-action="index">
                                     <span class="menu-bullet">
                                         <span class="bullet bullet-dot"></span>
                                     </span>
-                                    <span class="menu-title">طلبات انضمام المزودين</span>
+                                    <span class="menu-title">مزودو الخدمات</span>
                                 </a>
                             </div>
                             <!--end:Menu item-->
                         </div>
                         <!--end:Menu sub-->
+                    </div>
+                    <!--end:Menu item-->
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <a class="menu-link @(ViewBag.ActiveMenu == "Promoters" ? "active" : "")"
+                           asp-area="admin"
+                           asp-controller="Promoter"
+                           asp-action="Index">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-user-tick fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">إدارة المروجين</span>
+                        </a>
+                        <!--end:Menu link-->
                     </div>
                     <!--end:Menu item-->
                     <!--begin:Menu item-->
@@ -158,6 +176,39 @@
                                         <span class="bullet bullet-dot"></span>
                                     </span>
                                     <span class="menu-title">التصنيفات</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
+                        </div>
+                        <!--end:Menu sub-->
+                    </div>
+                    <!--end:Menu item-->
+                    <!--begin:Menu item-->
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                        <!--begin:Menu link-->
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <i class="ki-duotone ki-shop fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </span>
+                            <span class="menu-title">الخدمات المعروضة</span>
+                            <span class="menu-arrow"></span>
+                        </span>
+                        <!--end:Menu link-->
+                        <!--begin:Menu sub-->
+                        <div class="menu-sub menu-sub-accordion">
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "ServiceListing" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="ServiceListing"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">إدارة الخدمات</span>
                                 </a>
                             </div>
                             <!--end:Menu item-->
@@ -482,6 +533,19 @@
                                 </a>
                             </div>
                             <!--end:Menu item-->
+                            <!--begin:Menu item-->
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "PartnerInquiry" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="PartnerInquiry"
+                                   asp-action="index">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">طلبات تقديم خدمة أو منتج</span>
+                                </a>
+                            </div>
+                            <!--end:Menu item-->
                         </div>
                         <!--end:Menu sub-->
                     </div>
@@ -637,6 +701,17 @@
                                         <span class="bullet bullet-dot"></span>
                                     </span>
                                     <span class="menu-title">إعدادات المتجر</span>
+                                </a>
+                            </div>
+                            <div class="menu-item">
+                                <a class="menu-link @(ViewBag.ActiveMenu == "ChangePassword" ? "active" : "")"
+                                   asp-area="admin"
+                                   asp-controller="account"
+                                   asp-action="ChangePassword">
+                                    <span class="menu-bullet">
+                                        <span class="bullet bullet-dot"></span>
+                                    </span>
+                                    <span class="menu-title">تغيير كلمة المرور</span>
                                 </a>
                             </div>
                         </div>

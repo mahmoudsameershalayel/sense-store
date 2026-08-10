@@ -29,6 +29,148 @@ namespace Sense.Application.UseCases.Order.Commands.CreateOrderCommand
             _mapper = mapper;
         }
 
+        private static string? NormalizeWhatsAppNumber(string? phoneNumber)
+        {
+            if (string.IsNullOrWhiteSpace(phoneNumber))
+                return null;
+
+            var digits = new string(phoneNumber.Where(char.IsDigit).ToArray());
+            if (digits.StartsWith("00", StringComparison.Ordinal))
+                digits = digits[2..];
+
+            if (digits.StartsWith('0'))
+                digits = $"970{digits[1..]}";
+            else if (digits.Length == 9 && digits.StartsWith('5'))
+                digits = $"970{digits}";
+
+            return digits.Length >= 8 ? digits : null;
+        }
+
+        private static string GetPaymentMethodName(PaymentMethod? paymentMethod) => paymentMethod switch
+        {
+            PaymentMethod.Mada => "مدى",
+            PaymentMethod.Wallet => "المحفظة",
+            PaymentMethod.CashOnDeliver => "الدفع عند الاستلام",
+            _ => "غير محددة"
+        };
+
+        private static string GetPaymentStatusName(PaymentStatus? paymentStatus) => paymentStatus switch
+        {
+            PaymentStatus.Completed => "تم الدفع",
+            PaymentStatus.Failed => "فشلت عملية الدفع",
+            _ => "بانتظار الدفع"
+        };
+
+        private static string BuildDeliveryAddress(AddressTbl? address)
+        {
+            if (address is null)
+                return "غير محدد";
+
+            var parts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(address.Address)) parts.Add(address.Address.Trim());
+            if (!string.IsNullOrWhiteSpace(address.City)) parts.Add($"المدينة: {address.City.Trim()}");
+            if (!string.IsNullOrWhiteSpace(address.Neighborhood)) parts.Add($"الحي: {address.Neighborhood.Trim()}");
+            if (!string.IsNullOrWhiteSpace(address.Street)) parts.Add($"الشارع: {address.Street.Trim()}");
+            if (!string.IsNullOrWhiteSpace(address.BuildingNo)) parts.Add($"المبنى: {address.BuildingNo.Trim()}");
+            if (!string.IsNullOrWhiteSpace(address.FloorNo)) parts.Add($"الطابق: {address.FloorNo.Trim()}");
+            if (!string.IsNullOrWhiteSpace(address.FlatNo)) parts.Add($"الشقة: {address.FlatNo.Trim()}");
+            if (!string.IsNullOrWhiteSpace(address.FamousSign)) parts.Add($"علامة مميزة: {address.FamousSign.Trim()}");
+
+            return parts.Count > 0 ? string.Join("، ", parts) : "غير محدد";
+        }
+
+        private static List<ProviderWhatsAppOrderDto> BuildProviderWhatsAppOrders(
+            OrderTbl order,
+            IEnumerable<OrderDetailsTbl> orderDetails,
+            ApplicationUserTbl customer,
+            AddressTbl? address)
+        {
+            var customerName = string.Join(" ", new[] { customer.FirstName, customer.LastName }
+                .Where(name => !string.IsNullOrWhiteSpace(name)));
+            if (string.IsNullOrWhiteSpace(customerName))
+                customerName = customer.UserName ?? "عميل Sense Store";
+
+            var addressText = BuildDeliveryAddress(address);
+            var locationUrl = !string.IsNullOrWhiteSpace(address?.LocationLat) && !string.IsNullOrWhiteSpace(address.LocationLong)
+                ? $"https://www.google.com/maps?q={address.LocationLat},{address.LocationLong}"
+                : null;
+
+            var providerGroups = orderDetails
+                .Where(detail => detail.Product?.Provider is not null)
+                .GroupBy(detail => detail.Product!.Provider!.Id);
+
+            var messages = new List<ProviderWhatsAppOrderDto>();
+            foreach (var group in providerGroups)
+            {
+                var provider = group.First().Product!.Provider!;
+                var normalizedPhone = NormalizeWhatsAppNumber(provider.PhoneNumber);
+                var providerSubtotal = group.Sum(detail =>
+                    (detail.ProductNetPrice ?? detail.ProductPrice ?? 0) * (detail.ProductAmount ?? 0));
+
+                var message = new StringBuilder();
+                message.AppendLine("🛒 *طلب جديد عبر Sense Store*");
+                message.AppendLine("━━━━━━━━━━━━━━");
+                message.AppendLine($"🔢 *رقم الطلب:* #{order.Id}");
+                if (order.SaleInvNo.HasValue)
+                    message.AppendLine($"📜 *رقم الفاتورة:* {order.SaleInvNo.Value}");
+                message.AppendLine($"📅 *التاريخ:* {order.OrderDate:yyyy/MM/dd HH:mm}");
+                message.AppendLine();
+                message.AppendLine("👤 *بيانات العميل*");
+                message.AppendLine($"الاسم: {customerName}");
+                message.AppendLine($"رقم التواصل: {order.PhoneNumber ?? customer.PhoneNumber ?? "غير محدد"}");
+                message.AppendLine();
+                message.AppendLine("📍 *عنوان التوصيل*");
+                message.AppendLine(addressText);
+                if (locationUrl is not null)
+                    message.AppendLine($"الموقع على الخريطة: {locationUrl}");
+                message.AppendLine();
+                message.AppendLine("📦 *منتجاتك في الطلب*");
+
+                var itemNumber = 1;
+                foreach (var detail in group)
+                {
+                    var quantity = detail.ProductAmount ?? 0;
+                    var unitPrice = detail.ProductNetPrice ?? detail.ProductPrice ?? 0;
+                    message.AppendLine($"{itemNumber}. {detail.Product!.Name}");
+                    message.AppendLine($"   الكمية: {quantity:0.##} | السعر: {unitPrice:0.00} شيكل | الإجمالي: {(unitPrice * quantity):0.00} شيكل");
+                    itemNumber++;
+                }
+
+                message.AppendLine();
+                message.AppendLine($"💰 *إجمالي منتجاتك:* {providerSubtotal:0.00} شيكل");
+                if ((order.OrderTotalOfferDisValue ?? 0) > 0)
+                    message.AppendLine($"💸 *خصم الطلب الكلي:* {order.OrderTotalOfferDisValue.Value:0.00} شيكل");
+                message.AppendLine($"🚚 *رسوم توصيل الطلب:* {(order.DeliveryFee ?? 0):0.00} شيكل");
+                message.AppendLine($"💵 *إجمالي الطلب النهائي:* {(order.OrderNetValue ?? 0):0.00} شيكل");
+                message.AppendLine($"💳 *طريقة الدفع:* {GetPaymentMethodName(order.PaymentMethod)}");
+                message.AppendLine($"✅ *حالة الدفع:* {GetPaymentStatusName(order.PaymentStatus)}");
+
+                if (!string.IsNullOrWhiteSpace(order.OrderMemo))
+                {
+                    message.AppendLine();
+                    message.AppendLine("📝 *ملاحظات العميل*");
+                    message.AppendLine(order.OrderMemo.Trim());
+                }
+
+                message.AppendLine();
+                message.Append("يرجى تأكيد استلام الطلب مع العميل. شكراً لك 🤝");
+
+                var messageText = message.ToString();
+                messages.Add(new ProviderWhatsAppOrderDto
+                {
+                    ProviderId = provider.Id,
+                    ProviderName = provider.DisplayName,
+                    PhoneNumber = normalizedPhone,
+                    Message = messageText,
+                    WhatsAppUrl = normalizedPhone is null
+                        ? null
+                        : $"https://wa.me/{normalizedPhone}?text={Uri.EscapeDataString(messageText)}"
+                });
+            }
+
+            return messages;
+        }
+
 
         private async Task CheckInventoryAvailability(ShoppingCartTbl shoppingCart)
         {
@@ -75,6 +217,13 @@ namespace Sense.Application.UseCases.Order.Commands.CreateOrderCommand
             if (customer is null)
                 return ResponseResult<OrderDto>.GetResult(ResultCodeStatus.NotFound, $"المستخدم غير موجود!");
             var user = await _userManager.FindByIdAsync(customer.ApplicationUserId);
+            if (user is null)
+                return ResponseResult<OrderDto>.GetResult(ResultCodeStatus.NotFound, $"حساب المستخدم غير موجود!");
+
+            var deliveryAddress = await _repositoryManager.Address.GetAddressAsync(request.Dto.AddressId);
+            if (deliveryAddress is null || deliveryAddress.CustomerId != customer.Id)
+                return ResponseResult<OrderDto>.GetResult(ResultCodeStatus.BadRequest, "عنوان التوصيل غير صالح.");
+
             if (!request.ShoppingCart.Items.Any())
                 return ResponseResult<OrderDto>.GetResult(ResultCodeStatus.BadRequest, $"لا يمكن إتمام الشراء , لا يوجد منتجات في السلة!!");
 
@@ -158,7 +307,7 @@ namespace Sense.Application.UseCases.Order.Commands.CreateOrderCommand
 
             foreach (var item in request.ShoppingCart.Items)
             {
-                var product = await _repositoryManager.Product.GetProductByIdAsync(item.Id);
+                var product = await _repositoryManager.Product.GetProductByIdAsync(item.ProductId);
                 var orderDetails = new OrderDetailsTbl
                 {
                     OrderId = orderAll.Id,
@@ -296,6 +445,7 @@ namespace Sense.Application.UseCases.Order.Commands.CreateOrderCommand
 
 
             var orderDto = _mapper.Map<OrderDto>(orderAll);
+            orderDto.ProviderWhatsAppOrders = BuildProviderWhatsAppOrders(orderAll, orderDetailsList, user, deliveryAddress);
             return ResponseResult<OrderDto>.GetResult(ResultCodeStatus.Created, orderDto, $"تم إنشاء الطلب بنجاح برقم: {orderAll.Id}");
         }
     }

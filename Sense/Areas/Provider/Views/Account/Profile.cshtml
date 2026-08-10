@@ -1,5 +1,9 @@
-@using Sense.Application.DTOs.AuthDTOs
-@model UserDto
+@model Sense.Areas.Provider.Models.ProviderProfileViewModel
+
+@section Styles
+{
+    <link rel="stylesheet" href="~/assets/css/business-description-editor.css" asp-append-version="true" />
+}
 
 <div class="card mb-xl-8">
     <div class="card-header border-0 pt-5">
@@ -7,39 +11,84 @@
             <span class="card-label fw-bold fs-3 mb-1">ملفي الشخصي</span>
             <span class="text-muted mt-1 fw-semibold fs-7">بيانات حساب المزود الخاص بك.</span>
         </h3>
+        <div class="card-toolbar d-flex gap-2">
+            <button type="button" class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                <i class="ki-duotone ki-pencil fs-2 me-1"></i> تعديل الملف الشخصي
+            </button>
+            <button type="button" class="btn btn-light-success btn-sm" data-bs-toggle="modal" data-bs-target="#uploadProfileImageModal">
+                <i class="ki-duotone ki-upload fs-2 me-1"></i> رفع صورة الملف الشخصي
+            </button>
+        </div>
     </div>
     <div class="card-body pt-3">
+        @if (TempData["Message"] is string message)
+        {
+            <div class="alert alert-success">@message</div>
+        }
+
         <div class="text-center mb-5">
-            @if (!string.IsNullOrEmpty(Model?.ImageURL))
+            @if (!string.IsNullOrEmpty(Model.User?.ImageURL))
             {
-                <img src="@Model.ImageURL" class="symbol symbol-75px symbol-circle" style="width:15%;height:15%" />
+                <img src="@Model.User.ImageURL" id="profileImage" alt="صورة المزود" class="symbol symbol-75px symbol-circle" style="width:15%;height:15%" />
             }
             else
             {
-                <img src="~/assets/img/avatar-default.svg" class="symbol symbol-75px symbol-circle" style="width:15%;height:15%" />
+                <img src="~/assets/img/avatar-default.svg" id="profileImage" alt="الصورة الافتراضية" class="symbol symbol-75px symbol-circle" style="width:15%;height:15%" />
             }
         </div>
 
         <div class="row g-6">
             <div class="col-md-6">
                 <label class="form-label fw-semibold">الاسم الكامل</label>
-                <div class="form-control form-control-solid">@Model?.FullName</div>
+                <div class="form-control form-control-solid" id="fullNameDisplay">@Model.User?.FullName</div>
             </div>
             <div class="col-md-6">
                 <label class="form-label fw-semibold">اسم المستخدم</label>
-                <div class="form-control form-control-solid">@Model?.Username</div>
+                <div class="form-control form-control-solid" id="usernameDisplay">@Model.User?.Username</div>
             </div>
             <div class="col-md-6">
                 <label class="form-label fw-semibold">البريد الإلكتروني</label>
-                <div class="form-control form-control-solid">@Model?.Email</div>
+                <div class="form-control form-control-solid" id="emailDisplay">@Model.User?.Email</div>
             </div>
             <div class="col-md-6">
                 <label class="form-label fw-semibold">رقم الهاتف</label>
-                <div class="form-control form-control-solid">@Model?.PhoneNumber</div>
+                <div class="form-control form-control-solid" id="phoneNumberDisplay">@Model.User?.PhoneNumber</div>
             </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">هاتف إضافي 1</label>
+                <div class="form-control form-control-solid" id="phone1Display">@Model.User?.Phone1</div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">هاتف إضافي 2</label>
+                <div class="form-control form-control-solid" id="phone2Display">@Model.User?.Phone2</div>
+            </div>
+
+            <div class="col-12">
+                <form asp-area="Provider" asp-controller="Account" asp-action="Profile" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger fs-7 mb-3"></div>
+
+                    <label asp-for="BusinessDescription" class="form-label fw-semibold required"></label>
+                    <div class="business-description-editor-field">
+                        <textarea asp-for="BusinessDescription"
+                                  class="form-control js-business-description-editor"
+                                  rows="6"
+                                  maxlength="3000"
+                                  data-editor-label="محرر وصف النشاط التجاري"
+                                  placeholder="اكتب وصف النشاط التجاري الذي سيظهر للعملاء"></textarea>
+                    </div>
+                    <span asp-validation-for="BusinessDescription" class="text-danger fs-7"></span>
+                    <div class="form-text">يمكنك تعديل وصف النشاط التجاري الظاهر للعملاء.</div>
+
+                    <button type="submit" class="btn btn-primary mt-4">
+                        <i class="ki-duotone ki-check fs-2"></i>
+                        حفظ الوصف
+                    </button>
+                </form>
+            </div>
+
             <div class="col-md-12">
                 <label class="form-label fw-semibold">حالة الحساب</label>
-                @if (Model?.IsActive == true)
+                @if (Model.User?.IsActive == true)
                 {
                     <span class="badge badge-light-success fs-6">نشط</span>
                 }
@@ -57,3 +106,187 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">تعديل الملف الشخصي</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <div class="mb-3">
+                        <label for="fullName" class="form-label">الاسم الكامل</label>
+                        <input type="text" class="form-control" id="fullName" value="@Model.User?.FullName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">اسم المستخدم</label>
+                        <input type="text" class="form-control" id="username" value="@Model.User?.Username">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">البريد الإلكتروني</label>
+                        <input type="email" class="form-control" id="email" value="@Model.User?.Email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phoneNumber" class="form-label">رقم الهاتف</label>
+                        <input type="text" class="form-control" id="phoneNumber" value="@Model.User?.PhoneNumber">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone1" class="form-label">هاتف إضافي 1</label>
+                        <input type="text" class="form-control" id="phone1" value="@Model.User?.Phone1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone2" class="form-label">هاتف إضافي 2</label>
+                        <input type="text" class="form-control" id="phone2" value="@Model.User?.Phone2">
+                    </div>
+                    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Profile Image Modal -->
+<div class="modal fade" id="uploadProfileImageModal" tabindex="-1" aria-labelledby="uploadProfileImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadProfileImageModalLabel">رفع صورة الملف الشخصي</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info m-3 text-right">
+                    <h5 class="alert-heading mb-2">
+                        <i class="fas fa-info-circle ml-2"></i>
+                        تعليمات رفع الصورة:
+                    </h5>
+                    <ul class="list-unstyled mb-0">
+                        <li>• يجب أن تكون الصورة بصيغة JPEG , PNG أو JPG </li>
+                        <li>• الحد الأقصى لحجم كل ملف: 5 ميجابايت (5000 كيلوبايت)</li>
+                    </ul>
+                </div>
+                <form id="uploadProfileImageForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="image">صورة الملف الشخصي :</label>
+                        <input type="file" class="form-control" id="image">
+                    </div>
+                    <button type="submit" class="btn btn-primary">رفع الصورة</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        // Handle the form submission
+        $('#editProfileForm').on('submit', function (e) {
+            e.preventDefault();
+
+            var formData = {
+                fullName: $('#fullName').val(),
+                username: $('#username').val(),
+                email: $('#email').val(),
+                phoneNumber: $('#phoneNumber').val(),
+                phone1: $('#phone1').val(),
+                phone2: $('#phone2').val()
+            };
+
+            $.ajax({
+                url: "@Url.Action("UpdateProfile", "Account", new { area = "" })",
+                type: 'PUT',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                success: function (response) {
+                    $('#fullNameDisplay').text(response.fullName);
+                    $('#usernameDisplay').text(response.username);
+                    $('#emailDisplay').text(response.email);
+                    $('#phoneNumberDisplay').text(response.phoneNumber);
+                    $('#phone1Display').text(response.phone1);
+                    $('#phone2Display').text(response.phone2);
+                    $('#editProfileModal').modal('hide');
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تم تحديث الملف الشخصي بنجاح!',
+                        text: 'تم تحديث بياناتك بنجاح.',
+                        confirmButtonText: 'موافق',
+                        timer: 3000
+                    });
+                },
+                error: function (xhr, status, error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'حدث خطأ!',
+                        text: 'حدث خطأ أثناء تحديث الملف الشخصي. الرجاء المحاولة لاحقاً.',
+                        confirmButtonText: 'حسناً',
+                        timer: 3000
+                    });
+                }
+            });
+        });
+
+        // Handle form submission
+        $('#uploadProfileImageForm').on('submit', function (e) {
+            e.preventDefault();
+
+            var fileInput = $('#image')[0];
+            if (!fileInput.files || fileInput.files.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'اختر صورة!',
+                    text: 'يرجى اختيار صورة قبل الرفع.',
+                    confirmButtonText: 'حسناً',
+                    timer: 3000
+                });
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+
+            $.ajax({
+                url: '@Url.Action("UploadProfileImage", "Account", new { area = "" })',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'تم رفع الصورة بنجاح!',
+                            text: 'تم رفع الصورة الشخصية بنجاح.',
+                            confirmButtonText: 'موافق',
+                            timer: 3000
+                        });
+                        $('#profileImage').attr('src', response.result);
+                        setTimeout(function () { location.reload(); }, 1800);
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'حدث خطأ!',
+                            text: response.message || 'حدث خطأ أثناء رفع الصورة.',
+                            confirmButtonText: 'حسناً',
+                            timer: 3000
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'حدث خطأ!',
+                        text: 'حدث خطأ أثناء رفع الصورة. الرجاء المحاولة لاحقاً.',
+                        confirmButtonText: 'حسناً',
+                        timer: 3000
+                    });
+                }
+            });
+        });
+    </script>
+    <partial name="_ValidationScriptsPartial" />
+    <partial name="_BusinessDescriptionEditorScripts" />
+}

@@ -39,14 +39,25 @@ packages/
 .env
 .env.*
 !.env.example
+**/appsettings.json
 **/appsettings.Development.json
 **/appsettings.Local.json
 **/appsettings.Production.json
 **/appsettings.*.local.json
 **/secrets.json
+*.user
 
 # Private provider documents and other runtime data
 **/App_Data/
+
+# User-uploaded runtime content
+**/wwwroot/uploads/
+
+# Personal screenshots
+**/assets/img/*Google Chrome*
+**/assets/img/*Canva*
+**/uploads/Images/*Google Chrome*
+**/uploads/Images/*Edge*
 
 # Local Codex and assistant working files
 .codex-build/

@@ -1,10 +1,19 @@
 @{
     var lang = "ar";
+    var controllerName = ViewContext.RouteData.Values["controller"]?.ToString();
+    var actionName = ViewContext.RouteData.Values["action"]?.ToString();
+    var isHomePage = string.Equals(controllerName, "Home", StringComparison.OrdinalIgnoreCase)
+        && string.Equals(actionName, "Index", StringComparison.OrdinalIgnoreCase);
+    var pageLoadsSweetAlert = string.Equals(controllerName, "MaintenanceRecord", StringComparison.OrdinalIgnoreCase)
+        && string.Equals(actionName, "Details", StringComparison.OrdinalIgnoreCase);
+    var showTourismPlatformAd = !string.Equals(controllerName, "PartnerInquiry", StringComparison.OrdinalIgnoreCase);
 }
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 
 <head>
+    <partial name="_GoogleAnalytics" />
+
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
 
@@ -13,62 +22,51 @@
     <meta content="" name="keywords">
 
     <!-- Favicons -->
-    <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
-    <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/android-icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" sizes="57x57" href="~/apple-icon-57x57.png" asp-append-version="true">
+    <link rel="apple-touch-icon" sizes="60x60" href="~/apple-icon-60x60.png" asp-append-version="true">
+    <link rel="apple-touch-icon" sizes="72x72" href="~/apple-icon-72x72.png" asp-append-version="true">
+    <link rel="apple-touch-icon" sizes="76x76" href="~/apple-icon-76x76.png" asp-append-version="true">
+    <link rel="apple-touch-icon" sizes="114x114" href="~/apple-icon-114x114.png" asp-append-version="true">
+    <link rel="apple-touch-icon" sizes="120x120" href="~/apple-icon-120x120.png" asp-append-version="true">
+    <link rel="apple-touch-icon" sizes="144x144" href="~/apple-icon-144x144.png" asp-append-version="true">
+    <link rel="apple-touch-icon" sizes="152x152" href="~/apple-icon-152x152.png" asp-append-version="true">
+    <link rel="apple-touch-icon" sizes="180x180" href="~/apple-icon-180x180.png" asp-append-version="true">
+    <link rel="icon" type="image/png" sizes="192x192" href="~/android-icon-192x192.png" asp-append-version="true">
+    <link rel="icon" type="image/png" sizes="32x32" href="~/favicon-32x32.png" asp-append-version="true">
+    <link rel="icon" type="image/png" sizes="96x96" href="~/favicon-96x96.png" asp-append-version="true">
+    <link rel="icon" type="image/png" sizes="16x16" href="~/favicon-16x16.png" asp-append-version="true">
+    <link rel="manifest" href="~/manifest.json" asp-append-version="true">
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
     <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Almarai&family=Scheherazade+New:wght@700&display=swap" rel="stylesheet">
 
     <!-- Font Awesome (for icons) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
-    <!-- Bootstrap 5 (Only keep this if you're using the CDN version) -->
-    <!-- Remove the following line if you are using the local Bootstrap file -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-
     <!-- Links of CSS files -->
-    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang == "ar" ? "-rtl" : "")/assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang=="ar"?"-rtl":"")/assets/css/owl.theme.default.min.css">
-    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang=="ar"?"-rtl":"")/assets/css/owl.carousel.min.css">
-    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang=="ar"?"-rtl":"")/assets/css/animate.min.css">
-    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang=="ar"?"-rtl":"")/assets/css/boxicons.min.css">
-    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang=="ar"?"-rtl":"")/assets/css/magnific-popup.min.css">
-    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang=="ar"?"-rtl":"")/assets/css/flaticon.css">
-    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang=="ar"?"-rtl":"")/assets/css/meanmenu.min.css">
-    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang=="ar"?"-rtl":"")/assets/css/nice-select.min.css">
-    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang=="ar"?"-rtl":"")/assets/css/odometer.min.css">
-    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang=="ar"?"-rtl":"")/assets/css/style.css">
-    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang=="ar"?"-rtl":"")/assets/css/responsive.css">
+    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang == "ar" ? "-rtl" : "")/assets/css/bootstrap.min.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang=="ar"?"-rtl":"")/assets/css/style.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/Content/Theme/seqty@(lang=="ar"?"-rtl":"")/assets/css/responsive.css" asp-append-version="true">
 
 
     <!-- Vendor CSS Files -->
-    <link href="~/assets/vendor/aos/aos.css" rel="stylesheet">
-    <link href="~/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="~/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-    <link href="~/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
-    <link href="~/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
-    <link href="~/assets/vendor/remixicon/remixicon.css" rel="stylesheet">
-    <link href="~/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+    <link href="~/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" asp-append-version="true">
+    <link href="~/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" asp-append-version="true">
+    <link href="~/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet" asp-append-version="true">
+    @if (isHomePage)
+    {
+        <link href="~/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet" asp-append-version="true">
+    }
 
     <!-- Template Main CSS File -->
-    <link href="~/assets/css/arshastyle.css" rel="stylesheet">
+    <link href="~/assets/css/arshastyle.css" rel="stylesheet" asp-append-version="true">
 
     <!-- Storefront Design System -->
-    <link href="~/css/storefront.css" rel="stylesheet">
+    <link href="~/css/storefront.css" rel="stylesheet" asp-append-version="true">
 
     <!-- =======================================================
     * Template Name: Arsha
@@ -1020,10 +1018,10 @@
             }
 
         .mobile-logo img {
-            width: 100%;
+            width: auto;
             max-width: 160px; /* أصغر قليلاً لتقليل الارتفاع */
-            max-height: 60px; /* ارتفاع مناسب للـ nav */
-            height: auto;
+            height: 90px; /* ارتفاع أكبر للشعار في الشاشات الصغيرة */
+            max-height: 90px;
             border: 2px solid #253F8E; /* إطار أنحف */
             border-radius: 10px; /* زوايا مستديرة خفيفة */
             padding: 2px; /* padding أقل */
@@ -1201,47 +1199,34 @@
     </main><!-- End #main -->
     @await Component.InvokeAsync("Footer")
 
+    @if (showTourismPlatformAd)
+    {
+        <partial name="_TourismPlatformAd" />
+    }
+
 
     <div id="preloader"></div>
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @if (!pageLoadsSweetAlert)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    }
 
 
     <!-- jQuery (Only if required for other plugins) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="~/js/favorites.js"></script>
-
-    <!-- Bootstrap 5 (No jQuery needed for Bootstrap 5) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-
-
-    <!-- Other plugins that require jQuery -->
-    <script src="~/Content/Theme/seqty/assets/js/meanmenu.min.js" defer></script>
-    <script src="~/Content/Theme/seqty/assets/js/owl.carousel.min.js" defer></script>
-    <script src="~/Content/Theme/seqty/assets/js/magnific-popup.min.js" defer></script>
-    <script src="~/Content/Theme/seqty/assets/js/parallax.min.js" defer></script>
-    <script src="~/Content/Theme/seqty/assets/js/appear.min.js" defer></script>
-    <script src="~/Content/Theme/seqty/assets/js/odometer.min.js" defer></script>
-    <script src="~/Content/Theme/seqty/assets/js/smoothscroll.min.js" defer></script>
-    <script src="~/Content/Theme/seqty/assets/js/form-validator.min.js" defer></script>
-    <script src="~/Content/Theme/seqty/assets/js/contact-form-script.js" defer></script>
-    <script src="~/Content/Theme/seqty/assets/js/ajaxchimp.min.js" defer></script>
-    <script src="~/Content/Theme/seqty/assets/js/wow.min.js" defer></script>
-    <script src="~/Content/Theme/seqty/assets/js/custom.js?v=2" defer></script>
-
+    <script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
+    <script src="~/js/favorites.js" asp-append-version="true"></script>
 
     <!-- Vendor JS Files -->
-    <script src="~/assets/vendor/aos/aos.js"></script>
-    <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="~/assets/vendor/glightbox/js/glightbox.min.js"></script>
-    <script src="~/assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
-    <script src="~/assets/vendor/swiper/swiper-bundle.min.js"></script>
-    <script src="~/assets/vendor/waypoints/noframework.waypoints.js"></script>
-    <script src="~/assets/vendor/php-email-form/validate.js"></script>
+    <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
 
     <!-- Template Main JS File -->
-    <script src="~/assets/js/arshamain.js"></script>
+    <script src="~/assets/js/arshamain.js" asp-append-version="true"></script>
+    @if (showTourismPlatformAd)
+    {
+        <script src="~/js/tourism-platform-ad.js" asp-append-version="true" defer></script>
+    }
 
 
 

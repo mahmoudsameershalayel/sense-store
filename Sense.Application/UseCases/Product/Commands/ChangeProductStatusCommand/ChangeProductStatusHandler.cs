@@ -23,9 +23,12 @@ namespace Sense.Application.UseCases.Product.Commands.ChangeProductStatusCommand
         }
 
         private static bool IsProviderTransitionAllowed(ProductStatus current, ProductStatus target)
-            // Providers may only submit their Draft/Rejected products for review
-            => target == ProductStatus.PendingReview
-               && (current == ProductStatus.Draft || current == ProductStatus.Rejected);
+            => target == ProductStatus.Published
+               && current is ProductStatus.Draft
+                   or ProductStatus.PendingReview
+                   or ProductStatus.Approved
+                   or ProductStatus.Rejected
+                   or ProductStatus.Unpublished;
 
         private static bool IsAdminTransitionAllowed(ProductStatus current, ProductStatus target)
         {

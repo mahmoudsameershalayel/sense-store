@@ -1,36 +1,34 @@
 ﻿using Sense.Application.UseCases.CashbackOffer.Queries.GetAllCashbackOffersQuery;
 using Sense.Application.UseCases.CenterSetting.Queries.GetCenterSettingQuery;
 using Sense.Application.UseCases.Coupon.Queries.GetAllCouponsQuery;
-using Sense.Application.UseCases.FreeMaintenanceOffer.Queries.GetAllFreeMaintenanceOfferQuery;
 using Sense.Application.UseCases.Statement.Queries.GetActiveStatementsQuery;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Sense.Performance;
 
 namespace Sense.Components
 {
     public class TopBarViewComponent : ViewComponent
     {
 
-        private readonly IMediator _mediator;
+        private readonly StorefrontDataCache _storefrontData;
 
-        public TopBarViewComponent(IMediator mediator)
+        public TopBarViewComponent(StorefrontDataCache storefrontData)
         {
-            _mediator = mediator;
+            _storefrontData = storefrontData;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var setting = await _mediator.Send(new GetCenterSettingQuery());
-            var coupons = await _mediator.Send(new GetAllCouponsQuery());
-            var cashBackOffers = await _mediator.Send(new GetAllCashbackOffersQuery());
-            var freeMaintenanceOffer = await _mediator.Send(new GetAllFreeMaintenanceOfferQuery());
-            var statements = await _mediator.Send(new GetActiveStatementsQuery());
+            var setting = await _storefrontData.GetCenterSettingAsync();
+            var coupons = await _storefrontData.GetCouponsAsync();
+            var cashBackOffers = await _storefrontData.GetCashbackOffersAsync();
+            var statements = await _storefrontData.GetStatementsAsync();
 
-            ViewBag.Setting = setting.Data;
-            ViewBag.Coupons = coupons.Data;
-            ViewBag.CashBackOffers = cashBackOffers.Data;
-            ViewBag.FreeMaintenanceOffer = freeMaintenanceOffer.Data;
-            ViewBag.Statements = statements.Data;
+            ViewBag.Setting = setting;
+            ViewBag.Coupons = coupons;
+            ViewBag.CashBackOffers = cashBackOffers;
+            ViewBag.Statements = statements;
             return View();
         }
     }
