@@ -5,29 +5,71 @@
 
 @if (categories.Any())
 {
-    <!-- تسوق حسب الفئة -->
-    <section id="categories" class="sf-section sf-section--tight bg-white border-bottom" dir="rtl">
+    <section id="categories" class="sf-section sf-categories" dir="rtl" aria-labelledby="categoriesTitle">
         <div class="container">
-            <div class="sf-section-head" style="margin-bottom:18px;">
+            <div class="sf-section-head sf-categories__head">
                 <div class="sf-section-head__titles">
-                    <span class="sf-kicker">الفئات</span>
-                    <h2 class="sf-title" style="font-size:1.3rem;">تسوّق حسب الفئة</h2>
+                    <span class="sf-kicker">
+                        <i class="bi bi-grid" aria-hidden="true"></i>
+                        اكتشف المتجر
+                    </span>
+                    <h2 id="categoriesTitle" class="sf-title">تسوّق حسب الفئة</h2>
+                    <p class="sf-subtitle">اختر الفئة المناسبة وانتقل مباشرة إلى منتجاتها.</p>
+                </div>
+
+                <div class="sf-categories__controls" aria-label="التنقل بين الفئات">
+                    <button class="sf-categories__nav sf-categories__next" type="button" aria-label="الفئة التالية">
+                        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                    </button>
+                    <button class="sf-categories__nav sf-categories__prev" type="button" aria-label="الفئة السابقة">
+                        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                    </button>
                 </div>
             </div>
 
-            <div class="swiper categorySwiper">
-                <div class="swiper-wrapper text-center">
-                    @foreach (var category in categories)
+            <div class="sf-categories__carousel">
+                <div class="swiper categorySwiper">
+                    <div class="swiper-wrapper">
+                    @for (var index = 0; index < categories.Count; index++)
                     {
-                        <a asp-controller="Home" asp-action="Index" asp-route-ProductCategoryId="@category.Id" class="swiper-slide sf-category-item">
-                            <img src="@category.ImageURL" alt="@category.Name" loading="lazy" decoding="async" fetchpriority="low">
-                            <span>@category.Name</span>
+                        var category = categories[index];
+                        <a asp-controller="Product"
+                           asp-action="Index"
+                           asp-route-ProductCategoryId="@category.Id"
+                           class="swiper-slide sf-category-card"
+                           style="--sf-category-delay: @(Math.Min(index, 6) * 45)ms"
+                           aria-label="عرض منتجات فئة @category.Name">
+                            <span class="sf-category-card__media">
+                                @if (!string.IsNullOrWhiteSpace(category.ImageURL))
+                                {
+                                    <img src="@category.ImageURL"
+                                         alt=""
+                                         width="320"
+                                         height="220"
+                                         loading="lazy"
+                                         decoding="async" />
+                                }
+                                else
+                                {
+                                    <span class="sf-category-card__placeholder" aria-hidden="true">
+                                        <i class="bi bi-grid"></i>
+                                    </span>
+                                }
+                            </span>
+
+                            <span class="sf-category-card__body">
+                                <span class="sf-category-card__text">
+                                    <small>تصفّح الفئة</small>
+                                    <strong>@category.Name</strong>
+                                </span>
+                                <span class="sf-category-card__arrow" aria-hidden="true">
+                                    <i class="bi bi-arrow-left"></i>
+                                </span>
+                            </span>
                         </a>
                     }
+                    </div>
                 </div>
-
-                <div class="swiper-button-next"></div>
-                <div class="swiper-button-prev"></div>
             </div>
         </div>
     </section>

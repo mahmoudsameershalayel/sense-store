@@ -1,11 +1,16 @@
 @using Sense.Domain.DBEntities
 @using Sense.Application.DTOs.ProductDTOs
+@using Sense.Application.DTOs.ProviderDTOs
 @using Sense.Application.RequestFeatures
 @model PagedList<ProductTbl>
 @{
     ViewData["Title"] = "المتجر";
     var categories = ViewBag.Categories;
     var brands = ViewBag.Brands;
+    var selectedCategoryId = ViewBag.ProductCategoryId as int?;
+    var selectedCategoryName = ViewBag.SelectedCategoryName as string;
+    var showProviders = string.Equals(ViewBag.ResultType as string, "providers", StringComparison.OrdinalIgnoreCase);
+    var filteredProviders = ViewBag.FilteredProviders as List<ProviderDto> ?? new List<ProviderDto>();
 
     var firstItem = (Model.MetaData.CurrentPage - 1) * Model.MetaData.PageSize + 1;
     var lastItem = Math.Min(Model.MetaData.CurrentPage * Model.MetaData.PageSize, Model.MetaData.TotalCount);
@@ -18,9 +23,11 @@
             <li><a href="/">الرئيسية</a></li>
             <li>المتجر</li>
         </ul>
-        <h1>المتجر</h1>
+        <h1>@(selectedCategoryId.HasValue ? $"فئة {selectedCategoryName}" : "المتجر")</h1>
         <p class="sf-page-head__desc">
-            تصفح تشكيلتنا الكاملة من المنتجات — يمكنك البحث بالاسم أو التصفية حسب الفئة.
+            @(selectedCategoryId.HasValue
+                ? "اختر بين منتجات هذه الفئة أو المزوّدين الذين يقدمونها."
+                : "تصفح تشكيلتنا الكاملة من المنتجات — يمكنك البحث بالاسم أو التصفية حسب الفئة.")
         </p>
     </div>
 </div>
@@ -28,8 +35,39 @@
 <section id="store" class="sf-section sf-section--muted" dir="rtl">
     <div class="container">
 
+        @if (selectedCategoryId.HasValue)
+        {
+            <nav class="sf-category-results-tabs" aria-label="نوع نتائج الفئة">
+                <a asp-controller="Product"
+                   asp-action="Index"
+                   asp-route-ProductCategoryId="@selectedCategoryId"
+                   asp-route-resultType="products"
+                   class="sf-category-results-tab @(!showProviders ? "is-active" : string.Empty)"
+                   aria-current="@(!showProviders ? "page" : null)">
+                    <span class="sf-category-results-tab__icon"><i class="bi bi-box-seam"></i></span>
+                    <span class="sf-category-results-tab__copy">
+                        <small>استكشف الفئة</small>
+                        <strong>المنتجات</strong>
+                    </span>
+                </a>
+
+                <a asp-controller="Product"
+                   asp-action="Index"
+                   asp-route-ProductCategoryId="@selectedCategoryId"
+                   asp-route-resultType="providers"
+                   class="sf-category-results-tab @(showProviders ? "is-active" : string.Empty)"
+                   aria-current="@(showProviders ? "page" : null)">
+                    <span class="sf-category-results-tab__icon"><i class="bi bi-shop"></i></span>
+                    <span class="sf-category-results-tab__copy">
+                        <small>تسوّق حسب</small>
+                        <strong>المزوّدون</strong>
+                    </span>
+                </a>
+            </nav>
+        }
+
         <!-- شريط النتائج -->
-        <div class="sf-results-bar mt-4 mb-4" style="@(Model.MetaData.TotalCount == 0 ? "display:none;" : "")">
+        <div class="sf-results-bar mt-4 mb-4" style="@(showProviders || Model.MetaData.TotalCount == 0 ? "display:none;" : "")">
             <div class="d-flex align-items-center gap-2">
                 <label for="pageSize" class="mb-0">عدد المنتجات في الصفحة:</label>
                 <select id="pageSize" class="form-select form-select-sm d-inline-block w-auto" onchange="changePageSize(this.value)">
@@ -64,27 +102,91 @@
             </div>
         </div>
 
-        <!-- المنتجات -->
-        <div class="row g-3">
-            @if (Model.Any())
-            {
-                @await Html.PartialAsync("~/Views/Shared/PartialViews/_ProductCards.cshtml", Model.AsEnumerable())
-            }
-            else
-            {
-                <div class="col-12">
-                    <div class="sf-empty">
-                        <div class="sf-empty__icon"><i class="bi bi-box-seam"></i></div>
-                        <h5 class="sf-empty__title">لا توجد منتجات مطابقة</h5>
-                        <p class="sf-empty__text">لم نعثر على منتجات تطابق بحثك — جرّب كلمات أخرى أو تصفح جميع المنتجات.</p>
-                        <a href="/Product/Index" class="sf-btn sf-btn--primary">عرض جميع المنتجات</a>
+        @if (!showProviders)
+        {
+            <div class="row g-3">
+                @if (Model.Any())
+                {
+                    @await Html.PartialAsync("~/Views/Shared/PartialViews/_ProductCards.cshtml", Model.AsEnumerable())
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="sf-empty">
+                            <div class="sf-empty__icon"><i class="bi bi-box-seam"></i></div>
+                            <h5 class="sf-empty__title">لا توجد منتجات مطابقة</h5>
+                            <p class="sf-empty__text">لم نعثر على منتجات تطابق بحثك — جرّب كلمات أخرى أو تصفح جميع المنتجات.</p>
+                            <a asp-controller="Home" asp-action="Index" class="sf-btn sf-btn--primary">العودة للرئيسية</a>
+                        </div>
                     </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="sf-category-provider-head">
+                <div>
+                    <span class="sf-kicker">مزوّدو الفئة</span>
+                    <h2 class="sf-title">المزوّدون في @selectedCategoryName</h2>
                 </div>
-            }
-        </div>
+                <span class="sf-category-provider-count">@filteredProviders.Count مزوّد</span>
+            </div>
+
+            <div class="row g-4">
+                @if (filteredProviders.Any())
+                {
+                    @foreach (var provider in filteredProviders)
+                    {
+                        <div class="col-xl-3 col-lg-4 col-md-6">
+                            <a asp-controller="Providers"
+                               asp-action="Details"
+                               asp-route-id="@provider.Id"
+                               class="sf-category-provider-card">
+                                <span class="sf-category-provider-card__logo">
+                                    @if (!string.IsNullOrWhiteSpace(provider.LogoURL))
+                                    {
+                                        <img src="@provider.LogoURL"
+                                             alt="شعار @provider.DisplayName"
+                                             width="90"
+                                             height="90"
+                                             loading="lazy"
+                                             decoding="async" />
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-shop" aria-hidden="true"></i>
+                                    }
+                                </span>
+                                <span class="sf-category-provider-card__content">
+                                    <small>مزوّد منتجات</small>
+                                    <strong>@provider.DisplayName</strong>
+                                    <span>عرض منتجات المزوّد</span>
+                                </span>
+                                <span class="sf-category-provider-card__arrow"><i class="bi bi-arrow-left"></i></span>
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="sf-empty">
+                            <div class="sf-empty__icon"><i class="bi bi-shop"></i></div>
+                            <h5 class="sf-empty__title">لا يوجد مزوّدون في هذه الفئة</h5>
+                            <p class="sf-empty__text">لم نعثر حالياً على مزوّدين لديهم منتجات منشورة ضمن هذه الفئة.</p>
+                            <a asp-controller="Product"
+                               asp-action="Index"
+                               asp-route-ProductCategoryId="@selectedCategoryId"
+                               asp-route-resultType="products"
+                               class="sf-btn sf-btn--primary">عرض منتجات الفئة</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
 
         <!-- التنقل بين الصفحات -->
-        @if (Model.MetaData.TotalPages > 1)
+        @if (!showProviders && Model.MetaData.TotalPages > 1)
         {
             <nav class="sf-pagination mt-5" aria-label="التنقل بين الصفحات">
                 @if (Model.MetaData.HasPrevious)

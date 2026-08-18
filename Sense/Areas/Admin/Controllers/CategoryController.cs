@@ -62,7 +62,10 @@ namespace Sense.Areas.Admin.Controllers
         public async Task<IActionResult> UploadImage(UploadCategoryImageDto dto)
         {
             if (!ModelState.IsValid)
-                return View();
+            {
+                ViewBag.Id = dto.Id;
+                return View(dto);
+            }
 
             var result = await _mediator.Send(new UploadCategoryImageCommand { Dto = dto });
             if (result.Result.Code != ResultCodeStatus.Success)

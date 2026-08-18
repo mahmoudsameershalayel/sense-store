@@ -48,6 +48,10 @@ namespace Sense.Controllers
 
             ViewBag.Products = products;
             ViewData["title"] = provider.DisplayName;
+
+            if (string.Equals(provider.StorefrontTemplateKey, "restaurant-modern", StringComparison.OrdinalIgnoreCase))
+                return View("~/Views/Providers/Templates/Restaurant.cshtml", provider);
+
             return View(provider);
         }
     }

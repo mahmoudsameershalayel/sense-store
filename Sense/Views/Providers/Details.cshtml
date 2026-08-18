@@ -139,3 +139,57 @@
         }
     </div>
 </section>
+
+@section Scripts
+{
+    <script>
+        $(document).on('click', '.provider-products-section .add-to-cart-btn', function (event) {
+            event.preventDefault();
+
+            const button = $(this);
+            if (button.is(':disabled') || button.data('submitting')) {
+                return;
+            }
+
+            button.data('submitting', true).prop('disabled', true);
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("AddToCart", "Product")',
+                data: { productId: button.data('product-id') }
+            })
+            .done(function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تمت إضافة المنتج إلى السلة',
+                        text: 'يمكنك متابعة التسوق أو إتمام الطلب من السلة.',
+                        confirmButtonText: 'حسناً',
+                        timer: 3000
+                    });
+                    updateCartItemCount();
+                    return;
+                }
+
+                Swal.fire({
+                    icon: 'info',
+                    title: 'المنتج موجود في السلة',
+                    text: response.message || 'يمكنك تعديل الكمية من صفحة سلة التسوق.',
+                    confirmButtonText: 'حسناً',
+                    timer: 3000
+                });
+            })
+            .fail(function () {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'تعذرت إضافة المنتج',
+                    text: 'يرجى المحاولة مرة أخرى لاحقاً.',
+                    confirmButtonText: 'حسناً'
+                });
+            })
+            .always(function () {
+                button.removeData('submitting').prop('disabled', false);
+            });
+        });
+    </script>
+}

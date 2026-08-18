@@ -15,6 +15,8 @@ namespace Sense.Application.DTOs.ProviderDTOs
         public string? LogoURL { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Email { get; set; }
+        public string? BusinessCategoryKey { get; set; }
+        public string? StorefrontTemplateKey { get; set; }
         public bool IsActive { get; set; }
     }
 }

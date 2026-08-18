@@ -14,7 +14,9 @@ using Sense.Application.UseCases.Product.Queries.GetAllProductsQuery;
 using Sense.Application.UseCases.Product.Queries.GetOtherProductsQuery;
 using Sense.Application.UseCases.Product.Queries.GetProductByIdQuery;
 using Sense.Application.UseCases.Product.Queries.LoadProductsQuery;
+using Sense.Application.UseCases.Provider.Queries.GetAllProvidersQuery;
 using Sense.Application.UseCases.ShoppingCart.Commands.AddItemToShoppingCartCommand;
+using Sense.Application.DTOs.ProviderDTOs;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -33,7 +35,7 @@ namespace Sense.Controllers
         {
             _mediator = mediator;
         }
-        public async Task<IActionResult> Index(string? searchTerm, int? ProductCategoryId, int? ProductBrandId, int? ProductModelId, int pageNumber = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(string? searchTerm, int? ProductCategoryId, int? ProductBrandId, int? ProductModelId, string? resultType = "products", int pageNumber = 1, int pageSize = 10)
         {
 
             var products = await _mediator.Send(new LoadProductsQuery { PublishedOnly = true });
@@ -52,8 +54,32 @@ namespace Sense.Controllers
             if (ProductModelId.HasValue)
                 query = query.Where(p => p.ModelId == ProductModelId);
 
-            // Apply pagination
-            var pagedProducts = PagedList<ProductTbl>.ToPagedList(query, pageNumber, pageSize);
+            var showProviders = ProductCategoryId.HasValue
+                && string.Equals(resultType, "providers", StringComparison.OrdinalIgnoreCase);
+
+            List<ProviderDto> filteredProviders = new();
+            PagedList<ProductTbl> pagedProducts;
+
+            if (showProviders)
+            {
+                var providerIds = await query
+                    .Where(product => product.ProviderId.HasValue)
+                    .Select(product => product.ProviderId!.Value)
+                    .Distinct()
+                    .ToListAsync();
+
+                var providersResult = await _mediator.Send(new GetAllProvidersQuery());
+                filteredProviders = providersResult.Data?
+                    .Where(provider => provider.IsActive && providerIds.Contains(provider.Id))
+                    .OrderBy(provider => provider.DisplayName)
+                    .ToList() ?? new List<ProviderDto>();
+
+                pagedProducts = new PagedList<ProductTbl>(new List<ProductTbl>(), 0, 1, pageSize);
+            }
+            else
+            {
+                pagedProducts = PagedList<ProductTbl>.ToPagedList(query, pageNumber, pageSize);
+            }
 
             var categories = await _mediator.Send(new GetAllCategoriesQuery { });
             var brands = await _mediator.Send(new GetAllBrandsQuery { });
@@ -66,6 +92,10 @@ namespace Sense.Controllers
             ViewBag.ProductCategoryId = ProductCategoryId;
             ViewBag.ProductBrandId = ProductBrandId;
             ViewBag.ProductModelId = ProductModelId;
+            ViewBag.ResultType = showProviders ? "providers" : "products";
+            ViewBag.FilteredProviders = filteredProviders;
+            ViewBag.SelectedCategoryName = categories.Data?
+                .FirstOrDefault(category => category.Id == ProductCategoryId)?.Name;
 
 
             return View(pagedProducts);

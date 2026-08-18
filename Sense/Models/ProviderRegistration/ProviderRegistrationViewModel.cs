@@ -5,6 +5,14 @@ namespace Sense.Models.ProviderRegistration
 {
     public class ProviderRegistrationViewModel
     {
+        [StringLength(100)]
+        public string? BusinessCategoryKey { get; set; }
+
+        public string? BusinessCategoryName { get; set; }
+
+        [StringLength(100)]
+        public string? StorefrontTemplateKey { get; set; }
+
         [Required(ErrorMessage = "اسم مقدم الطلب مطلوب.")]
         [StringLength(150, ErrorMessage = "اسم مقدم الطلب لا يمكن أن يتجاوز 150 حرفاً.")]
         [Display(Name = "اسم مقدم الطلب")]

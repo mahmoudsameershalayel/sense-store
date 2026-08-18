@@ -1,0 +1,209 @@
+@using Sense.Domain.DBEntities
+@using Sense.Application.DTOs.ProviderDTOs
+@model ProviderDto
+@inject Ganss.Xss.IHtmlSanitizer HtmlSanitizer
+
+@{
+    var products = ViewBag.Products as List<ProductTbl> ?? new List<ProductTbl>();
+    var menuCategories = products
+        .Where(product => !string.IsNullOrWhiteSpace(product.Category?.Name))
+        .Select(product => product.Category!.Name!)
+        .Distinct()
+        .Take(6)
+        .ToList();
+    var featuredImage = products.FirstOrDefault(product => !string.IsNullOrWhiteSpace(product.ImageURL))?.ImageURL;
+}
+
+@section Styles
+{
+    <link rel="stylesheet" href="~/css/restaurant-template.css" asp-append-version="true" />
+    <style>
+        .rt-live-page .rt-hero__art img {
+            width: min(78%, 480px);
+            max-height: 420px;
+            object-fit: contain;
+            filter: drop-shadow(0 30px 25px rgba(0, 0, 0, .28));
+        }
+
+        .rt-live-page .rt-product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 12px;
+        }
+
+        .rt-live-empty {
+            grid-column: 1 / -1;
+            padding: 50px 20px;
+            border: 1px dashed #dccbc3;
+            border-radius: 22px;
+            background: #fff;
+            text-align: center;
+        }
+    </style>
+}
+
+<div class="rt-live-page" dir="rtl">
+    <header class="rt-header">
+        <a href="#" class="rt-brand">
+            @if (!string.IsNullOrWhiteSpace(Model.LogoURL))
+            {
+                <span style="overflow:hidden;background:#fff;border:1px solid #eadfd9;">
+                    <img src="@Model.LogoURL" alt="شعار @Model.DisplayName" style="width:100%;height:100%;object-fit:contain;padding:3px;" />
+                </span>
+            }
+            else
+            {
+                <span>@Model.DisplayName.FirstOrDefault()</span>
+            }
+            <strong>@Model.DisplayName</strong>
+        </a>
+        <nav>
+            <a href="#restaurant-menu">القائمة</a>
+            <a href="#restaurant-products">الأكثر طلباً</a>
+            <a href="#restaurant-about">عن المطعم</a>
+        </nav>
+        <a href="#restaurant-products" class="rt-order-button">اطلب الآن</a>
+    </header>
+
+    <main>
+        <section class="rt-hero">
+            <div class="rt-hero__copy">
+                <span class="rt-eyebrow">أهلاً بك في @Model.DisplayName</span>
+                <h1>الطعم الذي تحبه<br /><em>أقرب إليك</em></h1>
+                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                {
+                    <div class="rt-provider-description">@Html.Raw(HtmlSanitizer.Sanitize(Model.Description))</div>
+                }
+                else
+                {
+                    <p>اكتشف قائمتنا واطلب وجبتك المفضلة بسهولة.</p>
+                }
+                <div class="rt-hero__actions">
+                    <a href="#restaurant-products">استكشف القائمة</a>
+                    <span>منتجات طازجة وتجربة طلب سهلة</span>
+                </div>
+            </div>
+            <div class="rt-hero__art">
+                @if (!string.IsNullOrWhiteSpace(featuredImage))
+                {
+                    <img src="@featuredImage" alt="طبق مميز من @Model.DisplayName" />
+                }
+                else
+                {
+                    <span class="rt-pizza">🍕</span>
+                }
+            </div>
+        </section>
+
+        <section class="rt-section" id="restaurant-menu">
+            <div class="rt-section__head">
+                <div><span>استكشف القائمة</span><h2>اختر ما يناسب ذوقك</h2></div>
+                <a href="#restaurant-products">عرض الكل</a>
+            </div>
+            <div class="rt-menu-categories">
+                @if (menuCategories.Any())
+                {
+                    @foreach (var category in menuCategories)
+                    {
+                        <article><span>🍽️</span><strong>@category</strong></article>
+                    }
+                }
+                else
+                {
+                    <article><span>🔥</span><strong>العروض</strong></article>
+                    <article><span>🍕</span><strong>الأطباق الرئيسية</strong></article>
+                    <article><span>🥗</span><strong>المقبلات</strong></article>
+                }
+            </div>
+        </section>
+
+        <section class="rt-section rt-section--soft" id="restaurant-products">
+            <div class="rt-section__head"><div><span>مختارات المطعم</span><h2>الأكثر طلباً</h2></div></div>
+            <div class="rt-product-grid">
+                @if (products.Any())
+                {
+                    @foreach (var product in products)
+                    {
+                        var isOutOfStock = product.QuantityAvaliable <= 0;
+                        <article>
+                            <a asp-controller="Product" asp-action="Details" asp-route-id="@product.Id" class="rt-product-image">
+                                @if (!string.IsNullOrWhiteSpace(product.ImageURL))
+                                {
+                                    <img src="@product.ImageURL" alt="@product.Name" loading="lazy" decoding="async" />
+                                }
+                                else
+                                {
+                                    <span>🍽️</span>
+                                }
+                            </a>
+                            <div>
+                                <small>@(product.Category?.Name ?? "من القائمة")</small>
+                                <h3>@product.Name</h3>
+                                <p>@(isOutOfStock ? "غير متوفر حالياً" : "متوفر للطلب الآن")</p>
+                                <footer>
+                                    <strong>
+                                        @product.Price.ToString("N0", new System.Globalization.CultureInfo("ar-SA"))
+                                        <svg class="rt-riyal" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.917 78.917" width="14" height="14" aria-hidden="true"><path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l.025-55.005c.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23c0-8.546-6.953-15.5-15.5-15.5zm41.916-9c-2.481,0-4.5,2.019-4.5,4.5l-.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l.024-55.005c0-2.48-2.019-4.5-4.5-4.5z" /></svg>
+                                    </strong>
+                                    <button type="button"
+                                            class="add-to-cart-btn"
+                                            data-product-id="@product.Id"
+                                            aria-label="إضافة @product.Name إلى السلة"
+                                            title="@(isOutOfStock ? "غير متوفر" : "أضف إلى السلة")"
+                                            @(isOutOfStock ? "disabled" : "")>+</button>
+                                </footer>
+                            </div>
+                        </article>
+                    }
+                }
+                else
+                {
+                    <div class="rt-live-empty">
+                        <h3>قائمة الطعام قيد التجهيز</h3>
+                        <p>سيضيف المطعم منتجاته قريباً.</p>
+                    </div>
+                }
+            </div>
+        </section>
+
+        <section class="rt-about" id="restaurant-about">
+            <span>من مطبخنا إلى مائدتك</span>
+            <h2>@Model.DisplayName</h2>
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <div>@Html.Raw(HtmlSanitizer.Sanitize(Model.Description))</div>
+            }
+        </section>
+    </main>
+</div>
+
+@section Scripts
+{
+    <script>
+        $(document).on('click', '.rt-live-page .add-to-cart-btn', function (event) {
+            event.preventDefault();
+            const button = $(this);
+            if (button.is(':disabled') || button.data('submitting')) return;
+
+            button.data('submitting', true).prop('disabled', true);
+            $.post('@Url.Action("AddToCart", "Product")', { productId: button.data('product-id') })
+                .done(function (response) {
+                    Swal.fire({
+                        icon: response.success ? 'success' : 'info',
+                        title: response.success ? 'تمت إضافة المنتج إلى السلة' : 'المنتج موجود في السلة',
+                        text: response.message,
+                        confirmButtonText: 'حسناً',
+                        timer: 3000
+                    });
+                    if (response.success) updateCartItemCount();
+                })
+                .fail(function () {
+                    Swal.fire('تعذرت إضافة المنتج', 'يرجى المحاولة مرة أخرى لاحقاً.', 'error');
+                })
+                .always(function () {
+                    button.removeData('submitting').prop('disabled', false);
+                });
+        });
+    </script>
+}

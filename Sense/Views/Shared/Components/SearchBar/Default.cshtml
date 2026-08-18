@@ -1,43 +1,77 @@
+@using Sense.Application.DTOs.CategoryDTOs
 @{
-    var formAction = ViewBag.FormAction as string ?? "Index";
-    var placeholder = ViewBag.Placeholder as string ?? "ابحث عن منتجك المفضل...";
+    var placeholder = ViewBag.Placeholder as string ?? "ابحث عن فئة محددة...";
     var isMobile = ViewBag.IsMobile as bool? ?? false;
+    var categories = ViewBag.Categories as List<CategoryDto> ?? new List<CategoryDto>();
+    var inputId = isMobile ? "categorySearchInputMobile" : "categorySearchInput";
+    var suggestionsId = isMobile ? "categorySearchSuggestionsMobile" : "categorySearchSuggestions";
 }
 
-@if (isMobile)
-{
-    <form class="d-flex align-items-center w-100 mobile-search"
-          method="get"
-          asp-controller="Home"
-          asp-action="@formAction">
-
-        <input type="text"
-               id="searchInputMobile"
-               name="searchTerm"
-               class="form-control rounded-pill"
+<form class="sf-category-search @(isMobile ? "sf-category-search--mobile" : string.Empty)"
+      method="get"
+      asp-controller="Product"
+      asp-action="Index"
+      role="search"
+      autocomplete="off"
+      data-category-search>
+    <div class="sf-search">
+        <input type="search"
+               id="@inputId"
+               class="sf-category-search__input"
                placeholder="@placeholder"
-               aria-label="بحث" />
+               aria-label="البحث عن فئة محددة"
+               aria-controls="@suggestionsId"
+               aria-expanded="false"
+               aria-autocomplete="list" />
 
-        <button type="submit"
-                class="btn btn-primary rounded-circle d-flex justify-content-center align-items-center"
-                aria-label="بحث">
-            <i class="bx bx-search"></i>
+        <button type="submit" aria-label="البحث عن فئة">
+            <i class="bx bx-search" aria-hidden="true"></i>
+            <span class="d-none d-sm-inline">بحث</span>
         </button>
-    </form>
-}
-else
-{
-    <form method="get" asp-controller="Home" asp-action="@formAction" role="search">
-        <div class="sf-search">
-            <input type="search"
-                   id="searchInput"
-                   name="searchTerm"
-                   placeholder="@placeholder"
-                   aria-label="بحث في المنتجات" />
-            <button type="submit" aria-label="بحث">
-                <i class="bx bx-search"></i>
-                <span class="d-none d-sm-inline">بحث</span>
-            </button>
+    </div>
+
+    <div class="sf-category-search__suggestions"
+         id="@suggestionsId"
+         role="listbox"
+         aria-label="الفئات المقترحة"
+         hidden>
+        <div class="sf-category-search__heading">الفئات المقترحة</div>
+
+        @foreach (var category in categories)
+        {
+            <a asp-controller="Product"
+               asp-action="Index"
+               asp-route-ProductCategoryId="@category.Id"
+               class="sf-category-search__suggestion"
+               role="option"
+               data-category-suggestion
+               data-category-name="@category.Name">
+                <span class="sf-category-search__thumb">
+                    @if (!string.IsNullOrWhiteSpace(category.ImageURL))
+                    {
+                        <img src="@category.ImageURL"
+                             alt=""
+                             width="48"
+                             height="48"
+                             loading="lazy"
+                             decoding="async" />
+                    }
+                    else
+                    {
+                        <i class="bi bi-grid" aria-hidden="true"></i>
+                    }
+                </span>
+                <span class="sf-category-search__copy">
+                    <small>الفئة</small>
+                    <strong>@category.Name</strong>
+                </span>
+                <i class="bi bi-arrow-left sf-category-search__arrow" aria-hidden="true"></i>
+            </a>
+        }
+
+        <div class="sf-category-search__empty" data-category-search-empty hidden>
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <span>لا توجد فئة مطابقة لبحثك.</span>
         </div>
-    </form>
-}
+    </div>
+</form>

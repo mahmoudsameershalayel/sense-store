@@ -1,0 +1,77 @@
+@{
+    Layout = null;
+    var categoryKey = ViewBag.CategoryKey as string ?? "restaurant";
+}
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>معاينة قالب المطعم</title>
+    <link rel="stylesheet" href="~/css/restaurant-template.css" asp-append-version="true" />
+</head>
+<body class="rt-preview-page">
+    <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+        <symbol id="rt-riyal-symbol" viewBox="0 0 78.917 78.917">
+            <path d="M32.501,16.458H9.021L9,66.958c0,2.48-2.019,4.5-4.5,4.5s-4.5-2.02-4.5-4.5l.025-55.005c.003-2.479,2.021-4.495,4.5-4.495h27.977c13.51,0,24.5,10.991,24.5,24.5v23c0,2.48-2.02,4.5-4.5,4.5s-4.5-2.02-4.5-4.5v-23c0-8.546-6.953-15.5-15.5-15.5zm41.916-9c-2.481,0-4.5,2.019-4.5,4.5l-.021,50.5h-23.48c-8.547,0-15.5-6.953-15.5-15.5v-23c0-2.481-2.019-4.5-4.5-4.5s-4.5,2.019-4.5,4.5v23c0,13.509,10.99,24.5,24.5,24.5h27.977c2.479,0,4.498-2.016,4.5-4.495l.024-55.005c0-2.48-2.019-4.5-4.5-4.5z" />
+        </symbol>
+    </svg>
+    <aside class="rt-preview-bar">
+        <div>
+            <strong>معاينة قالب «مطعم عصري»</strong>
+            <span>هذه بيانات تجريبية لعرض التصميم</span>
+        </div>
+        <div>
+            <a asp-action="Templates" asp-route-categoryKey="@categoryKey" class="rt-preview-back">العودة للقوالب</a>
+            <a asp-action="Index"
+               asp-route-categoryKey="@categoryKey"
+               asp-route-templateKey="restaurant-modern"
+               class="rt-preview-select">اختيار القالب</a>
+        </div>
+    </aside>
+
+    <header class="rt-header">
+        <a href="#" class="rt-brand"><span>م</span><strong>مطعمك</strong></a>
+        <nav><a href="#menu">القائمة</a><a href="#offers">العروض</a><a href="#about">عن المطعم</a></nav>
+        <a href="#menu" class="rt-order-button">اطلب الآن</a>
+    </header>
+
+    <main>
+        <section class="rt-hero">
+            <div class="rt-hero__copy">
+                <span class="rt-eyebrow">نكهة طازجة كل يوم</span>
+                <h1>وجبتك المفضلة<br /><em>أقرب إليك</em></h1>
+                <p>قائمة واضحة، عروض بارزة وتجربة طلب بسيطة تساعد زبائنك على الوصول لما يحبونه بسرعة.</p>
+                <div class="rt-hero__actions"><a href="#menu">استكشف القائمة</a><span>توصيل سريع وآمن</span></div>
+            </div>
+            <div class="rt-hero__art" aria-label="بيتزا طازجة">
+                <span class="rt-pizza">🍕</span><span class="rt-leaf rt-leaf--one">✦</span><span class="rt-leaf rt-leaf--two">✦</span>
+            </div>
+        </section>
+
+        <section class="rt-section" id="menu">
+            <div class="rt-section__head"><div><span>استكشف القائمة</span><h2>اختر ما يناسب ذوقك</h2></div><a href="#offers">عرض الكل</a></div>
+            <div class="rt-menu-categories">
+                <article><span>🔥</span><strong>العروض</strong></article>
+                <article><span>🍕</span><strong>البيتزا</strong></article>
+                <article><span>🍗</span><strong>الوجبات</strong></article>
+                <article><span>🥗</span><strong>المقبلات</strong></article>
+                <article><span>🥤</span><strong>المشروبات</strong></article>
+            </div>
+        </section>
+
+        <section class="rt-section rt-section--soft" id="offers">
+            <div class="rt-section__head"><div><span>الأكثر طلباً</span><h2>عروض لا تفوّت</h2></div></div>
+            <div class="rt-product-grid">
+                <article><div class="rt-product-image">🍕</div><div><small>بيتزا</small><h3>بيتزا الخضار الخاصة</h3><p>خضار طازجة وجبنة غنية مع الصلصة الخاصة.</p><footer><strong>35 <svg class="rt-riyal" width="14" height="14"><use href="#rt-riyal-symbol"></use></svg></strong><button>+</button></footer></div></article>
+                <article><div class="rt-product-image rt-product-image--gold">🍗</div><div><small>وجبات</small><h3>وجبة الدجاج العائلية</h3><p>وجبة مشاركة متكاملة مع المقبلات والمشروب.</p><footer><strong>49 <svg class="rt-riyal" width="14" height="14"><use href="#rt-riyal-symbol"></use></svg></strong><button>+</button></footer></div></article>
+                <article><div class="rt-product-image rt-product-image--green">🥗</div><div><small>مقبلات</small><h3>سلطة الموسم</h3><p>مكونات يومية خفيفة مع صلصة المطعم.</p><footer><strong>18 <svg class="rt-riyal" width="14" height="14"><use href="#rt-riyal-symbol"></use></svg></strong><button>+</button></footer></div></article>
+            </div>
+        </section>
+
+        <section class="rt-about" id="about">
+            <span>من مطبخنا إلى مائدتك</span><h2>تجربة مطعمك تبدأ من هنا</h2><p>القالب مصمم لعرض الهوية والقائمة والعروض بطريقة سريعة ومتجاوبة على جميع الشاشات.</p>
+        </section>
+    </main>
+</body>
+</html>

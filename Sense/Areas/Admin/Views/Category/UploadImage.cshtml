@@ -1,44 +1,470 @@
-﻿@using Sense.Application.DTOs.CategoryDTOs
+@using Sense.Application.DTOs.CategoryDTOs
 @model UploadCategoryImageDto
 @{
-    var id = ViewBag.Id;
+    var id = ViewBag.Id ?? Model?.Id;
+    ViewData["title"] = "تجهيز صورة الفئة";
 }
-<form asp-controller="Category" asp-action="UploadImage" enctype="multipart/form-data" method="POST">
-    <input type="hidden" value="@id" asp-for="Id" />
-    <div class="row mt-5 container">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h3 class="card-title">ارفع صورة الصنف</h3>
-            </div>
-           
-            <div class="alert alert-info m-3 text-right">
-                <h5 class="alert-heading mb-2">
-                    <i class="fas fa-info-circle ml-2"></i>
-                    تعليمات رفع الصورة:
-                </h5>
-                <ul class="list-unstyled mb-0">
-                    <li>• يجب أن تكون الصورة بصيغة JPEG , PNG أو JPG </li>
-                    <li>• الحد الأقصى لحجم كل ملف: 5 ميجابايت (5000 كيلوبايت)</li>
-                </ul>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <label for="image">صورة الصنف</label>
-                        <input type="file" class="form-control" id="image" asp-for="Image">
+
+@section Styles {
+    <link rel="stylesheet" href="~/assets/plugins/custom/cropper/cropper.bundle.css" asp-append-version="true" />
+
+    <style>
+        .category-crop-page {
+            max-width: 1100px;
+            margin-inline: auto;
+        }
+
+        .category-crop-card {
+            overflow: hidden;
+            border: 1px solid #e7eaf0;
+            border-radius: 18px;
+            background: #fff;
+            box-shadow: 0 8px 28px rgba(6, 28, 66, 0.08);
+        }
+
+        .category-crop-card__header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 22px 24px;
+            color: #fff;
+            background: linear-gradient(135deg, #061c42, #253f8e);
+        }
+
+        .category-crop-card__icon {
+            display: grid;
+            flex: 0 0 auto;
+            place-items: center;
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            color: #061c42;
+            background: #c2932c;
+            font-size: 1.3rem;
+        }
+
+        .category-crop-card__header h1 {
+            margin: 0 0 4px;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .category-crop-card__header p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.82rem;
+        }
+
+        .category-crop-card__body {
+            padding: 24px;
+        }
+
+        .category-crop-upload {
+            position: relative;
+            display: grid;
+            place-items: center;
+            min-height: 150px;
+            padding: 24px;
+            border: 2px dashed #cbd3e1;
+            border-radius: 14px;
+            text-align: center;
+            background: #f8faff;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .category-crop-upload:hover,
+        .category-crop-upload:focus-within {
+            border-color: #253f8e;
+            background: #f2f5fc;
+        }
+
+        .category-crop-upload input {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .category-crop-upload i {
+            margin-bottom: 9px;
+            color: #253f8e;
+            font-size: 2rem;
+        }
+
+        .category-crop-upload strong {
+            display: block;
+            color: #061c42;
+            font-size: 0.95rem;
+        }
+
+        .category-crop-upload span {
+            display: block;
+            margin-top: 5px;
+            color: #768196;
+            font-size: 0.78rem;
+        }
+
+        .category-crop-workspace {
+            display: none;
+            margin-top: 22px;
+        }
+
+        .category-crop-workspace.is-visible {
+            display: block;
+        }
+
+        .category-crop-canvas {
+            width: 100%;
+            height: 460px;
+            overflow: hidden;
+            border: 1px solid #dfe4ec;
+            border-radius: 14px;
+            background: #eef2f8;
+        }
+
+        .category-crop-canvas img {
+            display: block;
+            max-width: 100%;
+        }
+
+        .category-crop-tools {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .category-crop-tool {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 40px;
+            padding: 8px 13px;
+            border: 1px solid #dfe4ec;
+            border-radius: 10px;
+            color: #061c42;
+            background: #fff;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .category-crop-tool:hover,
+        .category-crop-tool:focus-visible {
+            border-color: #253f8e;
+            color: #253f8e;
+            outline: none;
+        }
+
+        .category-crop-hint {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 18px;
+            padding: 13px 15px;
+            border-radius: 11px;
+            color: #6d541c;
+            background: #fff8e6;
+            font-size: 0.8rem;
+            line-height: 1.7;
+        }
+
+        .category-crop-error {
+            display: none;
+            margin-top: 12px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            color: #9f2525;
+            background: #fff0f0;
+            font-size: 0.82rem;
+        }
+
+        .category-crop-error.is-visible {
+            display: block;
+        }
+
+        .category-crop-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .category-crop-submit {
+            min-width: 170px;
+            border: 0;
+            border-radius: 11px;
+            color: #fff;
+            background: #061c42;
+            font-weight: 800;
+        }
+
+        .category-crop-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @@media (max-width: 767px) {
+            .category-crop-card__body {
+                padding: 16px;
+            }
+
+            .category-crop-canvas {
+                height: 330px;
+            }
+
+            .category-crop-submit,
+            .category-crop-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+}
+
+<div class="category-crop-page py-5" dir="rtl">
+    <form id="categoryImageForm"
+          asp-area="Admin"
+          asp-controller="Category"
+          asp-action="UploadImage"
+          enctype="multipart/form-data"
+          method="post">
+        <input type="hidden" value="@id" asp-for="Id" />
+
+        <section class="category-crop-card">
+            <header class="category-crop-card__header">
+                <span class="category-crop-card__icon"><i class="bi bi-crop"></i></span>
+                <div>
+                    <h1>تجهيز صورة الفئة</h1>
+                    <p>اختر الصورة، ثم حرّكها أو كبّرها داخل إطار القص قبل الرفع.</p>
+                </div>
+            </header>
+
+            <div class="category-crop-card__body">
+                <label class="category-crop-upload" for="categoryImageInput">
+                    <input id="categoryImageInput"
+                           asp-for="Image"
+                           type="file"
+                           accept="image/jpeg,image/png,.jpg,.jpeg,.png"
+                           required />
+                    <span>
+                        <i class="bi bi-cloud-arrow-up"></i>
+                        <strong>اضغط لاختيار صورة الفئة</strong>
+                        <span>JPEG أو PNG — بحد أقصى 5 ميجابايت</span>
+                    </span>
+                </label>
+
+                <div id="categoryCropError" class="category-crop-error" role="alert"></div>
+
+                <div id="categoryCropWorkspace" class="category-crop-workspace">
+                    <div class="category-crop-canvas">
+                        <img id="categoryCropImage" alt="معاينة صورة الفئة قبل القص" />
+                    </div>
+
+                    <div class="category-crop-tools" aria-label="أدوات ضبط الصورة">
+                        <button type="button" class="category-crop-tool" data-crop-action="zoom-in">
+                            <i class="bi bi-zoom-in"></i> تكبير
+                        </button>
+                        <button type="button" class="category-crop-tool" data-crop-action="zoom-out">
+                            <i class="bi bi-zoom-out"></i> تصغير
+                        </button>
+                        <button type="button" class="category-crop-tool" data-crop-action="rotate-left">
+                            <i class="bi bi-arrow-counterclockwise"></i> تدوير لليسار
+                        </button>
+                        <button type="button" class="category-crop-tool" data-crop-action="rotate-right">
+                            <i class="bi bi-arrow-clockwise"></i> تدوير لليمين
+                        </button>
+                        <button type="button" class="category-crop-tool" data-crop-action="reset">
+                            <i class="bi bi-arrow-repeat"></i> إعادة الضبط
+                        </button>
                     </div>
                 </div>
 
+                <div class="category-crop-hint">
+                    <i class="bi bi-info-circle"></i>
+                    <span>سيتم حفظ الصورة بنسبة 16:10 وبأبعاد موحّدة، لتظهر جميع بطاقات الفئات بشكل متناسق واحترافي.</span>
+                </div>
 
-                <div class="row mt-3">
-                    <div class="col-lg-1 col-md-2 col-sm-4  mb-4">
-                        <button type="submit" class="btn btn-primary btn-create">إضافة</button>
-                    </div>
-                    <div class="col-lg-1 col-md-2 col-sm-4  mb-4">
-                        <input type="reset" class="btn btn-warning" value="إعادة الضبط">
-                    </div>
+                <div class="category-crop-actions">
+                    <button id="categoryCropSubmit" type="submit" class="btn category-crop-submit" disabled>
+                        <i class="bi bi-check2-circle me-1"></i>
+                        قص الصورة ورفعها
+                    </button>
+                    <button id="categoryCropReset" type="reset" class="btn btn-light">
+                        إعادة اختيار الصورة
+                    </button>
+                    <a asp-area="Admin" asp-controller="Category" asp-action="Index" class="btn btn-light">
+                        إلغاء
+                    </a>
                 </div>
             </div>
-        </div>
-    </div>
-</form>
+        </section>
+    </form>
+</div>
+
+@section scripts {
+    <script src="~/assets/plugins/custom/cropper/cropper.bundle.js" asp-append-version="true"></script>
+    <script>
+        (function () {
+            "use strict";
+
+            var form = document.getElementById("categoryImageForm");
+            var input = document.getElementById("categoryImageInput");
+            var image = document.getElementById("categoryCropImage");
+            var workspace = document.getElementById("categoryCropWorkspace");
+            var submitButton = document.getElementById("categoryCropSubmit");
+            var resetButton = document.getElementById("categoryCropReset");
+            var errorBox = document.getElementById("categoryCropError");
+            var cropper = null;
+            var objectUrl = null;
+            var isPreparingImage = false;
+
+            function showError(message) {
+                errorBox.textContent = message;
+                errorBox.classList.add("is-visible");
+            }
+
+            function clearError() {
+                errorBox.textContent = "";
+                errorBox.classList.remove("is-visible");
+            }
+
+            function destroyCropper() {
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+
+                if (objectUrl) {
+                    URL.revokeObjectURL(objectUrl);
+                    objectUrl = null;
+                }
+            }
+
+            input.addEventListener("change", function () {
+                clearError();
+                destroyCropper();
+                workspace.classList.remove("is-visible");
+                submitButton.disabled = true;
+
+                var file = input.files && input.files[0];
+                if (!file) {
+                    return;
+                }
+
+                if (!["image/jpeg", "image/png"].includes(file.type)) {
+                    input.value = "";
+                    showError("يرجى اختيار صورة بصيغة JPEG أو PNG فقط.");
+                    return;
+                }
+
+                if (file.size > 5 * 1024 * 1024) {
+                    input.value = "";
+                    showError("حجم الصورة يتجاوز الحد الأقصى المسموح وهو 5 ميجابايت.");
+                    return;
+                }
+
+                objectUrl = URL.createObjectURL(file);
+                image.onload = function () {
+                    workspace.classList.add("is-visible");
+                    cropper = new Cropper(image, {
+                        aspectRatio: 16 / 10,
+                        viewMode: 1,
+                        dragMode: "move",
+                        autoCropArea: 0.92,
+                        responsive: true,
+                        restore: false,
+                        guides: true,
+                        center: true,
+                        highlight: false,
+                        background: false,
+                        movable: true,
+                        zoomable: true,
+                        rotatable: true,
+                        scalable: false,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                        ready: function () {
+                            submitButton.disabled = false;
+                        }
+                    });
+                };
+                image.src = objectUrl;
+            });
+
+            document.querySelectorAll("[data-crop-action]").forEach(function (button) {
+                button.addEventListener("click", function () {
+                    if (!cropper) return;
+
+                    switch (button.dataset.cropAction) {
+                        case "zoom-in": cropper.zoom(0.1); break;
+                        case "zoom-out": cropper.zoom(-0.1); break;
+                        case "rotate-left": cropper.rotate(-90); break;
+                        case "rotate-right": cropper.rotate(90); break;
+                        case "reset": cropper.reset(); break;
+                    }
+                });
+            });
+
+            resetButton.addEventListener("click", function () {
+                destroyCropper();
+                clearError();
+                workspace.classList.remove("is-visible");
+                submitButton.disabled = true;
+                image.removeAttribute("src");
+            });
+
+            form.addEventListener("submit", function (event) {
+                if (isPreparingImage) {
+                    return;
+                }
+
+                event.preventDefault();
+                clearError();
+
+                if (!cropper) {
+                    showError("اختر صورة واضبط إطار القص قبل الرفع.");
+                    return;
+                }
+
+                isPreparingImage = true;
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> جاري تجهيز الصورة...';
+
+                var canvas = cropper.getCroppedCanvas({
+                    width: 1200,
+                    height: 750,
+                    fillColor: "#ffffff",
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: "high"
+                });
+
+                if (!canvas) {
+                    isPreparingImage = false;
+                    submitButton.disabled = false;
+                    showError("تعذر تجهيز الصورة. يرجى اختيار صورة أخرى.");
+                    return;
+                }
+
+                canvas.toBlob(function (blob) {
+                    if (!blob) {
+                        isPreparingImage = false;
+                        submitButton.disabled = false;
+                        showError("تعذر قص الصورة. يرجى المحاولة مرة أخرى.");
+                        return;
+                    }
+
+                    var croppedFile = new File([blob], "category-@id.jpg", { type: "image/jpeg" });
+                    var transfer = new DataTransfer();
+                    transfer.items.add(croppedFile);
+                    input.files = transfer.files;
+                    form.submit();
+                }, "image/jpeg", 0.9);
+            });
+        })();
+    </script>
+}

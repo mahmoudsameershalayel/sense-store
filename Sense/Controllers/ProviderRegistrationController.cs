@@ -16,6 +16,8 @@ namespace Sense.Controllers
     public class ProviderRegistrationController : Controller
     {
         private const long MaximumProfileImageSize = 5 * 1024 * 1024;
+        private const string RestaurantCategoryKey = "restaurant";
+        private const string RestaurantTemplateKey = "restaurant-modern";
 
         private readonly SenseDbContext _context;
         private readonly UserManager<ApplicationUserTbl> _userManager;
@@ -38,7 +40,98 @@ namespace Sense.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index() => View(new ProviderRegistrationViewModel());
+        public async Task<IActionResult> Index(
+            string? categoryKey,
+            string? templateKey,
+            CancellationToken cancellationToken)
+        {
+            var category = await ResolveCategoryAsync(categoryKey, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(categoryKey) && category is null)
+                return RedirectToAction(nameof(ChooseCategory));
+
+            if (!string.IsNullOrWhiteSpace(templateKey)
+                && (category is null || !category.IsRestaurant || templateKey != RestaurantTemplateKey))
+            {
+                return RedirectToAction(nameof(Templates), new { categoryKey });
+            }
+
+            return View(new ProviderRegistrationViewModel
+            {
+                BusinessCategoryKey = category?.Key,
+                BusinessCategoryName = category?.Name,
+                StorefrontTemplateKey = templateKey
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ChooseCategory(CancellationToken cancellationToken)
+        {
+            var categories = await _context.CategoryTbls
+                .AsNoTracking()
+                .Where(category => !category.IsDeleted && category.IsActive)
+                .OrderBy(category => category.Name)
+                .Select(category => new ProviderCategoryChoiceViewModel
+                {
+                    Key = $"category-{category.Id}",
+                    Name = category.Name ?? "تصنيف بدون اسم",
+                    ImageUrl = category.ImageURL,
+                    IsRestaurant = category.Name != null
+                        && (category.Name.Contains("مطعم") || category.Name.Contains("مطاعم"))
+                })
+                .ToListAsync(cancellationToken);
+
+            if (!categories.Any(category => category.IsRestaurant))
+            {
+                categories.Insert(0, new ProviderCategoryChoiceViewModel
+                {
+                    Key = RestaurantCategoryKey,
+                    Name = "المطاعم",
+                    IsRestaurant = true
+                });
+            }
+
+            return View(new ProviderCategorySelectionViewModel { Categories = categories });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Templates(string categoryKey, CancellationToken cancellationToken)
+        {
+            var category = await ResolveCategoryAsync(categoryKey, cancellationToken);
+            if (category is null)
+                return RedirectToAction(nameof(ChooseCategory));
+
+            var templates = category.IsRestaurant
+                ? new[]
+                {
+                    new ProviderTemplateChoiceViewModel
+                    {
+                        Key = RestaurantTemplateKey,
+                        Name = "مطعم عصري",
+                        Description = "واجهة طلب سريعة مع عروض بارزة، أقسام قائمة الطعام، وبطاقات منتجات واضحة."
+                    }
+                }
+                : Array.Empty<ProviderTemplateChoiceViewModel>();
+
+            return View(new ProviderTemplateSelectionViewModel
+            {
+                CategoryKey = category.Key,
+                CategoryName = category.Name,
+                Templates = templates
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> RestaurantPreview(
+            string categoryKey = RestaurantCategoryKey,
+            CancellationToken cancellationToken = default)
+        {
+            var category = await ResolveCategoryAsync(categoryKey, cancellationToken);
+            if (category is null || !category.IsRestaurant)
+                return NotFound();
+
+            ViewBag.CategoryKey = category.Key;
+            return View();
+        }
 
         [HttpGet]
         public IActionResult Terms() => View();
@@ -50,6 +143,18 @@ namespace Sense.Controllers
             ProviderRegistrationViewModel model,
             CancellationToken cancellationToken)
         {
+            var category = await ResolveCategoryAsync(model.BusinessCategoryKey, cancellationToken);
+            model.BusinessCategoryName = category?.Name;
+
+            if (!string.IsNullOrWhiteSpace(model.BusinessCategoryKey) && category is null)
+                ModelState.AddModelError(nameof(model.BusinessCategoryKey), "فئة النشاط المختارة غير صالحة.");
+
+            if (!string.IsNullOrWhiteSpace(model.StorefrontTemplateKey)
+                && (category is null || !category.IsRestaurant || model.StorefrontTemplateKey != RestaurantTemplateKey))
+            {
+                ModelState.AddModelError(nameof(model.StorefrontTemplateKey), "قالب المتجر المختار غير متاح لهذه الفئة.");
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -129,6 +234,8 @@ namespace Sense.Controllers
                     Description = businessDescription,
                     LogoURL = imageUrl,
                     PhoneNumber = model.PhoneNumber.Trim(),
+                    BusinessCategoryKey = category?.Key,
+                    StorefrontTemplateKey = model.StorefrontTemplateKey,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 };
@@ -152,6 +259,49 @@ namespace Sense.Controllers
             }
 
             return RedirectToAction("Login", "Account");
+        }
+
+        private async Task<ProviderCategoryChoiceViewModel?> ResolveCategoryAsync(
+            string? categoryKey,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(categoryKey))
+                return null;
+
+            if (string.Equals(categoryKey, RestaurantCategoryKey, StringComparison.OrdinalIgnoreCase))
+            {
+                return new ProviderCategoryChoiceViewModel
+                {
+                    Key = RestaurantCategoryKey,
+                    Name = "المطاعم",
+                    IsRestaurant = true
+                };
+            }
+
+            const string prefix = "category-";
+            if (!categoryKey.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+                || !int.TryParse(categoryKey[prefix.Length..], out var categoryId))
+            {
+                return null;
+            }
+
+            var category = await _context.CategoryTbls
+                .AsNoTracking()
+                .Where(item => item.Id == categoryId && !item.IsDeleted && item.IsActive)
+                .Select(item => new { item.Id, item.Name, item.ImageURL })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (category is null)
+                return null;
+
+            var categoryName = category.Name ?? "تصنيف بدون اسم";
+            return new ProviderCategoryChoiceViewModel
+            {
+                Key = $"category-{category.Id}",
+                Name = categoryName,
+                ImageUrl = category.ImageURL,
+                IsRestaurant = categoryName.Contains("مطعم") || categoryName.Contains("مطاعم")
+            };
         }
 
         private void AddIdentityErrors(IdentityResult result)

@@ -38,6 +38,28 @@
             border-radius: 999px;
         }
 
+        .provider-registration-selection {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem 1.1rem;
+            border: 1px solid rgba(37, 63, 142, 0.16);
+            border-radius: 14px;
+            background: #f5f7fc;
+        }
+
+        .provider-registration-selection strong {
+            display: block;
+            color: #061c42;
+        }
+
+        .provider-registration-selection span {
+            color: #667085;
+            font-size: 0.86rem;
+        }
+
             .provider-registration-submit:hover,
             .provider-registration-submit:focus {
                 background-color: #061c42;
@@ -118,6 +140,28 @@
                       enctype="multipart/form-data">
 
                     @Html.AntiForgeryToken()
+
+                    <input asp-for="BusinessCategoryKey" type="hidden" />
+                    <input asp-for="StorefrontTemplateKey" type="hidden" />
+
+                    @if (!string.IsNullOrWhiteSpace(Model.BusinessCategoryName))
+                    {
+                        <div class="provider-registration-selection">
+                            <div>
+                                <span>اختيارك الحالي</span>
+                                <strong>
+                                    @Model.BusinessCategoryName
+                                    @if (Model.StorefrontTemplateKey == "restaurant-modern")
+                                    {
+                                        <text> · قالب مطعم عصري</text>
+                                    }
+                                </strong>
+                            </div>
+                            <a asp-controller="ProviderRegistration"
+                               asp-action="ChooseCategory"
+                               class="btn btn-sm btn-outline-primary">تغيير الاختيار</a>
+                        </div>
+                    }
 
                     <div asp-validation-summary="ModelOnly"
                          class="alert alert-danger"

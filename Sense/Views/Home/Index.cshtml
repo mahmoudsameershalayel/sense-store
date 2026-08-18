@@ -7,7 +7,6 @@
 @model BannerDto
 @{
     var categories = ViewBag.Categories;
-    var products = ViewBag.Products as PagedList<ProductTbl>;
     var heroImageUrl = Model?.ImageURL;
     var brands = ViewBag.Brands;
     var cashbackOffers = ViewBag.CashbackOffers as List<CashbackOfferDto>;
@@ -15,13 +14,6 @@
 
     var heroTitle = !string.IsNullOrWhiteSpace(Model?.TitleAr) ? Model.TitleAr : "كل ما تحتاجه في مكان واحد";
     var heroSummary = !string.IsNullOrWhiteSpace(Model?.SummaryAr) ? Model.SummaryAr : "تسوّق تشكيلة متنوعة من المنتجات المميزة بأسعار منافسة، مع تجربة طلب سهلة وخدمة تهتم بكل التفاصيل من الطلب حتى الاستلام.";
-
-    var searchTerm = ViewBag.SearchTerm as string;
-    var productCategoryId = ViewBag.ProductCategoryId;
-    var productBrandId = ViewBag.ProductBrandId;
-    var ProductModelId = ViewBag.ProductModelId;
-
-    var isFiltered = !string.IsNullOrWhiteSpace(searchTerm) || productCategoryId != null || productBrandId != null || ProductModelId != null;
 
     var activeCashback = cashbackOffers?.Where(c => c.IsActive).ToList() ?? new List<CashbackOfferDto>();
     // Legacy (maintenance-center era): free-maintenance offers are no longer shown on the storefront.
@@ -35,13 +27,6 @@
     }
 
     <style type="text/css">
-        .swiper-slide {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: auto;
-        }
-
         .swiper-button-prev,
         .swiper-button-next {
             color: var(--sf-navy);
@@ -69,10 +54,6 @@
                 <p class="sf-hero__text">@heroSummary</p>
             }
             <div class="sf-hero__actions">
-                <a href="/Product/Index" class="sf-btn sf-btn--light">
-                    <i class="bi bi-bag"></i>
-                    تسوّق الآن
-                </a>
                 <a href="#categories" class="sf-btn sf-btn--outline" style="color:#fff;border-color:rgba(255,255,255,.5);">
                     <i class="bi bi-grid"></i>
                     تصفح الفئات
@@ -120,8 +101,10 @@
 
 @await Component.InvokeAsync("Categories")
 
-@await Component.InvokeAsync("Providers")
+@* The providers section is intentionally disabled on the storefront home page. *@
+@* @await Component.InvokeAsync("Providers") *@
 
+@* The products section is intentionally disabled on the storefront home page.
 <!-- قسم المنتجات -->
 <section class="sf-section sf-section--muted" dir="rtl">
     <div class="container">
@@ -181,6 +164,7 @@
         </div>
     </div>
 </section>
+*@
 
 <!-- العروض الحالية -->
 @if (activeCashback.Any() || activeMaintenance.Any())
@@ -384,9 +368,7 @@
             });
         })();
 
-        /*********************************
-         * 1?? INFINITE SCROLL PRODUCTS
-         *********************************/
+        @* Home-page products are disabled, so infinite product loading is disabled too.
         (function () {
             var container = document.getElementById('productsContainer');
             var loader = document.getElementById('productsLoader');
@@ -454,25 +436,30 @@
 
             observer.observe(sentinel);
         })();
+        *@
 
         /*********************************
          * 2?? CATEGORY SWIPER
          *********************************/
         new Swiper(".categorySwiper", {
-            slidesPerView: 5,
-            spaceBetween: 16,
-            freeMode: true,
+            slidesPerView: 1.35,
+            spaceBetween: 12,
+            speed: 500,
+            grabCursor: true,
+            watchOverflow: true,
             navigation: {
-                nextEl: ".swiper-button-next",
-                prevEl: ".swiper-button-prev"
+                nextEl: ".sf-categories__next",
+                prevEl: ".sf-categories__prev"
             },
             breakpoints: {
-                0: { slidesPerView: 3 },
-                576: { slidesPerView: 4 },
-                992: { slidesPerView: 6 }
+                480: { slidesPerView: 2.15, spaceBetween: 14 },
+                768: { slidesPerView: 3, spaceBetween: 16 },
+                992: { slidesPerView: 4, spaceBetween: 18 },
+                1200: { slidesPerView: 5, spaceBetween: 18 }
             }
         });
 
+        @* Home-page providers are disabled, so their carousel is disabled too.
         new Swiper(".providerSwiper", {
             slidesPerView: 5,
             spaceBetween: 16,
@@ -487,6 +474,7 @@
                 992: { slidesPerView: 6 }
             }
         });
+        *@
 
 
         /*****************************************

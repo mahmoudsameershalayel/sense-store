@@ -86,17 +86,9 @@ namespace Sense.Controllers
         {
             var banner = await _storefrontData.GetBannerAsync();
 
-            var pagedProducts = await GetPagedProductsAsync(searchTerm, ProductCategoryId, ProductBrandId, ProductModelId, 1, pageSize);
-
             var cashbackOffers = await _storefrontData.GetCashbackOffersAsync();
 
-            ViewBag.Products = pagedProducts;
             ViewBag.CashbackOffers = cashbackOffers;
-
-            ViewBag.SearchTerm = searchTerm;
-            ViewBag.ProductCategoryId = ProductCategoryId;
-            ViewBag.ProductBrandId = ProductBrandId;
-            ViewBag.ProductModelId = ProductModelId;
 
             return View(banner);
         }

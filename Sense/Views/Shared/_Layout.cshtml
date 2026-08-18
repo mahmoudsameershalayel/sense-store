@@ -1136,7 +1136,7 @@
             @await Component.InvokeAsync("Branding", new { variant = "desktop" })
 
             <div class="header-search">
-                @await Component.InvokeAsync("SearchBar", new { formAction = "Index", placeholder = "ابحث عن منتجك المفضل..." })
+                @await Component.InvokeAsync("SearchBar", new { placeholder = "ابحث عن فئة محددة..." })
             </div>
 
             <div class="d-flex align-items-center gap-4">
@@ -1223,6 +1223,7 @@
 
     <!-- Template Main JS File -->
     <script src="~/assets/js/arshamain.js" asp-append-version="true"></script>
+    <script src="~/js/category-search.js" asp-append-version="true" defer></script>
     @if (showTourismPlatformAd)
     {
         <script src="~/js/tourism-platform-ad.js" asp-append-version="true" defer></script>

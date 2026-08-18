@@ -1,0 +1,104 @@
+@model Sense.Models.ProviderRegistration.ProviderCategorySelectionViewModel
+
+@{
+    ViewData["Title"] = "اختر فئة نشاطك";
+}
+
+@section Styles
+{
+    <link rel="stylesheet" href="~/css/provider-onboarding.css" asp-append-version="true" />
+}
+
+<main class="po-page" dir="rtl">
+    <section class="po-hero">
+        <div class="container">
+            <div class="po-steps" aria-label="خطوات الانضمام">
+                <span class="is-active"><b>1</b> الفئة</span>
+                <span><b>2</b> القالب</span>
+                <span><b>3</b> التسجيل</span>
+            </div>
+            <span class="po-kicker"><i class="bi bi-grid"></i> ابدأ متجرك</span>
+            <h1>ما فئة نشاطك التجاري؟</h1>
+            <p>اختر الفئة الأقرب لنشاطك، وسنعرض لك القوالب المصممة خصيصاً لها.</p>
+        </div>
+    </section>
+
+    <section class="po-content">
+        <div class="container">
+            <form asp-controller="ProviderRegistration"
+                  asp-action="Templates"
+                  method="get"
+                  class="po-category-form"
+                  data-category-form>
+                <div class="po-toolbar">
+                    <label class="po-search">
+                        <i class="bi bi-search"></i>
+                        <input type="search"
+                               placeholder="ابحث عن فئة نشاطك..."
+                               autocomplete="off"
+                               data-category-search />
+                    </label>
+                    <span><b>@Model.Categories.Count</b> فئة متاحة</span>
+                </div>
+
+                <div class="po-category-grid" data-category-grid>
+                    @for (var index = 0; index < Model.Categories.Count; index++)
+                    {
+                        var category = Model.Categories[index];
+                        var inputId = $"provider-category-{index}";
+
+                        <div class="po-category-option" data-category-name="@category.Name">
+                            <input id="@inputId"
+                                   type="radio"
+                                   name="categoryKey"
+                                   value="@category.Key"
+                                   required />
+                            <label for="@inputId">
+                                <span class="po-category-option__visual @(category.IsRestaurant ? "is-restaurant" : string.Empty)">
+                                    @if (!string.IsNullOrWhiteSpace(category.ImageUrl))
+                                    {
+                                        <img src="@category.ImageUrl"
+                                             alt=""
+                                             loading="lazy"
+                                             decoding="async" />
+                                    }
+                                    else
+                                    {
+                                        <i class="bi @(category.IsRestaurant ? "bi-cup-hot" : "bi-grid")"></i>
+                                    }
+                                </span>
+                                <span class="po-category-option__name">@category.Name</span>
+                                @if (category.IsRestaurant)
+                                {
+                                    <small>يتوفر قالب جاهز</small>
+                                }
+                                <span class="po-category-option__check"><i class="bi bi-check-lg"></i></span>
+                            </label>
+                        </div>
+                    }
+                </div>
+
+                <div class="po-no-results" hidden data-category-empty>
+                    <i class="bi bi-search"></i>
+                    <strong>لم نجد فئة مطابقة</strong>
+                    <span>جرّب كتابة اسم مختلف.</span>
+                </div>
+
+                <div class="po-actions">
+                    <a asp-controller="Home" asp-action="Index" class="po-btn po-btn--ghost">
+                        العودة للرئيسية
+                    </a>
+                    <button type="submit" class="po-btn po-btn--primary" disabled data-category-next>
+                        التالي: اختر القالب
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+
+@section Scripts
+{
+    <script src="~/js/provider-onboarding.js" asp-append-version="true" defer></script>
+}

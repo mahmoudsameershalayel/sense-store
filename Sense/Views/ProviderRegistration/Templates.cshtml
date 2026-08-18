@@ -1,0 +1,92 @@
+@model Sense.Models.ProviderRegistration.ProviderTemplateSelectionViewModel
+
+@{
+    ViewData["Title"] = "اختر قالب متجرك";
+}
+
+@section Styles
+{
+    <link rel="stylesheet" href="~/css/provider-onboarding.css" asp-append-version="true" />
+}
+
+<main class="po-page" dir="rtl">
+    <section class="po-hero po-hero--compact">
+        <div class="container">
+            <div class="po-steps" aria-label="خطوات الانضمام">
+                <span class="is-complete"><b><i class="bi bi-check-lg"></i></b> الفئة</span>
+                <span class="is-active"><b>2</b> القالب</span>
+                <span><b>3</b> التسجيل</span>
+            </div>
+            <span class="po-kicker"><i class="bi bi-palette"></i> @Model.CategoryName</span>
+            <h1>اختر الواجهة المناسبة لنشاطك</h1>
+            <p>يمكنك معاينة القالب بالحجم الكامل قبل اعتماده.</p>
+        </div>
+    </section>
+
+    <section class="po-content">
+        <div class="container">
+            @if (Model.Templates.Any())
+            {
+                <div class="po-template-grid">
+                    @foreach (var template in Model.Templates)
+                    {
+                        <article class="po-template-card">
+                            <div class="po-template-demo" aria-hidden="true">
+                                <div class="po-template-demo__top">
+                                    <span class="po-template-demo__logo"><i class="bi bi-cup-hot"></i></span>
+                                    <span></span><span></span>
+                                    <b>اطلب الآن</b>
+                                </div>
+                                <div class="po-template-demo__hero">
+                                    <div><small>طعم يستحق التجربة</small><strong>وجبتك المفضلة<br />أقرب إليك</strong></div>
+                                    <span class="po-template-demo__dish">🍕</span>
+                                </div>
+                                <div class="po-template-demo__categories">
+                                    <span>العروض</span><span>البيتزا</span><span>المقبلات</span><span>المشروبات</span>
+                                </div>
+                                <div class="po-template-demo__products"><span></span><span></span><span></span></div>
+                            </div>
+
+                            <div class="po-template-card__body">
+                                <div>
+                                    <span class="po-template-badge">متاح الآن</span>
+                                    <h2>@template.Name</h2>
+                                    <p>@template.Description</p>
+                                </div>
+                                <div class="po-template-card__actions">
+                                    <a asp-action="RestaurantPreview"
+                                       asp-route-categoryKey="@Model.CategoryKey"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="po-btn po-btn--ghost">
+                                        <i class="bi bi-eye"></i> معاينة كاملة
+                                    </a>
+                                    <a asp-action="Index"
+                                       asp-route-categoryKey="@Model.CategoryKey"
+                                       asp-route-templateKey="@template.Key"
+                                       class="po-btn po-btn--primary">
+                                        اختيار هذا القالب <i class="bi bi-arrow-left"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="po-empty">
+                    <span><i class="bi bi-hourglass-split"></i></span>
+                    <h2>قوالب هذه الفئة قيد التجهيز</h2>
+                    <p>سنضيف تصاميم مناسبة لفئة @Model.CategoryName قريباً.</p>
+                </div>
+            }
+
+            <div class="po-actions po-actions--start">
+                <a asp-action="ChooseCategory" class="po-btn po-btn--ghost">
+                    <i class="bi bi-arrow-right"></i> تغيير الفئة
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
